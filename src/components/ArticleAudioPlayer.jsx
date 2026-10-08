@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { streamArticleAudio } from '../services/inworldTts'
 import './ArticleAudioPlayer.css'
 
 export default function ArticleAudioPlayer({ articleTitle, articleText, onClose }) {
+  const [engine, setEngine] = useState('inworld') // 'inworld' | 'speechSynthesis'
   const [chunksMap, setChunksMap] = useState({})
   const [totalChunksCount, setTotalChunksCount] = useState(1)
   const [currentChunkIndex, setCurrentChunkIndex] = useState(0)
@@ -14,23 +15,96 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
   const [error, setError] = useState(null)
 
   const audioElementRef = useRef(null)
-  const chunksMapRef = useRef({})
+  const speechSynthUtteranceRef = useRef(null)
+  const speechTimerRef = useRef(null)
+  const speechElapsedRef = useRef(0)
 
-  // Keep ref synchronized
-  useEffect(() => {
-    chunksMapRef.current = chunksMap
-  }, [chunksMap])
+  // Estimated reading duration in seconds (~150 words per minute)
+  const estimatedTotalDuration = Math.max(
+    30,
+    Math.round(((articleText || '').split(/\s+/).length / 150) * 60)
+  )
 
-  // Initialize the Audio instance once
+  // Helper to pick best natural voice for Web Speech API
+  const getBestVoice = useCallback(() => {
+    if (!('speechSynthesis' in window)) return null
+    const voices = window.speechSynthesis.getVoices()
+    return (
+      voices.find(v => v.lang.includes('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Neural') || v.name.includes('Samantha') || v.name.includes('Karen'))) ||
+      voices.find(v => v.lang.startsWith('en')) ||
+      voices[0] ||
+      null
+    )
+  }, [])
+
+  // Start Speech Synthesis fallback
+  const startSpeechSynthesis = useCallback(() => {
+    if (!('speechSynthesis' in window)) {
+      setError('Audio narration is not supported in this browser.')
+      setIsLoading(false)
+      return
+    }
+
+    setEngine('speechSynthesis')
+    setIsLoading(false)
+    setDuration(estimatedTotalDuration)
+
+    window.speechSynthesis.cancel()
+
+    // Clean text of markdown/tags
+    const cleanSpeech = articleText
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&mdash;/g, ' — ')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    const utterance = new SpeechSynthesisUtterance(cleanSpeech)
+    utterance.rate = playbackRate
+    utterance.pitch = 1.0
+
+    const bestVoice = getBestVoice()
+    if (bestVoice) utterance.voice = bestVoice
+
+    utterance.onstart = () => {
+      setIsPlaying(true)
+      setError(null)
+      speechElapsedRef.current = 0
+      clearInterval(speechTimerRef.current)
+      speechTimerRef.current = setInterval(() => {
+        speechElapsedRef.current += 0.5 * playbackRate
+        setCurrentTime(Math.min(speechElapsedRef.current, estimatedTotalDuration))
+      }, 500)
+    }
+
+    utterance.onend = () => {
+      setIsPlaying(false)
+      clearInterval(speechTimerRef.current)
+      setCurrentTime(estimatedTotalDuration)
+    }
+
+    utterance.onerror = (e) => {
+      if (e.error !== 'canceled' && e.error !== 'interrupted') {
+        console.warn('Speech synthesis error:', e)
+      }
+      setIsPlaying(false)
+      clearInterval(speechTimerRef.current)
+    }
+
+    speechSynthUtteranceRef.current = utterance
+    window.speechSynthesis.speak(utterance)
+  }, [articleText, playbackRate, estimatedTotalDuration, getBestVoice])
+
+  // Initialize Inworld Audio instance
   useEffect(() => {
     const audio = new Audio()
     audioElementRef.current = audio
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime)
-    const handleLoadedMetadata = () => setDuration(audio.duration || 0)
+    const handleLoadedMetadata = () => setDuration(audio.duration || estimatedTotalDuration)
     const handleError = () => {
-      setError('Audio playback error.')
-      setIsPlaying(false)
+      // If Inworld audio element errors, fallback to speech synthesis
+      startSpeechSynthesis()
     }
 
     audio.addEventListener('timeupdate', handleTimeUpdate)
@@ -44,9 +118,9 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
       audio.pause()
       audio.src = ''
     }
-  }, [])
+  }, [estimatedTotalDuration, startSpeechSynthesis])
 
-  // Start streaming synthesis on mount
+  // Try Inworld Streaming on mount; on 402 / error immediately fallback to Web Speech
   useEffect(() => {
     let active = true
 
@@ -59,25 +133,28 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
         [index]: blobUrl
       }))
 
-      // As soon as chunk 0 is ready, stop loading so audio starts immediately
       if (index === 0) {
         setIsLoading(false)
       }
     }).catch((err) => {
-      if (active) {
-        console.error('TTS Streaming error:', err)
-        setError('Failed to generate speech. Please try again.')
-        setIsLoading(false)
-      }
+      if (!active) return
+      console.info('Switching to native voice narration engine (Inworld fallback):', err.message || err)
+      startSpeechSynthesis()
     })
 
     return () => {
       active = false
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel()
+      }
+      clearInterval(speechTimerRef.current)
     }
-  }, [articleText])
+  }, [articleText, startSpeechSynthesis])
 
-  // Play current chunk whenever it becomes ready or when chunkIndex changes
+  // Play Inworld chunk when URL becomes ready
   useEffect(() => {
+    if (engine !== 'inworld') return
+
     const audio = audioElementRef.current
     const currentUrl = chunksMap[currentChunkIndex]
 
@@ -101,16 +178,36 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
       .play()
       .then(() => setIsPlaying(true))
       .catch((e) => {
-        console.log('Autoplay deferred or error:', e)
-        setIsPlaying(false)
+        console.log('Audio playback info:', e)
       })
 
     return () => {
       audio.removeEventListener('ended', handleEnded)
     }
-  }, [chunksMap, currentChunkIndex, playbackRate, totalChunksCount])
+  }, [chunksMap, currentChunkIndex, playbackRate, totalChunksCount, engine])
 
   const togglePlayPause = () => {
+    if (engine === 'speechSynthesis') {
+      if (!('speechSynthesis' in window)) return
+      if (isPlaying) {
+        window.speechSynthesis.pause()
+        setIsPlaying(false)
+        clearInterval(speechTimerRef.current)
+      } else {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume()
+          setIsPlaying(true)
+          speechTimerRef.current = setInterval(() => {
+            speechElapsedRef.current += 0.5 * playbackRate
+            setCurrentTime(Math.min(speechElapsedRef.current, estimatedTotalDuration))
+          }, 500)
+        } else {
+          startSpeechSynthesis()
+        }
+      }
+      return
+    }
+
     const audio = audioElementRef.current
     if (!audio) return
 
@@ -128,6 +225,14 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
   const handleSpeedToggle = () => {
     const nextRate = playbackRate === 1 ? 1.25 : playbackRate === 1.25 ? 1.5 : 1
     setPlaybackRate(nextRate)
+
+    if (engine === 'speechSynthesis') {
+      if (isPlaying) {
+        startSpeechSynthesis()
+      }
+      return
+    }
+
     if (audioElementRef.current) {
       audioElementRef.current.playbackRate = nextRate
     }
@@ -135,6 +240,12 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
 
   const handleSeek = (e) => {
     const seekTarget = parseFloat(e.target.value)
+    if (engine === 'speechSynthesis') {
+      setCurrentTime(seekTarget)
+      speechElapsedRef.current = seekTarget
+      return
+    }
+
     if (audioElementRef.current) {
       audioElementRef.current.currentTime = seekTarget
       setCurrentTime(seekTarget)
@@ -178,7 +289,7 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
           <div className="audio-status-row">
             <span className="audio-tag">
               {isLoading
-                ? 'CONNECTING TO INWORLD AI...'
+                ? 'INITIALIZING VOICE NARRATION...'
                 : isPlaying
                 ? 'LISTENING TO ARTICLE'
                 : 'PAUSED'}
@@ -203,13 +314,13 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
               type="range"
               className="audio-scrubber"
               min="0"
-              max={duration || 1}
+              max={duration || estimatedTotalDuration || 1}
               step="0.1"
               value={currentTime}
               onChange={handleSeek}
               aria-label="Audio scrubber"
             />
-            <span className="audio-time">{formatTime(duration)}</span>
+            <span className="audio-time">{formatTime(duration || estimatedTotalDuration)}</span>
           </div>
         )}
 
@@ -231,6 +342,10 @@ export default function ArticleAudioPlayer({ articleTitle, articleText, onClose 
             if (audioElementRef.current) {
               audioElementRef.current.pause()
             }
+            if ('speechSynthesis' in window) {
+              window.speechSynthesis.cancel()
+            }
+            clearInterval(speechTimerRef.current)
             if (onClose) onClose()
           }}
           title="Close audio reader"

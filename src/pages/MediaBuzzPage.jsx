@@ -172,10 +172,6 @@ export default function MediaBuzzPage() {
     })
   }, [articlesList, activeType, searchQuery])
 
-  const featuredStories = useMemo(() => {
-    return articlesList.filter((item) => item.featured)
-  }, [articlesList])
-
   return (
     <>
       <SEO
@@ -192,67 +188,6 @@ export default function MediaBuzzPage() {
           </div>
           <h1 className="buzz-headline">Media Buzz</h1>
         </header>
-
-        {/* Featured Headlines Section */}
-        {activeType === 'all' && !searchQuery && (
-          <section className="buzz-featured-section">
-            <div className="featured-section-badge">FEATURED PRESS & HEADLINES</div>
-            <div className="featured-grid">
-              {featuredStories.map((story) => (
-                <article key={story.id} className={`featured-story-card ${!story.image ? 'no-image-card' : ''}`}>
-                  {story.image && (
-                    <div
-                      className={`featured-image-container ${story.isClipping ? 'is-clipping-card' : ''}`}
-                      onClick={() => {
-                        if (story.isClipping) {
-                          setLightboxImage({ src: story.image, title: story.title })
-                        }
-                      }}
-                    >
-                      <img
-                        src={story.image}
-                        alt={story.title}
-                        className="featured-card-img"
-                      />
-                      <span className="featured-card-outlet-tag">{story.outlet}</span>
-                      {story.isClipping && (
-                        <span className="clipping-zoom-hint" title="Click to view full clipping">
-                          🔍 Click to Zoom Clipping
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  <div className="featured-card-content">
-                    {!story.image && (
-                      <div className="card-top-outlet-bar">
-                        <span className="featured-card-outlet-tag inline">{story.outlet}</span>
-                        <span className="card-category-badge-text">{story.badge}</span>
-                      </div>
-                    )}
-                    <span className="featured-card-date">{story.date} · {story.readTime}</span>
-                    <h2 className="featured-card-title">{story.title}</h2>
-                    <p className="featured-card-excerpt">{story.excerpt}</p>
-                    <div className="featured-card-tags">
-                      {story.tags.map((tag, idx) => (
-                        <span key={idx} className="buzz-tag-pill">{tag}</span>
-                      ))}
-                    </div>
-                    {story.articleUrl && (
-                      <a
-                        href={story.articleUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="featured-card-read-link"
-                      >
-                        Read Full Story on {story.outlet} &rarr;
-                      </a>
-                    )}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Filter Controls Bar */}
         <div className="buzz-controls-bar">

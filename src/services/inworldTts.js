@@ -7,7 +7,7 @@ const TTS_ENDPOINT = 'https://api.inworld.ai/tts/v1/voice'
 const audioCache = new Map()
 
 /**
- * Splits article text into manageable speech segments (first chunk ~250-400 chars for instant playback, then ~800-1000 chars)
+ * Splits article text into manageable speech segments
  */
 function splitIntoNaturalChunks(text) {
   if (!text) return []
@@ -22,7 +22,6 @@ function splitIntoNaturalChunks(text) {
     const p = paragraphs[i].trim()
     if (!p) continue
 
-    // First chunk is kept compact so playback starts lightning-fast
     const maxLimit = chunks.length === 0 ? 350 : 850
 
     if (!current) {
@@ -63,7 +62,9 @@ async function fetchInworldAudioChunk(text) {
 
   if (!response.ok) {
     const errText = await response.text().catch(() => '')
-    throw new Error(`Inworld TTS Error (${response.status}): ${errText || response.statusText}`)
+    const err = new Error(`Inworld TTS Error (${response.status}): ${errText || response.statusText}`)
+    err.status = response.status
+    throw err
   }
 
   const data = await response.json()
@@ -90,25 +91,20 @@ function base64ToBlobUrl(base64String, mimeType = 'audio/mp3') {
 }
 
 /**
- * High-speed streaming synthesis pipeline:
- * Synthesizes and delivers chunk 0 immediately for instant playback,
- * while downloading subsequent chunks in parallel background workers.
- *
- * @param {string} text Full article text
- * @param {function} onChunkReady Callback when any chunk is synthesized: (blobUrl, index, totalChunks)
+ * High-speed streaming synthesis pipeline with Inworld AI
  */
 export async function streamArticleAudio(text, onChunkReady) {
   const chunks = splitIntoNaturalChunks(text)
   if (chunks.length === 0) return
 
-  // 1. Immediately fetch the first chunk for instant start
+  // 1. Immediately fetch the first chunk
   const firstBase64 = await fetchInworldAudioChunk(chunks[0])
   const firstBlobUrl = base64ToBlobUrl(firstBase64)
   if (onChunkReady) {
     onChunkReady(firstBlobUrl, 0, chunks.length)
   }
 
-  // 2. Concurrently pipeline all remaining chunks in parallel in the background
+  // 2. Concurrently pipeline remaining chunks in parallel
   if (chunks.length > 1) {
     const remainingPromises = chunks.slice(1).map(async (chunk, relIdx) => {
       const actualIdx = relIdx + 1
@@ -123,7 +119,6 @@ export async function streamArticleAudio(text, onChunkReady) {
       }
     })
 
-    // Let parallel requests process in background without blocking first chunk playback
     Promise.allSettled(remainingPromises)
   }
 }
