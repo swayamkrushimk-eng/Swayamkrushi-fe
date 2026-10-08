@@ -195,52 +195,72 @@ export default function MediaBuzzPage() {
 
         {/* Media Coverage Grid */}
         <div className="buzz-articles-grid">
-          {articlesList.map((article) => (
-            <article key={article.id} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
-              {article.image && (
-                <div
-                  className={`buzz-card-media ${article.isClipping ? 'is-clipping-card' : ''}`}
-                  onClick={() => {
-                    if (article.isClipping) {
-                      setLightboxImage({ src: article.image, title: article.title })
-                    }
-                  }}
+          {articlesList.map((article) => {
+            const isImageOnly = article.imageOnly || (article.id === 'hindu-35-years-milestone' && article.image)
+
+            if (isImageOnly) {
+              return (
+                <article
+                  key={article.id}
+                  className="buzz-article-card image-only-card"
+                  onClick={() => setLightboxImage({ src: article.image, title: article.title || article.outlet })}
                 >
-                  <img src={article.image} alt={article.title} className="buzz-card-img" />
-                  <span className="buzz-outlet-badge">{article.outlet}</span>
-                  {article.isClipping && (
+                  <div className="buzz-card-media is-clipping-card full-card-image">
+                    <img src={article.image} alt={article.title || article.outlet} className="buzz-card-img" />
+                    <span className="buzz-outlet-badge">{article.outlet}</span>
                     <span className="clipping-zoom-hint">🔍 Zoom</span>
+                  </div>
+                </article>
+              )
+            }
+
+            return (
+              <article key={article.id} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
+                {article.image && (
+                  <div
+                    className={`buzz-card-media ${article.isClipping ? 'is-clipping-card' : ''}`}
+                    onClick={() => {
+                      if (article.isClipping) {
+                        setLightboxImage({ src: article.image, title: article.title })
+                      }
+                    }}
+                  >
+                    <img src={article.image} alt={article.title} className="buzz-card-img" />
+                    <span className="buzz-outlet-badge">{article.outlet}</span>
+                    {article.isClipping && (
+                      <span className="clipping-zoom-hint">🔍 Zoom</span>
+                    )}
+                  </div>
+                )}
+                <div className="buzz-card-body">
+                  {!article.image && (
+                    <div className="card-top-outlet-bar">
+                      <span className="buzz-outlet-badge inline">{article.outlet}</span>
+                      <span className="buzz-card-category">{article.badge}</span>
+                    </div>
+                  )}
+                  <div className="buzz-card-meta">
+                    {article.image && <span className="buzz-card-category">{article.badge}</span>}
+                    <span className="buzz-card-date">{article.date} · {article.readTime}</span>
+                  </div>
+                  <h3 className="buzz-card-title">{article.title}</h3>
+                  <p className="buzz-card-excerpt">{article.excerpt}</p>
+                  {article.articleUrl && (
+                    <div className="buzz-card-footer">
+                      <a
+                        href={article.articleUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="buzz-card-link-btn"
+                      >
+                        Read on {article.outlet} &rarr;
+                      </a>
+                    </div>
                   )}
                 </div>
-              )}
-              <div className="buzz-card-body">
-                {!article.image && (
-                  <div className="card-top-outlet-bar">
-                    <span className="buzz-outlet-badge inline">{article.outlet}</span>
-                    <span className="buzz-card-category">{article.badge}</span>
-                  </div>
-                )}
-                <div className="buzz-card-meta">
-                  {article.image && <span className="buzz-card-category">{article.badge}</span>}
-                  <span className="buzz-card-date">{article.date} · {article.readTime}</span>
-                </div>
-                <h3 className="buzz-card-title">{article.title}</h3>
-                <p className="buzz-card-excerpt">{article.excerpt}</p>
-                {article.articleUrl && (
-                  <div className="buzz-card-footer">
-                    <a
-                      href={article.articleUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="buzz-card-link-btn"
-                    >
-                      Read on {article.outlet} &rarr;
-                    </a>
-                  </div>
-                )}
-              </div>
-            </article>
-          ))}
+              </article>
+            )
+          })}
         </div>
       </div>
 
