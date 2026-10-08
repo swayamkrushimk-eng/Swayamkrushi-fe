@@ -36,6 +36,7 @@ function App() {
         <Route path="/insiders" element={<InsidersPage />} />
         <Route path="/insideros" element={<InsidersPage />} />
         <Route path="/committee" element={<CommitteePage />} />
+        <Route path="/who-is-who" element={<CommitteePage />} />
         <Route path="/managing-committee" element={<CommitteePage />} />
         <Route path="/about/committee" element={<CommitteePage />} />
         <Route path="/media-buzz" element={<MediaBuzzPage />} />

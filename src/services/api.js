@@ -1,4 +1,3 @@
-// Frontend API Service for Swayamkrushi Backend (MongoDB + Cloudinary + LocalStorage Resilience)
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.swayamkrushi.org/api'
 
 // ─── VISITOR ANALYTICS TRACKING ──────────────────────────────────────────
@@ -67,8 +66,8 @@ export async function fetchSettings() {
   return _memorySettings || {
     orgName: 'Swayamkrushi',
     tagline: 'A Haven for the Mentally Challenged Since 1987',
-    phone1: '+91 9704245454',
-    phone2: '+91 9963766729',
+    phone1: '+91 XXXXXXXXXX',
+    phone2: '',
     email: 'swayamkrushimk@gmail.com',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
     regNo: 'Registered under Societies Registration Act & National Trust Act',

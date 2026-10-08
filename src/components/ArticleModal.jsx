@@ -32,9 +32,6 @@ export default function ArticleModal({ article, onClose }) {
         <div className="article-modal-header">
           {article.category && <span className="article-modal-category">{article.category}</span>}
           <h2 className="article-modal-title">{article.title}</h2>
-          {article.attribution && (
-            <p className="article-modal-attribution">&mdash; {article.attribution}</p>
-          )}
         </div>
         <div className="article-modal-body">
           {article.paragraphs && article.paragraphs.map((para, idx) => (

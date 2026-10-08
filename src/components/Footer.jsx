@@ -11,8 +11,8 @@ export default function Footer() {
     orgName: 'Swayamkrushi',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
     visitingHours: 'Open 10am to 4pm, Monday to Saturday.',
-    phone1: '+91 9704245454',
-    phone2: '+91 9963766729',
+    phone1: '+91 XXXXXXXXXX',
+    phone2: '',
     email: 'swayamkrushimk@gmail.com',
     regNo: 'Reg. No. 3608/1991'
   })
@@ -99,30 +99,16 @@ export default function Footer() {
               <div className="footer-reach-item">
                 <span className="footer-reach-label">Direct Phone Lines</span>
                 <div className="footer-phones-list">
-                  {settings.phone1 && (
-                    <a
-                      href={`tel:${settings.phone1.replace(/\s+/g, '')}`}
-                      className="footer-contact-link footer-phone-link"
-                      title={`Call ${settings.phone1}`}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                      </svg>
-                      {settings.phone1}
-                    </a>
-                  )}
-                  {settings.phone2 && (
-                    <a
-                      href={`tel:${settings.phone2.replace(/\s+/g, '')}`}
-                      className="footer-contact-link footer-phone-link"
-                      title={`Call ${settings.phone2}`}
-                    >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
-                      </svg>
-                      {settings.phone2}
-                    </a>
-                  )}
+                  <a
+                    href="tel:+91XXXXXXXXXX"
+                    className="footer-contact-link footer-phone-link"
+                    title="Direct Phone Line"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                    </svg>
+                    {settings.phone1 && !settings.phone1.includes('9704245454') ? settings.phone1 : '+91 XXXXXXXXXX'}
+                  </a>
                 </div>
               </div>
 
@@ -159,12 +145,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/insiders">
-                  Insiders Video Stories
+                  Insiders View
                 </Link>
               </li>
               <li>
                 <Link to="/committee">
-                  Managing Committee
+                  Who is Who
                 </Link>
               </li>
               <li>
@@ -203,7 +189,7 @@ export default function Footer() {
               <span>·</span>
               <a href="#programs" onClick={(e) => { e.preventDefault(); handleNavAnchor('programs'); }}>Programs</a>
               <span>·</span>
-              <Link to="/insiders">Insiders</Link>
+              <Link to="/insiders">Insiders view</Link>
               <span>·</span>
               <a href="#give" onClick={(e) => { e.preventDefault(); handleNavAnchor('give'); }}>Give</a>
               <span>·</span>

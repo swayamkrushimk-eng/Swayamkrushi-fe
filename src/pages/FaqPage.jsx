@@ -54,8 +54,8 @@ export default function FaqPage() {
     'faq-bed-recognition': true
   })
   const [siteSettings, setSiteSettings] = useState({
-    phone1: '+91 9704245454',
-    phone2: '+91 9963766729',
+    phone1: '+91 XXXXXXXXXX',
+    phone2: '',
     email: 'swayamkrushimk@gmail.com'
   })
   const navigate = useNavigate()
@@ -133,14 +133,7 @@ export default function FaqPage() {
 
       {/* Hero Header */}
       <header className="faq-hero-header">
-        <div className="faq-badge">
-          <span className="faq-badge-dot" />
-          <span>GUIDANCE &amp; INFORMATION</span>
-        </div>
         <h1 className="faq-main-headline">Frequently asked Questions</h1>
-        <p className="faq-intro-lead">
-          Find clear answers regarding admissions, developmental care, group homes, volunteer opportunities, donor transparency, and our recognized academic programmes.
-        </p>
       </header>
 
       {/* FAQ Accordion List */}

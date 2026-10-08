@@ -110,7 +110,6 @@ export default function ArticleCard(props) {
 
       <h4>{title}</h4>
       <p>{excerpt}</p>
-      {attribution && <p className="rail-attrib">&mdash; {attribution}</p>}
       <span className="rail-more">{mediaInfo.isVideo ? 'Watch & read story →' : 'Read more'}</span>
     </Link>
   )

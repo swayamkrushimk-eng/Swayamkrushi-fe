@@ -1,24 +1,58 @@
 import { useState, useEffect } from 'react'
 import manjulaPortrait from '../assets/images/manjula-portrait.png'
-import workshopSvg from '../assets/images/workshop.svg'
 import { rightSideArticles } from '../data/articlesData'
-import { articleImagesMap } from '../data/allArticles'
+import { allArticles } from '../data/allArticles'
 import { fetchArticles } from '../services/api'
 import ArticleCard from './ArticleCard'
 
 export default function FounderRail() {
-  const [articles, setArticles] = useState(rightSideArticles)
+  const [apiArticles, setApiArticles] = useState([])
 
   useEffect(() => {
-    fetchArticles({ section: 'right' }).then((data) => {
+    fetchArticles().then((data) => {
       if (data && Array.isArray(data) && data.length > 0) {
-        setArticles(data)
+        setApiArticles(data)
       }
     })
   }, [])
 
-  const existingStory = articles[0] || rightSideArticles[0]
-  const newRightArticles = articles.slice(1)
+  const findArticle = (id, fallbackIds = []) => {
+    const ids = [id, ...fallbackIds]
+    for (const testId of ids) {
+      const fromApi = apiArticles.find((a) => a.id === testId)
+      if (fromApi) return fromApi
+      const fromRight = rightSideArticles.find((a) => a.id === testId)
+      if (fromRight) return fromRight
+      const fromAll = allArticles.find((a) => a.id === testId)
+      if (fromAll) return fromAll
+    }
+    return null
+  }
+
+  // 1. Manjula's Musings (3 articles)
+  const musingIds = [
+    'story-encounter',
+    'story-group-homes-initiative',
+    'story-womens-empowerment'
+  ]
+  const musingArticles = musingIds
+    .map((id) => findArticle(id))
+    .filter(Boolean)
+
+  // 2. Activities galore (8 articles in exact requested order)
+  const activitiesConfig = [
+    { id: 'story-fifteen-years', fallbacks: ['story-15-years'] },
+    { id: 'story-art-equaliser' },
+    { id: 'story-nios' },
+    { id: 'story-paper-bag' },
+    { id: 'story-exercise' },
+    { id: 'story-sowing-seeds', fallbacks: ['story-tailoring'] },
+    { id: 'story-kitchen' },
+    { id: 'story-covid' }
+  ]
+  const activitiesArticles = activitiesConfig
+    .map((item) => findArticle(item.id, item.fallbacks))
+    .filter(Boolean)
 
   return (
     <aside className="shoulder right">
@@ -29,20 +63,15 @@ export default function FounderRail() {
         <p>Founder and director.</p>
       </div>
 
-      <ArticleCard
-        key={existingStory.id}
-        {...existingStory}
-      />
+      {musingArticles.map((article) => (
+        <ArticleCard
+          key={article.id}
+          {...article}
+        />
+      ))}
 
-      <div className="rail-head">Watch</div>
-      <a className="rail-item" href="#programs">
-        <img src={workshopSvg} alt="A vocational workshop in progress" />
-        <h4>Inside the workshop</h4>
-        <p>Two minutes on the vocational floor, where the two-year course is taught.</p>
-      </a>
-
-      <div className="rail-head" style={{ marginTop: '16px' }}>More Stories</div>
-      {newRightArticles.map((article) => (
+      <div className="rail-head" style={{ marginTop: '20px' }}>Activities galore</div>
+      {activitiesArticles.map((article) => (
         <ArticleCard
           key={article.id}
           {...article}

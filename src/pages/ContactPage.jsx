@@ -18,8 +18,8 @@ const INQUIRY_TYPES = [
 export default function ContactPage() {
   const navigate = useNavigate()
   const [settings, setSettings] = useState({
-    phone1: '+91 9704245454',
-    phone2: '+91 9963766729',
+    phone1: '+91 XXXXXXXXXX',
+    phone2: '',
     email: 'swayamkrushimk@gmail.com',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
     visitingHours: 'Mon – Sat: 10 am – 4 pm'
@@ -125,10 +125,9 @@ export default function ContactPage() {
             </div>
             <div className="contact-info-text">
               <h3>Phone</h3>
-              <a href={`tel:${(settings.phone1 || '').replace(/\s+/g, '')}`}>{settings.phone1}</a>
-              {settings.phone2 && (
-                <a href={`tel:${settings.phone2.replace(/\s+/g, '')}`}>{settings.phone2}</a>
-              )}
+              <a href={`tel:${((settings.phone1 && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 XXXXXXXXXX').replace(/\s+/g, '')}`}>
+                {(settings.phone1 && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 XXXXXXXXXX'}
+              </a>
             </div>
           </div>
 
