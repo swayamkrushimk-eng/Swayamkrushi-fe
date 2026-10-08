@@ -1,0 +1,111 @@
+.page-loader-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #f7f4ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: all;
+}
+
+.page-loader-overlay.page-loader-fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.page-loader-card {
+  text-align: center;
+  max-width: 380px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-loader-logo-wrap {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.page-loader-logo {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  border-radius: 50%;
+  animation: pageLoaderPulse 2s ease-in-out infinite;
+}
+
+.page-loader-spinner-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid rgba(110, 30, 56, 0.15);
+  border-top-color: #6e1e38;
+  border-right-color: #d97706;
+  animation: pageLoaderSpin 0.9s cubic-bezier(0.6, 0.2, 0.4, 0.8) infinite;
+}
+
+.page-loader-title {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 19px;
+  font-weight: 800;
+  color: #2d161e;
+  letter-spacing: 2.5px;
+  margin: 0 0 6px 0;
+  text-transform: uppercase;
+}
+
+.page-loader-sub {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 11.5px;
+  color: #776e65;
+  margin: 0 0 20px 0;
+  line-height: 1.4;
+  letter-spacing: 0.3px;
+}
+
+.page-loader-progress-bar {
+  width: 140px;
+  height: 3px;
+  background: rgba(110, 30, 56, 0.12);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.page-loader-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(90deg, #6e1e38, #d97706);
+  border-radius: 999px;
+  animation: pageLoaderProgress 1.4s ease-in-out infinite;
+}
+
+@keyframes pageLoaderSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes pageLoaderPulse {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes pageLoaderProgress {
+  0% { left: -45%; width: 45%; }
+  50% { width: 65%; }
+  100% { left: 100%; width: 45%; }
+}

@@ -10,6 +10,7 @@ import InsidersPage from './pages/InsidersPage'
 import AddonsPage from './pages/AddonsPage'
 import ContactPage from './pages/ContactPage'
 import CommitteePage from './pages/CommitteePage'
+import MediaBuzzPage from './pages/MediaBuzzPage'
 import { trackPageView } from './services/api'
 
 function PageTracker() {
@@ -37,6 +38,9 @@ function App() {
         <Route path="/committee" element={<CommitteePage />} />
         <Route path="/managing-committee" element={<CommitteePage />} />
         <Route path="/about/committee" element={<CommitteePage />} />
+        <Route path="/media-buzz" element={<MediaBuzzPage />} />
+        <Route path="/mediabuzz" element={<MediaBuzzPage />} />
+        <Route path="/media" element={<MediaBuzzPage />} />
         <Route path="/addons" element={<AddonsPage />} />
         <Route path="/add-ons" element={<AddonsPage />} />
         <Route path="/contact" element={<ContactPage />} />

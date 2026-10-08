@@ -1021,8 +1021,16 @@
   animation: modalPop 0.2s ease-out;
 }
 
-.admin-modal-lg {
+.admin-modal-lg,
+.admin-modal-wide {
   max-width: 820px;
+}
+
+.admin-upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 @keyframes modalPop {

@@ -126,16 +126,19 @@ export default function Navbar() {
             </ul>
           </li>
           <li>
-            <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>Director’s voice</Link>
+            <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>Manjula's Musings</Link>
           </li>
           <li>
             <Link to="/accolades" onClick={() => setMobileMenuOpen(false)}>Accolades</Link>
           </li>
           <li>
-            <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
+            <Link to="/media-buzz" onClick={() => setMobileMenuOpen(false)}>Media buzz</Link>
           </li>
           <li>
             <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insiders</Link>
+          </li>
+          <li>
+            <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
           </li>
           <li>
             <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>

@@ -237,6 +237,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/media-buzz">
+                  Media Buzz & Press
+                </Link>
+              </li>
+              <li>
                 <Link to="/faqs">
                   Frequently Asked Questions
                 </Link>

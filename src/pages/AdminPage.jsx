@@ -23,8 +23,18 @@ import {
   fetchInquiries,
   updateInquiryStatus,
   deleteInquiry,
-  uploadImage
+  uploadImage,
+  fetchCommitteeMembers,
+  createCommitteeMember,
+  updateCommitteeMember,
+  deleteCommitteeMember,
+  fetchMediaBuzz,
+  createMediaBuzz,
+  updateMediaBuzz,
+  deleteMediaBuzz
 } from '../services/api'
+import { COMMITTEE_MEMBERS as DEFAULT_COMMITTEE_MEMBERS } from './CommitteePage'
+import { MEDIA_ARTICLES as DEFAULT_MEDIA_ARTICLES } from './MediaBuzzPage'
 import './AdminPage.css'
 
 export default function AdminPage() {
@@ -35,16 +45,18 @@ export default function AdminPage() {
   const [authLoading, setAuthLoading] = useState(false)
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState('dashboard') // dashboard, articles, accolades, certificates, faqs, inquiries, settings
+  const [activeTab, setActiveTab] = useState('dashboard') // dashboard, committee, mediabuzz, articles, accolades, certificates, faqs, inquiries, settings
 
   // Toast notifications
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
 
   // Dashboard Stats
-  const [stats, setStats] = useState({ articles: 0, accolades: 0, certificates: 0, faqs: 0, inquiries: 0, unreadInquiries: 0 })
+  const [stats, setStats] = useState({ articles: 0, accolades: 0, certificates: 0, faqs: 0, inquiries: 0, unreadInquiries: 0, committee: 0, mediaBuzz: 0 })
 
   // Data states
   const [articles, setArticles] = useState([])
+  const [committeeMembers, setCommitteeMembers] = useState([])
+  const [mediaBuzzItems, setMediaBuzzItems] = useState([])
   const [accolades, setAccolades] = useState({ featured: null, timeline: [] })
   const [certificates, setCertificates] = useState([])
   const [faqs, setFaqs] = useState([])
@@ -67,6 +79,8 @@ export default function AdminPage() {
   // Loading & Filter states
   const [loading, setLoading] = useState(false)
   const [articleSectionFilter, setArticleSectionFilter] = useState('all')
+  const [committeeCategoryFilter, setCommitteeCategoryFilter] = useState('all')
+  const [mediaTypeFilter, setMediaTypeFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   // Modal / Form states
@@ -81,6 +95,45 @@ export default function AdminPage() {
     attribution: 'Swayamkrushi Archives',
     imageUrl: '',
     imageAlt: '',
+    featured: false,
+    order: 0
+  })
+
+  const [editingCommitteeMember, setEditingCommitteeMember] = useState(null)
+  const [showCommitteeModal, setShowCommitteeModal] = useState(false)
+  const [committeeForm, setCommitteeForm] = useState({
+    id: '',
+    name: '',
+    role: 'Executive Member',
+    roleCategory: 'Executive',
+    designation: '',
+    credentials: '',
+    badge: 'EXECUTIVE MEMBER',
+    colorTheme: 'burgundy',
+    image: '',
+    bio: '',
+    tags: '',
+    initials: '',
+    order: 0
+  })
+
+  const [editingMediaBuzz, setEditingMediaBuzz] = useState(null)
+  const [showMediaBuzzModal, setShowMediaBuzzModal] = useState(false)
+  const [mediaBuzzForm, setMediaBuzzForm] = useState({
+    id: '',
+    title: '',
+    outlet: '',
+    outletType: 'Print & Newspapers',
+    date: '',
+    category: 'General Coverage',
+    badge: 'MEDIA SPOTLIGHT',
+    image: '',
+    isClipping: false,
+    excerpt: '',
+    readTime: 'Read Report',
+    tags: '',
+    articleUrl: '',
+    shareUrl: '',
     featured: false,
     order: 0
   })
@@ -167,14 +220,16 @@ export default function AdminPage() {
   const loadInitialData = async () => {
     setLoading(true)
     try {
-      const [statsData, settingsData, articlesData, accoladesData, faqsData, inqData, certsData] = await Promise.all([
+      const [statsData, settingsData, articlesData, accoladesData, faqsData, inqData, certsData, committeeData, mediaData] = await Promise.all([
         fetchAdminStats(),
         fetchSettings(),
         fetchArticles(),
         fetchAccolades(),
         fetchFaqs(),
         fetchInquiries(),
-        fetchCertificates()
+        fetchCertificates(),
+        fetchCommitteeMembers(),
+        fetchMediaBuzz()
       ])
       if (statsData) setStats(statsData)
       if (settingsData) setSettings(settingsData)
@@ -192,6 +247,22 @@ export default function AdminPage() {
       }
       if (faqsData) setFaqs(faqsData)
       if (inqData) setInquiries(inqData)
+
+      // Committee
+      if (Array.isArray(committeeData) && committeeData.length > 0) {
+        setCommitteeMembers(committeeData)
+      } else {
+        setCommitteeMembers(DEFAULT_COMMITTEE_MEMBERS)
+        localStorage.setItem('swayamkrushi_committee_members', JSON.stringify(DEFAULT_COMMITTEE_MEMBERS))
+      }
+
+      // Media Buzz
+      if (Array.isArray(mediaData) && mediaData.length > 0) {
+        setMediaBuzzItems(mediaData)
+      } else {
+        setMediaBuzzItems(DEFAULT_MEDIA_ARTICLES)
+        localStorage.setItem('swayamkrushi_media_buzz', JSON.stringify(DEFAULT_MEDIA_ARTICLES))
+      }
     } catch (err) {
       console.error('Error loading data:', err)
       showNotification('Error loading initial data: ' + err.message, 'error')
@@ -310,7 +381,193 @@ export default function AdminPage() {
     }
   }
 
-  // ─── ACCOLADES ACTIONS ──────────────────────────────────────────────────
+  // ─── MANAGING COMMITTEE ACTIONS ──────────────────────────────────────────
+  const openNewCommitteeModal = () => {
+    setEditingCommitteeMember(null)
+    setCommitteeForm({
+      id: '',
+      name: '',
+      role: 'Executive Member',
+      roleCategory: 'Executive',
+      designation: '',
+      credentials: '',
+      badge: 'EXECUTIVE MEMBER',
+      colorTheme: 'burgundy',
+      image: '',
+      bio: '',
+      tags: '',
+      initials: '',
+      order: committeeMembers.length + 1
+    })
+    setShowCommitteeModal(true)
+  }
+
+  const openEditCommitteeModal = (member) => {
+    setEditingCommitteeMember(member)
+    setCommitteeForm({
+      id: member.id || member._id || '',
+      name: member.name || '',
+      role: member.role || '',
+      roleCategory: member.roleCategory || 'General',
+      designation: member.designation || '',
+      credentials: member.credentials || '',
+      badge: member.badge || '',
+      colorTheme: member.colorTheme || 'burgundy',
+      image: member.image || '',
+      bio: member.bio || '',
+      tags: Array.isArray(member.tags) ? member.tags.join(', ') : (member.tags || ''),
+      initials: member.initials || '',
+      order: member.order || 0
+    })
+    setShowCommitteeModal(true)
+  }
+
+  const handleSaveCommittee = async (e) => {
+    e.preventDefault()
+    try {
+      const parsedTags = typeof committeeForm.tags === 'string'
+        ? committeeForm.tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : (committeeForm.tags || [])
+
+      const initials = committeeForm.initials || committeeForm.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+
+      const payload = {
+        ...committeeForm,
+        tags: parsedTags,
+        initials
+      }
+
+      if (editingCommitteeMember) {
+        await updateCommitteeMember(editingCommitteeMember.id || editingCommitteeMember._id, payload)
+        showNotification(`Committee member "${payload.name}" updated successfully!`)
+      } else {
+        await createCommitteeMember(payload)
+        showNotification(`New committee member "${payload.name}" added successfully!`)
+      }
+      setShowCommitteeModal(false)
+      const refreshed = await fetchCommitteeMembers()
+      if (refreshed) setCommitteeMembers(refreshed)
+      const st = await fetchAdminStats()
+      if (st) setStats(st)
+    } catch (err) {
+      showNotification('Failed to save committee member: ' + err.message, 'error')
+    }
+  }
+
+  const handleDeleteCommittee = async (id, name) => {
+    if (!window.confirm(`Are you sure you want to remove "${name}" from the Managing Committee?`)) return
+    try {
+      await deleteCommitteeMember(id)
+      showNotification(`Committee member "${name}" removed.`)
+      setCommitteeMembers((prev) => prev.filter((m) => m.id !== id && m._id !== id))
+      const st = await fetchAdminStats()
+      if (st) setStats(st)
+    } catch (err) {
+      showNotification('Failed to remove committee member: ' + err.message, 'error')
+    }
+  }
+
+  // ─── MEDIA BUZZ & PRESS ACTIONS ──────────────────────────────────────────
+  const openNewMediaBuzzModal = () => {
+    setEditingMediaBuzz(null)
+    setMediaBuzzForm({
+      id: '',
+      title: '',
+      outlet: '',
+      outletType: 'Print & Newspapers',
+      date: '',
+      category: 'General Coverage',
+      badge: 'MEDIA SPOTLIGHT',
+      image: '',
+      isClipping: false,
+      excerpt: '',
+      readTime: 'Read Report',
+      tags: '',
+      articleUrl: '',
+      shareUrl: '',
+      featured: false,
+      order: mediaBuzzItems.length + 1
+    })
+    setShowMediaBuzzModal(true)
+  }
+
+  const openEditMediaBuzzModal = (item) => {
+    setEditingMediaBuzz(item)
+    setMediaBuzzForm({
+      id: item.id || item._id || '',
+      title: item.title || '',
+      outlet: item.outlet || '',
+      outletType: item.outletType || 'Print & Newspapers',
+      date: item.date || '',
+      category: item.category || '',
+      badge: item.badge || '',
+      image: item.image || '',
+      isClipping: !!item.isClipping,
+      excerpt: item.excerpt || '',
+      readTime: item.readTime || '',
+      tags: Array.isArray(item.tags) ? item.tags.join(', ') : (item.tags || ''),
+      articleUrl: item.articleUrl || '',
+      shareUrl: item.shareUrl || '',
+      featured: !!item.featured,
+      order: item.order || 0
+    })
+    setShowMediaBuzzModal(true)
+  }
+
+  const handleSaveMediaBuzz = async (e) => {
+    e.preventDefault()
+    try {
+      const parsedTags = typeof mediaBuzzForm.tags === 'string'
+        ? mediaBuzzForm.tags.split(',').map((t) => t.trim()).filter(Boolean)
+        : (mediaBuzzForm.tags || [])
+
+      const payload = {
+        ...mediaBuzzForm,
+        tags: parsedTags
+      }
+
+      if (editingMediaBuzz) {
+        await updateMediaBuzz(editingMediaBuzz.id || editingMediaBuzz._id, payload)
+        showNotification(`Media article "${payload.title}" updated successfully!`)
+      } else {
+        await createMediaBuzz(payload)
+        showNotification(`New media article "${payload.title}" published!`)
+      }
+      setShowMediaBuzzModal(false)
+      const refreshed = await fetchMediaBuzz()
+      if (refreshed) setMediaBuzzItems(refreshed)
+      const st = await fetchAdminStats()
+      if (st) setStats(st)
+    } catch (err) {
+      showNotification('Failed to save media article: ' + err.message, 'error')
+    }
+  }
+
+  const handleDeleteMediaBuzz = async (id, title) => {
+    if (!window.confirm(`Are you sure you want to delete media article "${title}"?`)) return
+    try {
+      await deleteMediaBuzz(id)
+      showNotification('Media article deleted.')
+      setMediaBuzzItems((prev) => prev.filter((a) => a.id !== id && a._id !== id))
+      const st = await fetchAdminStats()
+      if (st) setStats(st)
+    } catch (err) {
+      showNotification('Failed to delete media article: ' + err.message, 'error')
+    }
+  }
+
+  const handleToggleFeaturedBuzz = async (item) => {
+    try {
+      const updated = { ...item, featured: !item.featured }
+      await updateMediaBuzz(item.id || item._id, updated)
+      setMediaBuzzItems((prev) =>
+        prev.map((a) => (a.id === item.id || a._id === item._id ? updated : a))
+      )
+      showNotification(`Toggled featured status for "${item.title}"`)
+    } catch (err) {
+      showNotification('Failed to update featured status: ' + err.message, 'error')
+    }
+  }
   const openNewAccoladeModal = () => {
     setEditingAccolade(null)
     setAccoladeForm({
@@ -514,6 +771,42 @@ export default function AdminPage() {
     return matchesSection && matchesSearch
   })
 
+  // Filtered committee members list
+  const filteredCommitteeMembers = committeeMembers.filter((m) => {
+    const matchCat =
+      committeeCategoryFilter === 'all' ||
+      (committeeCategoryFilter === 'founder' && (m.roleCategory === 'Founder' || m.roleCategory === 'Patron')) ||
+      (committeeCategoryFilter === 'presidency' && m.roleCategory === 'Presidency') ||
+      (committeeCategoryFilter === 'secretariat' && m.roleCategory === 'Secretariat') ||
+      (committeeCategoryFilter === 'executive' && m.roleCategory === 'Executive') ||
+      (m.roleCategory === committeeCategoryFilter)
+    const q = searchQuery.toLowerCase().trim()
+    const matchSearch =
+      !q ||
+      (m.name && m.name.toLowerCase().includes(q)) ||
+      (m.role && m.role.toLowerCase().includes(q)) ||
+      (m.designation && m.designation.toLowerCase().includes(q)) ||
+      (m.credentials && m.credentials.toLowerCase().includes(q)) ||
+      (m.bio && m.bio.toLowerCase().includes(q))
+    return matchCat && matchSearch
+  })
+
+  // Filtered media buzz list
+  const filteredMediaBuzzItems = mediaBuzzItems.filter((a) => {
+    const matchType =
+      mediaTypeFilter === 'all' ||
+      (mediaTypeFilter === 'print' && a.outletType === 'Print & Newspapers') ||
+      (mediaTypeFilter === 'digital' && a.outletType === 'Digital & Magazines')
+    const q = searchQuery.toLowerCase().trim()
+    const matchSearch =
+      !q ||
+      (a.title && a.title.toLowerCase().includes(q)) ||
+      (a.outlet && a.outlet.toLowerCase().includes(q)) ||
+      (a.excerpt && a.excerpt.toLowerCase().includes(q)) ||
+      (a.badge && a.badge.toLowerCase().includes(q))
+    return matchType && matchSearch
+  })
+
   // ─── LOGIN SCREEN ────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
@@ -601,6 +894,20 @@ export default function AdminPage() {
               <span>Overview & Stats</span>
             </button>
             <button
+              className={`admin-nav-item ${activeTab === 'committee' ? 'active' : ''}`}
+              onClick={() => setActiveTab('committee')}
+            >
+              <span className="admin-nav-icon">👥</span>
+              <span>Managing Committee ({committeeMembers.length})</span>
+            </button>
+            <button
+              className={`admin-nav-item ${activeTab === 'mediabuzz' ? 'active' : ''}`}
+              onClick={() => setActiveTab('mediabuzz')}
+            >
+              <span className="admin-nav-icon">🗞️</span>
+              <span>Media Buzz & Press ({mediaBuzzItems.length})</span>
+            </button>
+            <button
               className={`admin-nav-item ${activeTab === 'articles' ? 'active' : ''}`}
               onClick={() => setActiveTab('articles')}
             >
@@ -657,7 +964,7 @@ export default function AdminPage() {
                 <div>
                   <h1 className="admin-section-title">Overview & Statistics</h1>
                   <p className="admin-section-desc">
-                    Real-time status of content, media assets, and incoming messages on Swayamkrushi.
+                    Real-time status of content, media assets, committee governance, and incoming messages on Swayamkrushi.
                   </p>
                 </div>
                 <button onClick={loadInitialData} className="admin-btn admin-btn-secondary">
@@ -667,6 +974,24 @@ export default function AdminPage() {
 
               {/* Stats Grid */}
               <div className="admin-stats-grid">
+                <div className="admin-stat-card" onClick={() => setActiveTab('committee')}>
+                  <div className="admin-stat-icon">👥</div>
+                  <div className="admin-stat-info">
+                    <span className="admin-stat-count">{committeeMembers.length}</span>
+                    <span className="admin-stat-label">Committee Members</span>
+                  </div>
+                  <span className="admin-stat-action">Manage →</span>
+                </div>
+
+                <div className="admin-stat-card" onClick={() => setActiveTab('mediabuzz')}>
+                  <div className="admin-stat-icon">🗞️</div>
+                  <div className="admin-stat-info">
+                    <span className="admin-stat-count">{mediaBuzzItems.length}</span>
+                    <span className="admin-stat-label">Media & Press Items</span>
+                  </div>
+                  <span className="admin-stat-action">Manage →</span>
+                </div>
+
                 <div className="admin-stat-card" onClick={() => setActiveTab('articles')}>
                   <div className="admin-stat-icon">📰</div>
                   <div className="admin-stat-info">
@@ -710,7 +1035,13 @@ export default function AdminPage() {
               <div className="admin-quick-actions">
                 <h2 className="admin-subsection-title">Quick Actions</h2>
                 <div className="admin-actions-row">
-                  <button onClick={openNewArticleModal} className="admin-btn admin-btn-primary">
+                  <button onClick={openNewCommitteeModal} className="admin-btn admin-btn-primary">
+                    👥 Add Committee Member
+                  </button>
+                  <button onClick={openNewMediaBuzzModal} className="admin-btn admin-btn-primary">
+                    🗞️ Post Media Buzz
+                  </button>
+                  <button onClick={openNewArticleModal} className="admin-btn admin-btn-outline">
                     ✍️ Post New Article
                   </button>
                   <button onClick={openNewAccoladeModal} className="admin-btn admin-btn-outline">
@@ -726,7 +1057,7 @@ export default function AdminPage() {
                     📜 Upload Certificate
                   </button>
                   <button onClick={() => setActiveTab('settings')} className="admin-btn admin-btn-secondary">
-                    ⚙️ Edit Contact & Phone Numbers
+                    ⚙️ Edit Contact & Site Info
                   </button>
                 </div>
               </div>
@@ -784,7 +1115,314 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* TAB 2: ARTICLES & STORIES MANAGER */}
+          {/* TAB 2: MANAGING COMMITTEE MANAGER */}
+          {activeTab === 'committee' && (
+            <div className="admin-tab-content">
+              <div className="admin-content-header">
+                <div>
+                  <h1 className="admin-section-title">Managing Committee & Governance</h1>
+                  <p className="admin-section-desc">
+                    Add, edit, reorder, or remove members of the Managing Committee, Patron, and Executive Leadership.
+                  </p>
+                </div>
+                <button onClick={openNewCommitteeModal} className="admin-btn admin-btn-primary">
+                  👥 Add Committee Member
+                </button>
+              </div>
+
+              {/* Filters and Search Bar */}
+              <div className="admin-filter-bar">
+                <div className="admin-filter-group">
+                  <label>Category:</label>
+                  <select
+                    value={committeeCategoryFilter}
+                    onChange={(e) => setCommitteeCategoryFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="all">All Categories ({committeeMembers.length})</option>
+                    <option value="founder">Founder & Patron</option>
+                    <option value="presidency">Presidents & Vice Presidents</option>
+                    <option value="secretariat">Secretariat</option>
+                    <option value="executive">Executive Committee</option>
+                  </select>
+                </div>
+
+                <div className="admin-search-group">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name, role, title, or bio..."
+                    className="admin-input-search"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="admin-search-clear"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Committee Table */}
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px' }}>Photo</th>
+                      <th>Name & Role</th>
+                      <th>Category & Badge</th>
+                      <th>Designation & Credentials</th>
+                      <th>Tags</th>
+                      <th>Order</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredCommitteeMembers.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="admin-empty-cell">
+                          No committee members found matching criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredCommitteeMembers.map((member) => (
+                        <tr key={member.id || member._id}>
+                          <td>
+                            {member.image ? (
+                              <img
+                                src={member.image}
+                                alt={member.name}
+                                style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 6, border: '1px solid #ddd' }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: 44,
+                                  height: 44,
+                                  borderRadius: 6,
+                                  background: '#6e1e38',
+                                  color: '#ffffff',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontWeight: 'bold',
+                                  fontSize: 14
+                                }}
+                              >
+                                {member.initials || 'SK'}
+                              </div>
+                            )}
+                          </td>
+                          <td>
+                            <strong>{member.name}</strong>
+                            <div style={{ fontSize: 12, color: '#6e1e38', fontWeight: 600 }}>
+                              {member.role}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="admin-tag" style={{ background: '#f5eff2', color: '#6e1e38', fontWeight: 700 }}>
+                              {member.badge || member.roleCategory}
+                            </span>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: 13 }}>{member.designation}</div>
+                            {member.credentials && (
+                              <div style={{ fontSize: 11, color: '#666' }}>{member.credentials}</div>
+                            )}
+                          </td>
+                          <td>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, maxWidth: 200 }}>
+                              {(Array.isArray(member.tags) ? member.tags : (member.tags ? member.tags.split(',') : [])).map((t, idx) => (
+                                <span key={idx} className="admin-tag" style={{ fontSize: 10 }}>
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                          <td>{member.order || 0}</td>
+                          <td>
+                            <div className="admin-btn-group">
+                              <button
+                                onClick={() => openEditCommitteeModal(member)}
+                                className="admin-btn-action admin-btn-edit"
+                                title="Edit Member"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCommittee(member.id || member._id, member.name)}
+                                className="admin-btn-action admin-btn-delete"
+                                title="Delete Member"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: MEDIA BUZZ & PRESS MANAGER */}
+          {activeTab === 'mediabuzz' && (
+            <div className="admin-tab-content">
+              <div className="admin-content-header">
+                <div>
+                  <h1 className="admin-section-title">Media Buzz & Press Manager</h1>
+                  <p className="admin-section-desc">
+                    Publish newspaper clippings, digital press features, interview highlights, and external media links.
+                  </p>
+                </div>
+                <button onClick={openNewMediaBuzzModal} className="admin-btn admin-btn-primary">
+                  🗞️ Post Media Story
+                </button>
+              </div>
+
+              {/* Filters and Search Bar */}
+              <div className="admin-filter-bar">
+                <div className="admin-filter-group">
+                  <label>Type:</label>
+                  <select
+                    value={mediaTypeFilter}
+                    onChange={(e) => setMediaTypeFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="all">All Coverage ({mediaBuzzItems.length})</option>
+                    <option value="print">Print & Newspapers</option>
+                    <option value="digital">Digital & Magazines</option>
+                  </select>
+                </div>
+
+                <div className="admin-search-group">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by title, outlet, or excerpt..."
+                    className="admin-input-search"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="admin-search-clear"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Media Buzz Table */}
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: '60px' }}>Media</th>
+                      <th>Headline & Outlet</th>
+                      <th>Type & Category</th>
+                      <th>Date / Format</th>
+                      <th>Featured</th>
+                      <th>Link</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredMediaBuzzItems.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="admin-empty-cell">
+                          No media articles found matching criteria.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredMediaBuzzItems.map((article) => (
+                        <tr key={article.id || article._id}>
+                          <td>
+                            {article.image ? (
+                              <img
+                                src={article.image}
+                                alt={article.title}
+                                style={{ width: 48, height: 36, objectFit: 'cover', borderRadius: 4, border: '1px solid #ddd' }}
+                              />
+                            ) : (
+                              <span style={{ fontSize: 20 }}>📰</span>
+                            )}
+                          </td>
+                          <td>
+                            <strong>{article.title}</strong>
+                            <div style={{ fontSize: 12, color: '#6e1e38', fontWeight: 600 }}>
+                              {article.outlet} {article.isClipping && <span className="admin-tag" style={{ background: '#eef2ff', color: '#4338ca', fontSize: 10 }}>Clipping</span>}
+                            </div>
+                          </td>
+                          <td>
+                            <span className="admin-tag" style={{ background: '#f5eff2', color: '#6e1e38' }}>
+                              {article.badge || article.outletType}
+                            </span>
+                          </td>
+                          <td className="admin-nowrap">
+                            <div>{article.date}</div>
+                            {article.readTime && <small className="text-muted">{article.readTime}</small>}
+                          </td>
+                          <td>
+                            <button
+                              onClick={() => handleToggleFeaturedBuzz(article)}
+                              className={`admin-btn-action ${article.featured ? 'admin-btn-edit' : 'admin-btn-outline'}`}
+                              style={{ fontSize: 11, padding: '3px 8px' }}
+                              title="Click to toggle Featured on Frontpage"
+                            >
+                              {article.featured ? '★ Featured' : '☆ Standard'}
+                            </button>
+                          </td>
+                          <td>
+                            {article.articleUrl ? (
+                              <a
+                                href={article.articleUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ color: '#6e1e38', fontSize: 12, fontWeight: 600, textDecoration: 'none' }}
+                              >
+                                View ↗
+                              </a>
+                            ) : (
+                              <span style={{ color: '#aaa', fontSize: 12 }}>—</span>
+                            )}
+                          </td>
+                          <td>
+                            <div className="admin-btn-group">
+                              <button
+                                onClick={() => openEditMediaBuzzModal(article)}
+                                className="admin-btn-action admin-btn-edit"
+                                title="Edit Story"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteMediaBuzz(article.id || article._id, article.title)}
+                                className="admin-btn-action admin-btn-delete"
+                                title="Delete Story"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ARTICLES & STORIES MANAGER */}
           {activeTab === 'articles' && (
             <div className="admin-tab-content">
               <div className="admin-content-header">
@@ -1804,6 +2442,393 @@ export default function AdminPage() {
                 </button>
                 <button type="submit" className="admin-btn admin-btn-primary">
                   {editingFaq ? 'Save Changes' : 'Create FAQ'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: COMMITTEE MEMBER CREATE / EDIT ───────────────────────── */}
+      {showCommitteeModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal admin-modal-wide">
+            <div className="admin-modal-header">
+              <h2>{editingCommitteeMember ? 'Edit Committee Member' : 'Add New Committee Member'}</h2>
+              <button onClick={() => setShowCommitteeModal(false)} className="admin-modal-close">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCommittee} className="admin-modal-form">
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label>Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={committeeForm.name}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, name: e.target.value })}
+                    placeholder="e.g. Dr. Manjulaa Kalyaan"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Role / Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={committeeForm.role}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, role: e.target.value })}
+                    placeholder="e.g. Founder & Director / Patron / President / Secretary"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-3">
+                <div className="admin-form-group">
+                  <label>Governance Category</label>
+                  <select
+                    value={committeeForm.roleCategory}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, roleCategory: e.target.value })}
+                    className="admin-select"
+                  >
+                    <option value="Founder">Founder</option>
+                    <option value="Patron">Patron</option>
+                    <option value="Presidency">Presidency</option>
+                    <option value="Secretariat">Secretariat</option>
+                    <option value="Executive">Executive Committee</option>
+                    <option value="General">General Member</option>
+                  </select>
+                </div>
+                <div className="admin-form-group">
+                  <label>Badge Text</label>
+                  <input
+                    type="text"
+                    value={committeeForm.badge}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, badge: e.target.value })}
+                    placeholder="e.g. FOUNDER DIRECTOR"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Color Theme</label>
+                  <select
+                    value={committeeForm.colorTheme}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, colorTheme: e.target.value })}
+                    className="admin-select"
+                  >
+                    <option value="burgundy">Burgundy (Primary / Founder)</option>
+                    <option value="gold">Gold (Patron)</option>
+                    <option value="indigo">Indigo (Presidency / Secretariat)</option>
+                    <option value="slate">Slate (Executive Board)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label>Designation / Affiliation</label>
+                  <input
+                    type="text"
+                    value={committeeForm.designation}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, designation: e.target.value })}
+                    placeholder="e.g. Advocate Supreme Court BAR / Master Mariner"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Credentials / Sub-header</label>
+                  <input
+                    type="text"
+                    value={committeeForm.credentials}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, credentials: e.target.value })}
+                    placeholder="e.g. Four-time National Award Winner · RCI Nominated Expert"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-form-group">
+                <label>Biography & Contribution</label>
+                <textarea
+                  rows={4}
+                  value={committeeForm.bio}
+                  onChange={(e) => setCommitteeForm({ ...committeeForm, bio: e.target.value })}
+                  placeholder="Detailed background, accomplishments, and leadership at Swayamkrushi..."
+                  className="admin-textarea"
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label>Member Portrait Image (Upload File or URL)</label>
+                <div className="admin-upload-controls">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, setCommitteeForm, 'image')}
+                    className="admin-file-input"
+                    disabled={uploadingImage}
+                  />
+                  <span className="admin-or-divider">OR</span>
+                  <input
+                    type="text"
+                    placeholder="https://... or Leave blank for initials monogram"
+                    value={committeeForm.image}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, image: e.target.value })}
+                    className="admin-input"
+                  />
+                </div>
+                {committeeForm.image && (
+                  <div className="admin-img-preview-box" style={{ marginTop: 10 }}>
+                    <img src={committeeForm.image} alt="Preview" className="admin-preview-img" style={{ maxHeight: 120, objectFit: 'contain' }} />
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-grid-3">
+                <div className="admin-form-group">
+                  <label>Monogram Initials</label>
+                  <input
+                    type="text"
+                    value={committeeForm.initials}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, initials: e.target.value.toUpperCase() })}
+                    placeholder="e.g. MK"
+                    maxLength={3}
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Tags (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={committeeForm.tags}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, tags: e.target.value })}
+                    placeholder="Founded 1991, 4x Awardee, Legal Patron"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Display Order</label>
+                  <input
+                    type="number"
+                    value={committeeForm.order}
+                    onChange={(e) => setCommitteeForm({ ...committeeForm, order: Number(e.target.value) })}
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowCommitteeModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="admin-btn admin-btn-primary">
+                  {editingCommitteeMember ? 'Save Committee Member' : 'Add Committee Member'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: MEDIA BUZZ ARTICLE CREATE / EDIT ─────────────────────── */}
+      {showMediaBuzzModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal admin-modal-wide">
+            <div className="admin-modal-header">
+              <h2>{editingMediaBuzz ? 'Edit Media Buzz Article' : 'Publish Media Buzz Story'}</h2>
+              <button onClick={() => setShowMediaBuzzModal(false)} className="admin-modal-close">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveMediaBuzz} className="admin-modal-form">
+              <div className="admin-form-group">
+                <label>Article Headline / Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={mediaBuzzForm.title}
+                  onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, title: e.target.value })}
+                  placeholder="e.g. From classrooms to careers, Hyderabad’s Swayamkrushi..."
+                  className="admin-input"
+                />
+              </div>
+
+              <div className="admin-grid-3">
+                <div className="admin-form-group">
+                  <label>Outlet / Publication *</label>
+                  <input
+                    type="text"
+                    required
+                    value={mediaBuzzForm.outlet}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, outlet: e.target.value })}
+                    placeholder="e.g. The Hindu / NewsMeter / Sakshi / Telangana Today"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Outlet Type</label>
+                  <select
+                    value={mediaBuzzForm.outletType}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, outletType: e.target.value })}
+                    className="admin-select"
+                  >
+                    <option value="Print & Newspapers">Print & Newspapers</option>
+                    <option value="Digital & Magazines">Digital & Magazines</option>
+                  </select>
+                </div>
+                <div className="admin-form-group">
+                  <label>Date Published</label>
+                  <input
+                    type="text"
+                    value={mediaBuzzForm.date}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, date: e.target.value })}
+                    placeholder="e.g. August 2026 / 09/08/2026"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label>Category / Badge</label>
+                  <input
+                    type="text"
+                    value={mediaBuzzForm.badge}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, badge: e.target.value })}
+                    placeholder="e.g. THE HINDU SPOTLIGHT / FEATURE STORY / SAKSHI E-PAPER"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Read Time / Format Tag</label>
+                  <input
+                    type="text"
+                    value={mediaBuzzForm.readTime}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, readTime: e.target.value })}
+                    placeholder="e.g. Newspaper Report / 5 min read / Telugu E-Paper"
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-form-group">
+                <label>Story Excerpt / Summary</label>
+                <textarea
+                  rows={3}
+                  value={mediaBuzzForm.excerpt}
+                  onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, excerpt: e.target.value })}
+                  placeholder="Summary of the news story or newspaper feature..."
+                  className="admin-textarea"
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label>Newspaper Clipping / Article Image (Optional)</label>
+                <div className="admin-upload-controls">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, setMediaBuzzForm, 'image')}
+                    className="admin-file-input"
+                    disabled={uploadingImage}
+                  />
+                  <span className="admin-or-divider">OR</span>
+                  <input
+                    type="text"
+                    placeholder="Image URL (Leave empty if no authentic image exists)"
+                    value={mediaBuzzForm.image || ''}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, image: e.target.value })}
+                    className="admin-input"
+                  />
+                </div>
+                {mediaBuzzForm.image && (
+                  <div className="admin-img-preview-box" style={{ marginTop: 10 }}>
+                    <img src={mediaBuzzForm.image} alt="Preview" className="admin-preview-img" style={{ maxHeight: 120, objectFit: 'contain' }} />
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-grid-2">
+                <div className="admin-form-group">
+                  <label>Article URL (Direct web link to read full story)</label>
+                  <input
+                    type="url"
+                    value={mediaBuzzForm.articleUrl}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, articleUrl: e.target.value })}
+                    placeholder="https://newsmeter.in/..."
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Share / E-Paper Mirror URL (Optional)</label>
+                  <input
+                    type="url"
+                    value={mediaBuzzForm.shareUrl}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, shareUrl: e.target.value })}
+                    placeholder="https://share.google/..."
+                    className="admin-input"
+                  />
+                </div>
+              </div>
+
+              <div className="admin-grid-3">
+                <div className="admin-form-group">
+                  <label>Tags (Comma separated)</label>
+                  <input
+                    type="text"
+                    value={mediaBuzzForm.tags}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, tags: e.target.value })}
+                    placeholder="The Hindu, 35th Anniversary, Special Education"
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label>Display Order</label>
+                  <input
+                    type="number"
+                    value={mediaBuzzForm.order}
+                    onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, order: Number(e.target.value) })}
+                    className="admin-input"
+                  />
+                </div>
+                <div className="admin-form-group" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 6 }}>
+                  <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={mediaBuzzForm.isClipping}
+                      onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, isClipping: e.target.checked })}
+                    />
+                    <span>Is Newspaper Clipping (Zoomable)</span>
+                  </label>
+                  <label style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <input
+                      type="checkbox"
+                      checked={mediaBuzzForm.featured}
+                      onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, featured: e.target.checked })}
+                    />
+                    <span>Featured Headline Story</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowMediaBuzzModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="admin-btn admin-btn-primary">
+                  {editingMediaBuzz ? 'Save Story' : 'Publish Story'}
                 </button>
               </div>
             </form>

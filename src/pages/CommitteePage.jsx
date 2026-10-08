@@ -1,23 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
+import { fetchCommitteeMembers } from '../services/api'
 import manjulaPortrait from '../assets/images/manjula-portrait.png'
+import sJayramPortrait from '../assets/images/s-jayram-portrait.jpg'
 import './CommitteePage.css'
 
 export const COMMITTEE_MEMBERS = [
-  {
-    id: 'chenna-saratbabu',
-    name: 'Dr. Chenna Saratbabu',
-    role: 'Patron',
-    roleCategory: 'Patron',
-    designation: 'Advocate, Supreme Court BAR',
-    credentials: 'President of Blind Cricket for Andhra Pradesh State Board',
-    badge: 'PATRON',
-    colorTheme: 'gold',
-    bio: 'Eminent constitutional jurist and advocate at the Supreme Court Bar. Dr. Saratbabu is a dedicated champion of disability rights and sports inclusion, leading the Blind Cricket Association of Andhra Pradesh State Board and offering long-standing legal patronage to Swayamkrushi.',
-    tags: ['Supreme Court BAR', 'President, AP Blind Cricket', 'Legal Patron'],
-    initials: 'CS'
-  },
   {
     id: 'manjulaa-kalyaan',
     name: 'Dr. Manjulaa Kalyaan',
@@ -31,6 +20,19 @@ export const COMMITTEE_MEMBERS = [
     bio: 'Visionary special educator who established Swayamkrushi in 1991. Starting with two girls in a rented flat, Dr. Kalyaan built South India’s premier model group homes, a five-acre permanent campus, and an affiliated B.Ed Special Education collegiate institution.',
     tags: ['Founded 1991', '4x National Awardee', 'Group Homes Pioneer', 'B.Ed Institution'],
     initials: 'MK'
+  },
+  {
+    id: 'chenna-saratbabu',
+    name: 'Dr. Chenna Saratbabu',
+    role: 'Patron',
+    roleCategory: 'Patron',
+    designation: 'Advocate, Supreme Court BAR',
+    credentials: 'President of Blind Cricket for Andhra Pradesh State Board',
+    badge: 'PATRON',
+    colorTheme: 'gold',
+    bio: 'Eminent constitutional jurist and advocate at the Supreme Court Bar. Dr. Saratbabu is a dedicated champion of disability rights and sports inclusion, leading the Blind Cricket Association of Andhra Pradesh State Board and offering long-standing legal patronage to Swayamkrushi.',
+    tags: ['Supreme Court BAR', 'President, AP Blind Cricket', 'Legal Patron'],
+    initials: 'CS'
   },
   {
     id: 'ram-prasad-talluri',
@@ -89,12 +91,12 @@ export const COMMITTEE_MEMBERS = [
     name: 'Mr. T. Suresh',
     role: 'Secretary',
     roleCategory: 'Secretariat',
-    designation: 'Group Captain (Retd)',
+    designation: 'Secretary (Group Captain Retd)',
     credentials: 'Honorary Secretary · Defense & Aviation Veteran',
     badge: 'SECRETARY',
     colorTheme: 'indigo',
     bio: 'Distinguished defense veteran bringing organizational rigor, statutory governance, and operational precision to the Managing Committee secretariat.',
-    tags: ['Group Captain Retd', 'Secretariat Administration', 'Statutory Compliance'],
+    tags: ['Group Captain Retd', 'Secretariat Admin', 'Statutory Compliance'],
     initials: 'TS'
   },
   {
@@ -102,7 +104,7 @@ export const COMMITTEE_MEMBERS = [
     name: 'Mr. B. Suresh Kumar',
     role: 'Secretary',
     roleCategory: 'Secretariat',
-    designation: 'Advocate',
+    designation: 'Secretary (Advocate)',
     credentials: 'Honorary Secretary · Legal Counsel',
     badge: 'SECRETARY',
     colorTheme: 'indigo',
@@ -132,6 +134,7 @@ export const COMMITTEE_MEMBERS = [
     credentials: 'Community Outreach & Vocational Specialist',
     badge: 'EXECUTIVE MEMBER',
     colorTheme: 'slate',
+    image: sJayramPortrait,
     bio: 'Facilitates community engagement, family counseling networks, and vocational workshops to help young adults transition smoothly into workplace employment.',
     tags: ['Vocational Outreach', 'Family Support', 'Trainee Placement'],
     initials: 'SJ'
@@ -152,7 +155,7 @@ export const COMMITTEE_MEMBERS = [
 ]
 
 const CATEGORIES = [
-  { id: 'all', label: 'All Members (11)' },
+  { id: 'all', label: 'All Members' },
   { id: 'founder', label: 'Founder & Patron' },
   { id: 'presidency', label: 'Presidents' },
   { id: 'secretariat', label: 'Secretariat' },
@@ -160,15 +163,40 @@ const CATEGORIES = [
 ]
 
 export default function CommitteePage() {
+  const [membersList, setMembersList] = useState(COMMITTEE_MEMBERS)
   const [activeCategory, setActiveCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    async function loadMembers() {
+      try {
+        const data = await fetchCommitteeMembers()
+        if (Array.isArray(data) && data.length > 0) {
+          // Merge portrait image references if string matches static imports
+          const mapped = data.map((m) => {
+            if (m.id === 'manjulaa-kalyaan' && (!m.image || m.image === 'manjulaPortrait')) {
+              return { ...m, image: manjulaPortrait }
+            }
+            if (m.id === 's-jayram' && (!m.image || m.image === 'sJayramPortrait')) {
+              return { ...m, image: sJayramPortrait }
+            }
+            return m
+          })
+          setMembersList(mapped)
+        } else {
+          // Seed localStorage so admin immediately has the members
+          localStorage.setItem('swayamkrushi_committee_members', JSON.stringify(COMMITTEE_MEMBERS))
+        }
+      } catch (err) {
+        console.warn('Error loading committee members:', err)
+      }
+    }
+    loadMembers()
   }, [])
 
   const filteredMembers = useMemo(() => {
-    return COMMITTEE_MEMBERS.filter((m) => {
+    return membersList.filter((m) => {
       const matchCategory =
         activeCategory === 'all' ||
         (activeCategory === 'founder' && (m.roleCategory === 'Founder' || m.roleCategory === 'Patron')) ||
@@ -179,16 +207,16 @@ export default function CommitteePage() {
       const q = searchQuery.toLowerCase().trim()
       const matchSearch =
         !q ||
-        m.name.toLowerCase().includes(q) ||
-        m.role.toLowerCase().includes(q) ||
-        m.designation.toLowerCase().includes(q) ||
-        m.credentials.toLowerCase().includes(q) ||
-        m.bio.toLowerCase().includes(q) ||
-        m.tags.some((t) => t.toLowerCase().includes(q))
+        (m.name && m.name.toLowerCase().includes(q)) ||
+        (m.role && m.role.toLowerCase().includes(q)) ||
+        (m.designation && m.designation.toLowerCase().includes(q)) ||
+        (m.credentials && m.credentials.toLowerCase().includes(q)) ||
+        (m.bio && m.bio.toLowerCase().includes(q)) ||
+        (m.tags && Array.isArray(m.tags) && m.tags.some((t) => t.toLowerCase().includes(q)))
 
       return matchCategory && matchSearch
     })
-  }, [activeCategory, searchQuery])
+  }, [membersList, activeCategory, searchQuery])
 
   return (
     <>
@@ -239,7 +267,7 @@ export default function CommitteePage() {
           </div>
         </header>
 
-        {/* Clean Filter Controls Bar */}
+        {/* Filter Controls Bar */}
         <div className="committee-controls-bar">
           <div className="committee-tabs-nav" role="tablist">
             {CATEGORIES.map((tab) => (
@@ -281,52 +309,57 @@ export default function CommitteePage() {
           </div>
         </div>
 
-        {/* Member Cards Grid */}
+        {/* Profile Card Grid (Styled as reference layout) */}
         <div className="committee-grid">
           {filteredMembers.map((member) => (
             <article
               key={member.id}
-              className={`committee-card card-theme-${member.colorTheme} ${member.id === 'manjulaa-kalyaan' ? 'card-founder-featured' : ''}`}
+              className={`committee-profile-card card-theme-${member.colorTheme} ${member.id === 'manjulaa-kalyaan' ? 'is-founder-card' : ''}`}
             >
-              {/* Card Header Profile */}
-              <div className="card-profile-header">
-                <div className="card-avatar-container">
-                  {member.image ? (
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="member-avatar-photo"
-                    />
-                  ) : (
-                    <div className={`member-avatar-initials ${member.colorTheme}`}>
-                      <span>{member.initials}</span>
+              {/* Top Photo / Portrait Banner Header */}
+              <div className="profile-card-media-banner">
+                {member.image ? (
+                  <img
+                    src={member.image}
+                    alt={member.name}
+                    className="profile-card-photo"
+                  />
+                ) : (
+                  <div className={`profile-card-placeholder-banner ${member.colorTheme}`}>
+                    <div className="profile-banner-crest">
+                      <span className="profile-monogram-text">{member.initials}</span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <div className="card-identity-meta">
-                  <span className="card-role-badge">{member.role}</span>
-                  <h3 className="card-member-name">{member.name}</h3>
-                  <p className="card-member-designation">{member.designation}</p>
-                  {member.credentials && (
-                    <p className="card-member-credentials">{member.credentials}</p>
-                  )}
+                {/* Overlaid Badges */}
+                <div className="profile-card-top-overlays">
+                  <span className="profile-card-role-pill">{member.badge}</span>
                 </div>
               </div>
 
-              {/* Bio Narrative */}
-              <p className="card-member-bio">{member.bio}</p>
+              {/* Card Body Content */}
+              <div className="profile-card-body">
+                <h3 className="profile-card-name">{member.name}</h3>
+                <p className="profile-card-designation">{member.designation}</p>
+                {member.credentials && (
+                  <p className="profile-card-credentials">{member.credentials}</p>
+                )}
 
-              {/* Tag Chips */}
-              {member.tags && member.tags.length > 0 && (
-                <div className="card-tags-row">
-                  {member.tags.map((tag, idx) => (
-                    <span key={idx} className="card-tag-pill">
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
+                <div className="profile-card-divider" />
+
+                <p className="profile-card-bio">{member.bio}</p>
+
+                {member.tags && member.tags.length > 0 && (
+                  <div className="profile-card-tags">
+                    {member.tags.map((tag, idx) => (
+                      <span key={idx} className="profile-tag-chip">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
             </article>
           ))}
         </div>
