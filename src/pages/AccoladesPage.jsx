@@ -76,12 +76,6 @@ export default function AccoladesPage() {
         keywords="Swayamkrushi awards, National Award for Child Welfare, National Award Best Institution, Manjula Kalyan recognition, special education achievements"
         canonicalUrl="https://swayamkrushi.org/#/accolades"
       />
-      {/* Top Breadcrumb */}
-      <nav className="accolades-breadcrumb-nav" aria-label="Breadcrumb">
-        <Link to="/" className="breadcrumb-link">Home</Link>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">Accolades & Recognition</span>
-      </nav>
 
       {/* 1. Hero / Introduction */}
       <header className="accolades-hero-header">

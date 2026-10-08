@@ -225,14 +225,6 @@ export default function InsidersPage() {
         keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories"
         canonicalUrl="https://swayamkrushi.org/#/insiders"
       />
-      {/* Breadcrumb Navigation */}
-      <nav className="insiders-breadcrumb" aria-label="Breadcrumb">
-        <Link to="/">Home</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span>Voices & Community</span>
-        <span className="breadcrumb-sep">/</span>
-        <span style={{ color: '#1b1418', fontWeight: 600 }}>Insiders</span>
-      </nav>
 
       {/* Hero Header */}
       <header className="insiders-hero-header">

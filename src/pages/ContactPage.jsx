@@ -102,13 +102,6 @@ export default function ContactPage() {
         schema={contactSchema}
       />
 
-      {/* ── Breadcrumb ─────────────────────────────────────────── */}
-      <nav className="contact-breadcrumb" aria-label="Breadcrumb">
-        <Link to="/" className="crumb-link">Home</Link>
-        <span className="crumb-sep" aria-hidden="true">›</span>
-        <span className="crumb-current">Contact</span>
-      </nav>
-
       {/* ── Page Header ─────────────────────────────────────────── */}
       <header className="contact-page-header">
         <span className="contact-badge">Get in Touch</span>

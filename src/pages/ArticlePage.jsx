@@ -100,20 +100,6 @@ export default function ArticlePage({ defaultId }) {
         author={article.attribution || 'Swayamkrushi'}
         schema={articleSchema}
       />
-      {/* Top Breadcrumb Navigation Bar */}
-      <nav className="article-breadcrumb-nav" aria-label="Breadcrumb">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="breadcrumb-back-link"
-        >
-          ← Back
-        </button>
-        <span className="breadcrumb-separator">/</span>
-        <Link to="/" className="breadcrumb-link">Home</Link>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-category">{article.category || 'Stories'}</span>
-      </nav>
 
       {/* Editorial Header */}
       <header className="article-editorial-header">

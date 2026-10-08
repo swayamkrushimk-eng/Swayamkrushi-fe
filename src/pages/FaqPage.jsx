@@ -137,12 +137,6 @@ export default function FaqPage() {
         canonicalUrl="https://swayamkrushi.org/#/faq"
         schema={faqSchema}
       />
-      {/* Top Breadcrumb */}
-      <nav className="faq-breadcrumb-nav" aria-label="Breadcrumb">
-        <Link to="/" className="breadcrumb-link">Home</Link>
-        <span className="breadcrumb-separator">/</span>
-        <span className="breadcrumb-current">Frequently Asked Questions</span>
-      </nav>
 
       {/* Hero Header */}
       <header className="faq-hero-header">

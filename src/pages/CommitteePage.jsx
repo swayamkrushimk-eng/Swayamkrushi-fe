@@ -226,15 +226,6 @@ export default function CommitteePage() {
       />
 
       <div className="committee-page-wrap">
-        {/* Breadcrumb Navigation */}
-        <nav className="committee-breadcrumb-nav" aria-label="Breadcrumb">
-          <Link to="/" className="breadcrumb-back-link">
-            &larr; Front Page
-          </Link>
-          <span className="breadcrumb-separator">/</span>
-          <span className="breadcrumb-category">GOVERNANCE & LEADERSHIP</span>
-        </nav>
-
         {/* Editorial Masthead Header */}
         <header className="committee-header">
           <div className="committee-kicker">

@@ -184,15 +184,6 @@ export default function MediaBuzzPage() {
       />
 
       <div className="media-buzz-wrap">
-        {/* Breadcrumb Navigation */}
-        <nav className="media-buzz-breadcrumb" aria-label="Breadcrumb">
-          <Link to="/" className="breadcrumb-back-link">
-            &larr; Front Page
-          </Link>
-          <span className="breadcrumb-separator">/</span>
-          <span className="breadcrumb-category">NEWSROOM & PRESS</span>
-        </nav>
-
         {/* Masthead Header */}
         <header className="media-buzz-header">
           <div className="buzz-kicker">
@@ -200,29 +191,6 @@ export default function MediaBuzzPage() {
             <span>PRESS RELEASES · NEWSPAPER CLIPPINGS · EDITORIAL SPOTLIGHTS</span>
           </div>
           <h1 className="buzz-headline">Media Buzz</h1>
-          <p className="buzz-lede">
-            Explore 35+ years of news coverage, newspaper clippings, investigative reports, and media features celebrating Swayamkrushi’s rehabilitation movement.
-          </p>
-
-          {/* Quick Metrics Bar */}
-          <div className="buzz-metrics-row">
-            <div className="buzz-metric-item">
-              <span className="metric-num">50+</span>
-              <span className="metric-label">Press Features</span>
-            </div>
-            <div className="buzz-metric-item">
-              <span className="metric-num">35+</span>
-              <span className="metric-label">Years of Service</span>
-            </div>
-            <div className="buzz-metric-item">
-              <span className="metric-num">4</span>
-              <span className="metric-label">National Awards</span>
-            </div>
-            <div className="buzz-metric-item">
-              <span className="metric-num">100%</span>
-              <span className="metric-label">Verified Media</span>
-            </div>
-          </div>
         </header>
 
         {/* Featured Headlines Section */}
