@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
 import { fetchMediaBuzz } from '../services/api'
 import hinduClipping from '../assets/images/hindu-35-years-clipping.jpg'
@@ -106,16 +105,8 @@ export const MEDIA_ARTICLES = [
   }
 ]
 
-const MEDIA_TYPES = [
-  { id: 'all', label: 'All Coverage' },
-  { id: 'print', label: 'Print & Newspapers' },
-  { id: 'digital', label: 'Digital & Magazines' }
-]
-
 export default function MediaBuzzPage() {
   const [articlesList, setArticlesList] = useState(MEDIA_ARTICLES)
-  const [activeType, setActiveType] = useState('all')
-  const [searchQuery, setSearchQuery] = useState('')
   const [lightboxImage, setLightboxImage] = useState(null)
 
   useEffect(() => {
@@ -153,25 +144,6 @@ export default function MediaBuzzPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxImage])
 
-  const filteredArticles = useMemo(() => {
-    return articlesList.filter((article) => {
-      const matchType =
-        activeType === 'all' ||
-        (activeType === 'print' && article.outletType === 'Print & Newspapers') ||
-        (activeType === 'digital' && article.outletType === 'Digital & Magazines')
-
-      const q = searchQuery.toLowerCase().trim()
-      const matchSearch =
-        !q ||
-        (article.title && article.title.toLowerCase().includes(q)) ||
-        (article.outlet && article.outlet.toLowerCase().includes(q)) ||
-        (article.excerpt && article.excerpt.toLowerCase().includes(q)) ||
-        (article.tags && Array.isArray(article.tags) && article.tags.some((t) => t.toLowerCase().includes(q)))
-
-      return matchType && matchSearch
-    })
-  }, [articlesList, activeType, searchQuery])
-
   return (
     <>
       <SEO
@@ -189,51 +161,9 @@ export default function MediaBuzzPage() {
           <h1 className="buzz-headline">Media Buzz</h1>
         </header>
 
-        {/* Filter Controls Bar */}
-        <div className="buzz-controls-bar">
-          <div className="buzz-tabs-nav" role="tablist">
-            {MEDIA_TYPES.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                className={`buzz-tab-btn ${activeType === tab.id ? 'is-active' : ''}`}
-                onClick={() => setActiveType(tab.id)}
-                role="tab"
-                aria-selected={activeType === tab.id}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="buzz-search-box">
-            <svg className="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search news, topics, or outlets..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Search media buzz"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                className="clear-search-btn"
-                onClick={() => setSearchQuery('')}
-                title="Clear search"
-              >
-                &times;
-              </button>
-            )}
-          </div>
-        </div>
-
         {/* Media Coverage Grid */}
         <div className="buzz-articles-grid">
-          {filteredArticles.map((article) => (
+          {articlesList.map((article) => (
             <article key={article.id} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
               {article.image && (
                 <div
@@ -264,13 +194,8 @@ export default function MediaBuzzPage() {
                 </div>
                 <h3 className="buzz-card-title">{article.title}</h3>
                 <p className="buzz-card-excerpt">{article.excerpt}</p>
-                <div className="buzz-card-footer">
-                  <div className="buzz-tags-row">
-                    {article.tags.map((tag, idx) => (
-                      <span key={idx} className="buzz-tag-pill">{tag}</span>
-                    ))}
-                  </div>
-                  {article.articleUrl && (
+                {article.articleUrl && (
+                  <div className="buzz-card-footer">
                     <a
                       href={article.articleUrl}
                       target="_blank"
@@ -279,54 +204,12 @@ export default function MediaBuzzPage() {
                     >
                       Read on {article.outlet} &rarr;
                     </a>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </article>
           ))}
         </div>
-
-        {filteredArticles.length === 0 && (
-          <div className="no-buzz-found">
-            <p>No media articles found matching &ldquo;{searchQuery}&rdquo;.</p>
-            <button
-              type="button"
-              className="reset-filter-btn"
-              onClick={() => {
-                setActiveType('all')
-                setSearchQuery('')
-              }}
-            >
-              Reset Filters
-            </button>
-          </div>
-        )}
-
-        {/* Media Press Kit & Relations Section */}
-        <section className="press-relations-section">
-          <div className="press-relations-inner">
-            <div className="press-icon">&#128240;</div>
-            <div className="press-content">
-              <h3>Media Relations & Press Kit</h3>
-              <p>
-                For press inquiries, documentary interviews with Dr. Manjulaa Kalyaan, high-resolution photography assets, or campus visit permissions, please contact our media coordinator.
-              </p>
-              <div className="press-contact-bar">
-                <Link to="/contact" className="press-contact-btn solid">
-                  Contact Media Desk &rarr;
-                </Link>
-                <a
-                  href="https://share.google/YhznuCLOlokk6iVY6"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="press-contact-btn hollow"
-                >
-                  View Complete Press Archive &rarr;
-                </a>
-              </div>
-            </div>
-          </div>
-        </section>
       </div>
 
       {/* Lightbox Modal for Full-Size Newspaper Clipping */}
