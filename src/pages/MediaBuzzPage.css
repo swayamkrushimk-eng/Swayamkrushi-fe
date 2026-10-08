@@ -252,7 +252,7 @@
 .card-top-outlet-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 10px;
   margin-bottom: 12px;
   padding-bottom: 8px;

@@ -236,11 +236,9 @@ export default function MediaBuzzPage() {
                   {!article.image && (
                     <div className="card-top-outlet-bar">
                       <span className="buzz-outlet-badge inline">{article.outlet}</span>
-                      <span className="buzz-card-category">{article.badge}</span>
                     </div>
                   )}
                   <div className="buzz-card-meta">
-                    {article.image && <span className="buzz-card-category">{article.badge}</span>}
                     <span className="buzz-card-date">{article.date} · {article.readTime}</span>
                   </div>
                   <h3 className="buzz-card-title">{article.title}</h3>
@@ -253,7 +251,7 @@ export default function MediaBuzzPage() {
                         rel="noopener noreferrer"
                         className="buzz-card-link-btn"
                       >
-                        Read on {article.outlet} &rarr;
+                        Read Full Story &rarr;
                       </a>
                     </div>
                   )}
