@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════
    SWAYAMKRUSHI MANAGING COMMITTEE DIRECTORY
-   Theme: Burgundy & Deep Onyx Editorial / Prestigious Board Layout
+   Clean, Neat, Modern Editorial Card Layout
    ═══════════════════════════════════════════════════════════════════ */
 
 .committee-page-wrap {
-  max-width: 1200px;
+  max-width: 1220px;
   margin: 0 auto;
   padding: 24px 24px 64px;
   width: 100%;
@@ -17,7 +17,7 @@
   gap: 8px;
   font-size: 12px;
   color: var(--muted, #6f6a6c);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   letter-spacing: 0.04em;
 }
 
@@ -46,41 +46,49 @@
 
 /* ─── Editorial Header ─── */
 .committee-header {
-  border-bottom: 2px solid var(--hair, rgba(45, 22, 30, 0.14));
-  padding-bottom: 32px;
-  margin-bottom: 36px;
+  border-bottom: 1px solid var(--hair, rgba(45, 22, 30, 0.12));
+  padding-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .committee-kicker {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--burgundy, #6e1e38);
-  margin-bottom: 10px;
+  margin-bottom: 8px;
+}
+
+.badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--burgundy, #6e1e38);
+  display: inline-block;
 }
 
 .committee-headline {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: clamp(32px, 4.4vw, 54px);
+  font-size: clamp(32px, 4vw, 50px);
   font-weight: 700;
-  line-height: 1.08;
-  letter-spacing: -0.025em;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   color: var(--ink, #1b1418);
-  margin: 0 0 16px;
+  margin: 0 0 12px;
 }
 
 .committee-lede {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: clamp(17px, 1.8vw, 21px);
+  font-size: clamp(16px, 1.6vw, 19px);
   font-style: italic;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--muted, #4a4548);
-  max-width: 86ch;
-  margin: 0 0 28px;
+  max-width: 82ch;
+  margin: 0 0 24px;
 }
 
 /* ─── Metrics Bar ─── */
@@ -88,9 +96,9 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  background: #fbf9f8;
-  border: 1px solid var(--hair, rgba(45, 22, 30, 0.12));
-  border-radius: 8px;
+  background: #fdfbfb;
+  border: 1px solid var(--hair, rgba(45, 22, 30, 0.1));
+  border-radius: 10px;
   padding: 16px 20px;
 }
 
@@ -99,7 +107,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  border-right: 1px solid var(--hair, rgba(45, 22, 30, 0.1));
+  border-right: 1px solid var(--hair, rgba(45, 22, 30, 0.08));
 }
 
 .committee-metric-card:last-child {
@@ -108,14 +116,14 @@
 
 .committee-metric-card .metric-num {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: clamp(26px, 2.8vw, 36px);
+  font-size: clamp(24px, 2.5vw, 32px);
   font-weight: 800;
   color: var(--burgundy, #6e1e38);
   line-height: 1.1;
 }
 
 .committee-metric-card .metric-label {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -123,16 +131,16 @@
   margin-top: 4px;
 }
 
-/* ─── Filter & Search Controls ─── */
+/* ─── Controls Bar ─── */
 .committee-controls-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 32px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--hair, rgba(45, 22, 30, 0.1));
+  gap: 14px;
+  margin-bottom: 28px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--hair, rgba(45, 22, 30, 0.08));
 }
 
 .committee-tabs-nav {
@@ -143,20 +151,20 @@
 }
 
 .committee-tab-btn {
-  background: transparent;
-  border: 1px solid var(--hair, rgba(45, 22, 30, 0.18));
+  background: #ffffff;
+  border: 1px solid var(--hair, rgba(45, 22, 30, 0.16));
   border-radius: 20px;
-  padding: 8px 16px;
+  padding: 7px 15px;
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink, #1b1418);
   cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.02em;
+  transition: all 0.18s ease;
+  letter-spacing: 0.01em;
 }
 
 .committee-tab-btn:hover {
-  background: rgba(110, 30, 56, 0.05);
+  background: rgba(110, 30, 56, 0.04);
   border-color: var(--burgundy, #6e1e38);
   color: var(--burgundy, #6e1e38);
 }
@@ -165,38 +173,38 @@
   background: var(--burgundy, #6e1e38);
   border-color: var(--burgundy, #6e1e38);
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(110, 30, 56, 0.25);
+  box-shadow: 0 2px 8px rgba(110, 30, 56, 0.22);
 }
 
 .committee-search-box {
   position: relative;
   display: flex;
   align-items: center;
-  min-width: 280px;
+  min-width: 260px;
 }
 
 .committee-search-box .search-icon {
   position: absolute;
   left: 12px;
-  color: var(--muted, #6f6a6c);
+  color: var(--muted, #8a8386);
   pointer-events: none;
 }
 
 .committee-search-box input {
   width: 100%;
-  padding: 8px 32px 8px 36px;
-  border: 1px solid var(--hair, rgba(45, 22, 30, 0.2));
+  padding: 8px 30px 8px 34px;
+  border: 1px solid var(--hair, rgba(45, 22, 30, 0.18));
   border-radius: 20px;
   font-size: 13px;
   background: #ffffff;
   outline: none;
   color: var(--ink, #1b1418);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .committee-search-box input:focus {
   border-color: var(--burgundy, #6e1e38);
-  box-shadow: 0 0 0 3px rgba(110, 30, 56, 0.12);
+  box-shadow: 0 0 0 3px rgba(110, 30, 56, 0.1);
 }
 
 .clear-search-btn {
@@ -204,131 +212,132 @@
   right: 10px;
   background: none;
   border: none;
-  font-size: 18px;
+  font-size: 17px;
   line-height: 1;
   color: var(--muted, #6f6a6c);
   cursor: pointer;
 }
 
-/* ─── Committee Grid ─── */
+/* ─── Committee Cards Grid ─── */
 .committee-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 22px;
 }
 
-/* ─── Member Card ─── */
+/* ─── Committee Card ─── */
 .committee-card {
   background: #ffffff;
-  border: 1px solid var(--hair, rgba(45, 22, 30, 0.12));
+  border: 1px solid rgba(45, 22, 30, 0.1);
   border-radius: 12px;
   padding: 24px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 4px 16px rgba(45, 22, 30, 0.04);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   position: relative;
 }
 
 .committee-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(45, 22, 30, 0.1);
-  border-color: rgba(110, 30, 56, 0.3);
+  box-shadow: 0 10px 24px rgba(110, 30, 56, 0.08);
+  border-color: rgba(110, 30, 56, 0.28);
 }
 
-/* Spotlight Tier (Patron & Founder) spans 2 columns or prominent */
-.committee-card.tier-patron,
-.committee-card.tier-founder {
-  background: linear-gradient(135deg, #ffffff 0%, #faf5f7 100%);
-  border-left: 5px solid var(--burgundy, #6e1e38);
+/* Featured Spotlight for Founder Card */
+.committee-card.card-founder-featured {
+  background: linear-gradient(135deg, #ffffff 0%, #fff7f9 100%);
+  border: 1.5px solid rgba(110, 30, 56, 0.24);
+  box-shadow: 0 4px 14px rgba(110, 30, 56, 0.07);
 }
 
-.committee-card.theme-gold {
-  border-left: 5px solid #d4af37;
+.committee-card.card-theme-gold {
+  border-left: 4px solid #c8981e;
 }
 
-.committee-card.tier-president {
+.committee-card.card-theme-burgundy {
+  border-left: 4px solid var(--burgundy, #6e1e38);
+}
+
+.committee-card.card-theme-indigo {
   border-left: 4px solid var(--indigo, #4b0082);
 }
 
-.card-top-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 18px;
-  margin-bottom: 16px;
+.committee-card.card-theme-slate {
+  border-left: 4px solid #5a5457;
 }
 
-.avatar-wrapper {
-  position: relative;
+/* Profile Header */
+.card-profile-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.card-avatar-container {
   flex-shrink: 0;
 }
 
-.member-avatar-img {
-  width: 76px;
-  height: 76px;
+.member-avatar-photo {
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
   object-fit: cover;
   object-position: center top;
-  border: 3px solid #ffffff;
-  box-shadow: 0 4px 12px rgba(45, 22, 30, 0.18);
-  background: #f0ebe8;
+  border: 2px solid var(--burgundy, #6e1e38);
+  box-shadow: 0 3px 10px rgba(110, 30, 56, 0.18);
+  background: #faf6f7;
+  display: block;
 }
 
-.member-avatar-monogram {
-  width: 76px;
-  height: 76px;
+.member-avatar-initials {
+  width: 68px;
+  height: 68px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #4a1525 0%, #1b1418 100%);
-  border: 3px solid #ffffff;
-  box-shadow: 0 4px 12px rgba(45, 22, 30, 0.18);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffd700;
   font-family: var(--head, "Lora", Georgia, serif);
   font-weight: 700;
-  font-size: 24px;
-  letter-spacing: 1px;
+  font-size: 22px;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.09);
 }
 
-.committee-card.theme-gold .member-avatar-monogram {
-  background: linear-gradient(135deg, #3d2206 0%, #1b1418 100%);
+.member-avatar-initials.gold {
+  background: linear-gradient(135deg, #442a0b 0%, #1e1305 100%);
   color: #f7d070;
-  border-color: #f7d070;
+  border-color: #d4af37;
 }
 
-.member-badge-pill {
-  display: block;
-  text-align: center;
-  margin-top: -8px;
-  background: var(--burgundy, #6e1e38);
+.member-avatar-initials.burgundy {
+  background: linear-gradient(135deg, #5b172d 0%, #200810 100%);
   color: #ffffff;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-  white-space: nowrap;
+  border-color: var(--burgundy, #6e1e38);
 }
 
-.committee-card.theme-gold .member-badge-pill {
-  background: #a67c00;
-  color: #ffffff;
+.member-avatar-initials.indigo {
+  background: linear-gradient(135deg, #2d1844 0%, #120a1c 100%);
+  color: #d1b8eb;
+  border-color: var(--indigo, #4b0082);
 }
 
-.committee-card.tier-president .member-badge-pill {
-  background: var(--indigo, #4b0082);
+.member-avatar-initials.slate {
+  background: linear-gradient(135deg, #383134 0%, #1a1718 100%);
+  color: #e6dfdf;
+  border-color: #6e6569;
 }
 
-.member-title-block {
+/* Identity Meta */
+.card-identity-meta {
   flex: 1;
 }
 
-.member-role-category {
+.card-role-badge {
   display: inline-block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -336,94 +345,90 @@
   margin-bottom: 2px;
 }
 
-.member-name {
-  font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 21px;
-  font-weight: 700;
-  color: var(--ink, #1b1418);
-  margin: 0 0 4px;
-  line-height: 1.2;
+.card-theme-gold .card-role-badge {
+  color: #9f750b;
 }
 
-.member-designation {
-  font-size: 13.5px;
+.card-theme-indigo .card-role-badge {
+  color: var(--indigo, #4b0082);
+}
+
+.card-member-name {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink, #1b1418);
+  margin: 0 0 3px;
+  line-height: 1.22;
+}
+
+.card-member-designation {
+  font-size: 13px;
   font-weight: 700;
   color: var(--indigo, #4b0082);
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   line-height: 1.35;
 }
 
-.member-credentials {
-  font-size: 12.5px;
+.card-member-credentials {
+  font-size: 12px;
   font-style: italic;
   color: var(--muted, #6f6a6c);
   margin: 0;
   line-height: 1.4;
 }
 
-.member-bio {
-  font-size: 14.5px;
+/* Bio Text */
+.card-member-bio {
+  font-size: 13.5px;
   line-height: 1.6;
   color: var(--ink, #2d2629);
   margin: 0 0 16px;
   flex: 1;
 }
 
-.member-highlights-box {
-  background: rgba(45, 22, 30, 0.03);
-  border: 1px dashed var(--hair, rgba(45, 22, 30, 0.15));
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin-top: auto;
-}
-
-.highlights-title {
-  display: block;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--burgundy, #6e1e38);
-  margin-bottom: 6px;
-}
-
-.highlights-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* Tag Chips Row */
+.card-tags-row {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.highlights-list li {
-  display: flex;
-  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 6px;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--muted, #4a4548);
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--hair, rgba(45, 22, 30, 0.08));
 }
 
-.bullet-point {
+.card-tag-pill {
+  background: rgba(45, 22, 30, 0.04);
+  color: var(--muted, #4a4548);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid rgba(45, 22, 30, 0.08);
+  letter-spacing: 0.01em;
+}
+
+.card-founder-featured .card-tag-pill {
+  background: rgba(110, 30, 56, 0.06);
   color: var(--burgundy, #6e1e38);
-  font-weight: bold;
+  border-color: rgba(110, 30, 56, 0.16);
 }
 
 /* ─── Empty state ─── */
 .no-members-found {
   text-align: center;
-  padding: 48px 24px;
-  background: #fbf9f8;
+  padding: 44px 20px;
+  background: #fdfbfb;
   border-radius: 8px;
   border: 1px dashed var(--hair, rgba(45, 22, 30, 0.2));
+  grid-column: 1 / -1;
 }
 
 .no-members-found p {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 18px;
+  font-size: 17px;
   color: var(--muted, #6f6a6c);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .reset-filter-btn {
@@ -431,8 +436,8 @@
   color: #ffffff;
   border: none;
   border-radius: 20px;
-  padding: 8px 20px;
-  font-size: 13px;
+  padding: 7px 18px;
+  font-size: 12.5px;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.2s ease;
@@ -444,36 +449,36 @@
 
 /* ─── Governance Pledge Section ─── */
 .governance-pledge-section {
-  margin-top: 56px;
+  margin-top: 48px;
   background: linear-gradient(135deg, #1f1218 0%, #3d1422 100%);
-  border-radius: 12px;
+  border-radius: 10px;
   color: #ffffff;
-  padding: 32px 36px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.18);
+  padding: 28px 32px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .pledge-inner {
   display: flex;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
 }
 
 .pledge-emblem {
-  font-size: 48px;
+  font-size: 40px;
   color: #ffd700;
   flex-shrink: 0;
 }
 
 .pledge-content h3 {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 22px;
-  margin: 0 0 10px;
+  font-size: 20px;
+  margin: 0 0 8px;
   color: #ffffff;
 }
 
 .pledge-content p {
-  font-size: 14.5px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.6;
   color: rgba(255, 255, 255, 0.88);
   margin: 0;
 }
@@ -482,31 +487,31 @@
 .committee-cta-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-top: 40px;
+  gap: 20px;
+  margin-top: 36px;
 }
 
 .cta-col {
-  background: #fbf9f8;
-  border: 1px solid var(--hair, rgba(45, 22, 30, 0.12));
-  border-radius: 10px;
-  padding: 24px;
+  background: #fdfbfb;
+  border: 1px solid var(--hair, rgba(45, 22, 30, 0.1));
+  border-radius: 8px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
 }
 
 .cta-col h4 {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 19px;
+  font-size: 18px;
   color: var(--ink, #1b1418);
-  margin: 0 0 8px;
+  margin: 0 0 6px;
 }
 
 .cta-col p {
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.55;
   color: var(--muted, #6f6a6c);
-  margin: 0 0 18px;
+  margin: 0 0 16px;
   flex: 1;
 }
 
@@ -515,7 +520,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -523,13 +528,13 @@
   text-decoration: none;
   border: 1.5px solid var(--burgundy, #6e1e38);
   border-radius: 6px;
-  padding: 10px 18px;
-  transition: all 0.2s ease;
+  padding: 8px 16px;
+  transition: all 0.18s ease;
   width: fit-content;
 }
 
 .committee-action-btn:hover {
-  background: rgba(110, 30, 56, 0.08);
+  background: rgba(110, 30, 56, 0.06);
   color: var(--plum, #4a2340);
   border-color: var(--plum, #4a2340);
 }
@@ -552,7 +557,7 @@
   }
   .committee-metrics-grid {
     grid-template-columns: repeat(2, 1fr);
-    row-gap: 16px;
+    row-gap: 14px;
   }
   .committee-metric-card:nth-child(2) {
     border-right: none;
@@ -568,20 +573,12 @@
 
 @media (max-width: 600px) {
   .committee-page-wrap {
-    padding: 16px 16px 48px;
-  }
-  .card-top-row {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-  .member-badge-pill {
-    margin-top: 4px;
-  }
-  .committee-search-box {
-    min-width: 100%;
+    padding: 16px 14px 44px;
   }
   .committee-metrics-grid {
     grid-template-columns: 1fr 1fr;
+  }
+  .committee-search-box {
+    min-width: 100%;
   }
 }

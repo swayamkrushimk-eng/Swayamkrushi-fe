@@ -9,200 +9,154 @@ export const COMMITTEE_MEMBERS = [
     id: 'chenna-saratbabu',
     name: 'Dr. Chenna Saratbabu',
     role: 'Patron',
+    roleCategory: 'Patron',
     designation: 'Advocate, Supreme Court BAR',
     credentials: 'President of Blind Cricket for Andhra Pradesh State Board',
-    category: 'Patron',
-    tier: 'patron',
     badge: 'PATRON',
     colorTheme: 'gold',
-    bio: 'Eminent legal luminary and practicing advocate at the Supreme Court Bar. Dr. Saratbabu has championed disability rights, sports empowerment, and social inclusion across the nation, presiding over the Andhra Pradesh Blind Cricket State Board and steering Swayamkrushi with seasoned legal patronage.',
-    highlights: [
-      'Advocate, Supreme Court Bar Association',
-      'President, Blind Cricket Association of AP State Board',
-      'Constitutional & Social Welfare Legal Counsel'
-    ],
+    bio: 'Eminent constitutional jurist and advocate at the Supreme Court Bar. Dr. Saratbabu is a dedicated champion of disability rights and sports inclusion, leading the Blind Cricket Association of Andhra Pradesh State Board and offering long-standing legal patronage to Swayamkrushi.',
+    tags: ['Supreme Court BAR', 'President, AP Blind Cricket', 'Legal Patron'],
     initials: 'CS'
   },
   {
     id: 'manjulaa-kalyaan',
     name: 'Dr. Manjulaa Kalyaan',
     role: 'Founder & Director',
+    roleCategory: 'Founder',
     designation: 'Founder Director, Swayamkrushi',
     credentials: 'Four-time National Award Winner · RCI Nominated Expert',
-    category: 'Leadership',
-    tier: 'founder',
     badge: 'FOUNDER DIRECTOR',
     colorTheme: 'burgundy',
     image: manjulaPortrait,
-    bio: 'Pioneering special educator and social entrepreneur who founded Swayamkrushi in 1991. What began with two girls in a rented flat has expanded into a five-acre permanent campus, family-style group homes, and a premier B.Ed Special Education collegiate ecosystem.',
-    highlights: [
-      'Founded Swayamkrushi in 1991',
-      'Conferred 4 National Awards for Excellence in Disability Rehabilitation',
-      'Established First-of-its-Kind Group Homes in South India'
-    ],
+    bio: 'Visionary special educator who established Swayamkrushi in 1991. Starting with two girls in a rented flat, Dr. Kalyaan built South India’s premier model group homes, a five-acre permanent campus, and an affiliated B.Ed Special Education collegiate institution.',
+    tags: ['Founded 1991', '4x National Awardee', 'Group Homes Pioneer', 'B.Ed Institution'],
     initials: 'MK'
   },
   {
     id: 'ram-prasad-talluri',
     name: 'Mr. Ram Prasad Talluri',
     role: 'President',
+    roleCategory: 'Presidency',
     designation: 'President, Managing Committee',
-    credentials: 'Philanthropist & Organizational Leader',
-    category: 'Leadership',
-    tier: 'president',
+    credentials: 'Philanthropist & Institutional Leader',
     badge: 'PRESIDENT',
     colorTheme: 'indigo',
-    bio: 'Providing visionary executive direction, corporate collaboration, and financial stewardship to scale Swayamkrushi’s educational and residential initiatives.',
-    highlights: [
-      'Strategic Governance & Institutional Expansion',
-      'Community Philanthropy & Stakeholder Relations'
-    ],
+    bio: 'Providing strategic executive governance, corporate partnerships, and philanthropic support to advance Swayamkrushi’s campus expansion and rehabilitation programs.',
+    tags: ['Executive Governance', 'Philanthropy', 'Institutional Growth'],
     initials: 'RT'
   },
   {
     id: 'jayaram-reddy',
     name: 'Mr. A. Jayaram Reddy',
     role: 'President',
+    roleCategory: 'Presidency',
     designation: 'President, Managing Committee',
     credentials: 'Civic Leader & Institutional Administrator',
-    category: 'Leadership',
-    tier: 'president',
     badge: 'PRESIDENT',
     colorTheme: 'indigo',
-    bio: 'Distinguished administrator leading policy formation, community outreach, and long-term campus infrastructure development for Swayamkrushi.',
-    highlights: [
-      'Policy Governance & Compliance Oversight',
-      'Infrastructure & Campus Development Programs'
-    ],
+    bio: 'Seasoned administrator steering organizational compliance, community relations, and sustainable infrastructure programs for the organization.',
+    tags: ['Policy Governance', 'Infrastructure', 'Community Relations'],
     initials: 'JR'
   },
   {
     id: 'satyanarayana-murthy',
     name: 'Capt. Varanasi Satyanarayana Murthy',
     role: 'Vice President',
+    roleCategory: 'Presidency',
     designation: 'Vice President, Managing Committee',
     credentials: 'Master Mariner & Veteran Administrator',
-    category: 'Leadership',
-    tier: 'vice-president',
     badge: 'VICE PRESIDENT',
     colorTheme: 'burgundy',
-    bio: 'Bringing disciplined administrative governance, crisis management capabilities, and leadership acumen to Swayamkrushi’s day-to-day operations and residential welfare.',
-    highlights: [
-      'Operational Logistics & Resource Allocation',
-      'Residential Security & Campus Standards'
-    ],
+    bio: 'Brings disciplined operational governance, administrative expertise, and crisis management leadership to Swayamkrushi’s residential welfare and daily campus routines.',
+    tags: ['Master Mariner', 'Campus Operations', 'Welfare Management'],
     initials: 'VM'
   },
   {
     id: 'bhanoji-rao',
     name: 'Bhanoji Rao AVSM VSM (Retd)',
     role: 'Vice President',
+    roleCategory: 'Presidency',
     designation: 'Vice President, Managing Committee',
     credentials: 'Ati Vishisht Seva Medal (AVSM) · Vishisht Seva Medal (VSM)',
-    category: 'Leadership',
-    tier: 'vice-president',
     badge: 'VICE PRESIDENT',
     colorTheme: 'burgundy',
-    bio: 'Decorated military commander and recipient of the prestigious AVSM and VSM presidential honors. Providing impeccable ethical governance, national outreach, and strategic institutional guidance.',
-    highlights: [
-      'Recipient of Presidential AVSM & VSM Medals',
-      'Institutional Ethics & Fiduciary Oversight'
-    ],
+    bio: 'Decorated military commander and recipient of the prestigious presidential AVSM and VSM honors. Providing highest-standard ethical stewardship, national outreach, and institutional mentorship.',
+    tags: ['AVSM & VSM Recipient', 'Military Veteran', 'Ethical Governance'],
     initials: 'BR'
   },
   {
     id: 't-suresh',
     name: 'Mr. T. Suresh',
     role: 'Secretary',
+    roleCategory: 'Secretariat',
     designation: 'Group Captain (Retd)',
-    credentials: 'Honorary Secretary · Aviation & Defense Veteran',
-    category: 'Secretariat',
-    tier: 'secretary',
+    credentials: 'Honorary Secretary · Defense & Aviation Veteran',
     badge: 'SECRETARY',
     colorTheme: 'indigo',
-    bio: 'Distinguished defense veteran bringing high-precision management, organizational rigor, and procedural compliance to the managing committee secretariat.',
-    highlights: [
-      'Group Captain Veteran Leadership',
-      'Statutory Documentation & Secretariat Administration'
-    ],
+    bio: 'Distinguished defense veteran bringing organizational rigor, statutory governance, and operational precision to the Managing Committee secretariat.',
+    tags: ['Group Captain Retd', 'Secretariat Administration', 'Statutory Compliance'],
     initials: 'TS'
   },
   {
     id: 'b-suresh-kumar',
     name: 'Mr. B. Suresh Kumar',
     role: 'Secretary',
+    roleCategory: 'Secretariat',
     designation: 'Advocate',
     credentials: 'Honorary Secretary · Legal Counsel',
-    category: 'Secretariat',
-    tier: 'secretary',
     badge: 'SECRETARY',
     colorTheme: 'indigo',
-    bio: 'Practicing advocate managing legal compliance, statutory filings, trust deeds, and safeguarding the rights and entitlements of beneficiaries under disability welfare acts.',
-    highlights: [
-      'Legal & Statutory Compliance Management',
-      'Advocacy for Disability Entitlements & Government Relations'
-    ],
+    bio: 'Practicing advocate managing legal compliance, statutory filings, society trust matters, and safeguarding the rights and legal protections of the trainees and residents.',
+    tags: ['Advocate & Legal Counsel', 'Rights Advocacy', 'Regulatory Compliance'],
     initials: 'SK'
   },
   {
     id: 'malleswari-bandaru',
     name: 'Dr. Malleswari Bandaru',
     role: 'Executive Member',
+    roleCategory: 'Executive',
     designation: 'Executive Committee Member',
     credentials: 'Academic & Healthcare Consultant',
-    category: 'Executive',
-    tier: 'member',
     badge: 'EXECUTIVE MEMBER',
     colorTheme: 'slate',
-    bio: 'Contributing specialized clinical, academic, and therapeutic advisory services to enrich the special education and psychological well-being of the residents.',
-    highlights: [
-      'Healthcare Protocol & Clinical Advisory',
-      'Curriculum Integration for Special Education'
-    ],
+    bio: 'Provides specialized clinical and therapeutic insights, supporting special educators in curating psychological and adaptive learning protocols for residents.',
+    tags: ['Healthcare Advisory', 'Special Education', 'Clinical Support'],
     initials: 'MB'
   },
   {
     id: 's-jayram',
     name: 'Mr. S. Jayram',
     role: 'Executive Member',
+    roleCategory: 'Executive',
     designation: 'Executive Committee Member',
-    credentials: 'Vocational Training & Community Engagement Specialist',
-    category: 'Executive',
-    tier: 'member',
+    credentials: 'Community Outreach & Vocational Specialist',
     badge: 'EXECUTIVE MEMBER',
     colorTheme: 'slate',
-    bio: 'Actively facilitating field logistics, community integration, vocational trainee placements, and family support systems.',
-    highlights: [
-      'Vocational Outreach & Trainee Job Placements',
-      'Community Engagement & Family Counseling Support'
-    ],
+    bio: 'Facilitates community engagement, family counseling networks, and vocational workshops to help young adults transition smoothly into workplace employment.',
+    tags: ['Vocational Outreach', 'Family Support', 'Trainee Placement'],
     initials: 'SJ'
   },
   {
     id: 'k-jayalakshmi',
     name: 'Mrs. K. Jayalakshmi',
     role: 'Executive Member',
+    roleCategory: 'Executive',
     designation: 'Executive Committee Member',
-    credentials: 'Residential Welfare & Vocational Mentor',
-    category: 'Executive',
-    tier: 'member',
+    credentials: 'Residential Welfare & Vocational Mentorship',
     badge: 'EXECUTIVE MEMBER',
     colorTheme: 'slate',
-    bio: 'Championing resident care, quality of life standards in the group homes, arts-and-crafts initiatives, and compassionate resident mentorship.',
-    highlights: [
-      'Group Home Welfare & Quality of Life Oversight',
-      'Vocational Craft & Resident Mentorship Programs'
-    ],
+    bio: 'Champions daily quality of life in the group homes, arts-and-crafts training, and compassionate residential mentorship for residents with intellectual disabilities.',
+    tags: ['Group Home Care', 'Vocational Crafts', 'Resident Welfare'],
     initials: 'KJ'
   }
 ]
 
 const CATEGORIES = [
-  { id: 'all', label: 'All Committee' },
-  { id: 'patron', label: 'Patron & Founder' },
-  { id: 'leadership', label: 'Presidency' },
+  { id: 'all', label: 'All Members (11)' },
+  { id: 'founder', label: 'Founder & Patron' },
+  { id: 'presidency', label: 'Presidents' },
   { id: 'secretariat', label: 'Secretariat' },
-  { id: 'executive', label: 'Executive Members' }
+  { id: 'executive', label: 'Executive Committee' }
 ]
 
 export default function CommitteePage() {
@@ -217,18 +171,20 @@ export default function CommitteePage() {
     return COMMITTEE_MEMBERS.filter((m) => {
       const matchCategory =
         activeCategory === 'all' ||
-        (activeCategory === 'patron' && (m.category === 'Patron' || m.tier === 'founder')) ||
-        (activeCategory === 'leadership' && (m.tier === 'president' || m.tier === 'vice-president')) ||
-        (activeCategory === 'secretariat' && m.category === 'Secretariat') ||
-        (activeCategory === 'executive' && m.category === 'Executive')
+        (activeCategory === 'founder' && (m.roleCategory === 'Founder' || m.roleCategory === 'Patron')) ||
+        (activeCategory === 'presidency' && m.roleCategory === 'Presidency') ||
+        (activeCategory === 'secretariat' && m.roleCategory === 'Secretariat') ||
+        (activeCategory === 'executive' && m.roleCategory === 'Executive')
 
+      const q = searchQuery.toLowerCase().trim()
       const matchSearch =
-        !searchQuery.trim() ||
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.designation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.credentials.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.bio.toLowerCase().includes(searchQuery.toLowerCase())
+        !q ||
+        m.name.toLowerCase().includes(q) ||
+        m.role.toLowerCase().includes(q) ||
+        m.designation.toLowerCase().includes(q) ||
+        m.credentials.toLowerCase().includes(q) ||
+        m.bio.toLowerCase().includes(q) ||
+        m.tags.some((t) => t.toLowerCase().includes(q))
 
       return matchCategory && matchSearch
     })
@@ -251,18 +207,18 @@ export default function CommitteePage() {
           <span className="breadcrumb-category">GOVERNANCE & LEADERSHIP</span>
         </nav>
 
-        {/* Editorial Header */}
+        {/* Editorial Masthead Header */}
         <header className="committee-header">
           <div className="committee-kicker">
             <span className="badge-dot" />
             <span>ESTABLISHED 1991 · SOCIETY REG. NO. 3608/1991</span>
           </div>
-          <h1 className="committee-headline">The Managing Committee</h1>
+          <h1 className="committee-headline">Managing Committee</h1>
           <p className="committee-lede">
-            Guided by distinguished jurists, decorated military veterans, visionary educators, and civic leaders dedicated to self-reliance and lifelong dignity for persons with intellectual disabilities.
+            Governed by senior jurists, military veterans, visionary educators, and civic leaders dedicated to self-reliance, lifelong security, and dignity for persons with intellectual disabilities.
           </p>
 
-          {/* Quick Metrics Bar */}
+          {/* Clean Metric Stats */}
           <div className="committee-metrics-grid">
             <div className="committee-metric-card">
               <span className="metric-num">35+</span>
@@ -278,12 +234,12 @@ export default function CommitteePage() {
             </div>
             <div className="committee-metric-card">
               <span className="metric-num">100%</span>
-              <span className="metric-label">Voluntary Fiduciary Care</span>
+              <span className="metric-label">Fiduciary Care</span>
             </div>
           </div>
         </header>
 
-        {/* Filter and Search Controls */}
+        {/* Clean Filter Controls Bar */}
         <div className="committee-controls-bar">
           <div className="committee-tabs-nav" role="tablist">
             {CATEGORIES.map((tab) => (
@@ -301,7 +257,7 @@ export default function CommitteePage() {
           </div>
 
           <div className="committee-search-box">
-            <svg className="search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg className="search-icon" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
@@ -325,52 +281,50 @@ export default function CommitteePage() {
           </div>
         </div>
 
-        {/* Member Directory Grid */}
+        {/* Member Cards Grid */}
         <div className="committee-grid">
           {filteredMembers.map((member) => (
             <article
               key={member.id}
-              className={`committee-card tier-${member.tier} theme-${member.colorTheme}`}
+              className={`committee-card card-theme-${member.colorTheme} ${member.id === 'manjulaa-kalyaan' ? 'card-founder-featured' : ''}`}
             >
-              <div className="card-top-row">
-                <div className="avatar-wrapper">
+              {/* Card Header Profile */}
+              <div className="card-profile-header">
+                <div className="card-avatar-container">
                   {member.image ? (
                     <img
                       src={member.image}
                       alt={member.name}
-                      className="member-avatar-img"
+                      className="member-avatar-photo"
                     />
                   ) : (
-                    <div className="member-avatar-monogram">
+                    <div className={`member-avatar-initials ${member.colorTheme}`}>
                       <span>{member.initials}</span>
                     </div>
                   )}
-                  <span className="member-badge-pill">{member.badge}</span>
                 </div>
 
-                <div className="member-title-block">
-                  <span className="member-role-category">{member.role}</span>
-                  <h3 className="member-name">{member.name}</h3>
-                  <p className="member-designation">{member.designation}</p>
+                <div className="card-identity-meta">
+                  <span className="card-role-badge">{member.role}</span>
+                  <h3 className="card-member-name">{member.name}</h3>
+                  <p className="card-member-designation">{member.designation}</p>
                   {member.credentials && (
-                    <p className="member-credentials">{member.credentials}</p>
+                    <p className="card-member-credentials">{member.credentials}</p>
                   )}
                 </div>
               </div>
 
-              <p className="member-bio">{member.bio}</p>
+              {/* Bio Narrative */}
+              <p className="card-member-bio">{member.bio}</p>
 
-              {member.highlights && member.highlights.length > 0 && (
-                <div className="member-highlights-box">
-                  <span className="highlights-title">Key Portfolio & Responsibilities</span>
-                  <ul className="highlights-list">
-                    {member.highlights.map((item, idx) => (
-                      <li key={idx}>
-                        <span className="bullet-point">&bull;</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {/* Tag Chips */}
+              {member.tags && member.tags.length > 0 && (
+                <div className="card-tags-row">
+                  {member.tags.map((tag, idx) => (
+                    <span key={idx} className="card-tag-pill">
+                      {tag}
+                    </span>
+                  ))}
                 </div>
               )}
             </article>
@@ -400,7 +354,7 @@ export default function CommitteePage() {
             <div className="pledge-content">
               <h3>Fiduciary Governance & Non-Profit Integrity</h3>
               <p>
-                Swayamkrushi is registered under the Societies Registration Act (Reg. No. 3608/1991). The Managing Committee operates with strict compliance with 12A, 80G, CSR-1, and the Rights of Persons with Disabilities Act, 2016. All committee roles are non-commercial and dedicated solely to the welfare, rehabilitation, and long-term security of our trainees and residents.
+                Swayamkrushi is registered under the Societies Registration Act (Reg. No. 3608/1991) with 12A, 80G, CSR-1, and Rights of Persons with Disabilities Act compliances. All committee appointments are voluntary and dedicated to transparent, ethical stewardship and the lifelong security of our residents.
               </p>
             </div>
           </div>
