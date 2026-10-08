@@ -143,18 +143,6 @@ export default function FaqPage() {
         </p>
       </header>
 
-      {/* Controls Bar */}
-      <div className="faq-controls-bar" style={{ justifyContent: 'flex-end' }}>
-        <button
-          type="button"
-          className="faq-toggle-all-btn"
-          onClick={areAllOpen ? handleCollapseAll : handleExpandAll}
-          aria-label={areAllOpen ? 'Collapse all questions' : 'Expand all questions'}
-        >
-          <span>{areAllOpen ? '− Collapse All' : '+ Expand All'}</span>
-        </button>
-      </div>
-
       {/* FAQ Accordion List */}
       <section className="faq-list" aria-label="Frequently Asked Questions List">
         {items.map((item, index) => {
@@ -176,7 +164,6 @@ export default function FaqPage() {
                 <div className="faq-question-header-content">
                   <span className="faq-index-number">{displayNumber}</span>
                   <div className="faq-title-wrap">
-                    <span className="faq-category-tag">{item.category}</span>
                     <h2 className="faq-question-title">{item.question}</h2>
                   </div>
                 </div>
