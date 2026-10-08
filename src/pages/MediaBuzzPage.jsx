@@ -6,19 +6,35 @@ import './MediaBuzzPage.css'
 
 export const MEDIA_ARTICLES = [
   {
-    id: 'hindu-35-years-milestone',
-    title: 'NGO Celebrates 35 Years of Serving Persons with Intellectual Disabilities',
-    outlet: 'The Hindu',
-    outletType: 'Print & Newspapers',
+    id: 'deccan-chronicle-35-years',
+    title: 'Swayamkrushi Marks 35 Years Of Empowering Persons With Disabilities',
+    outlet: 'Deccan Chronicle',
+    outletType: 'Digital & Magazines',
     date: 'August 2026',
-    category: 'Newspaper Clipping',
-    badge: 'THE HINDU SPOTLIGHT',
-    image: hinduClipping,
-    isClipping: true,
-    excerpt: 'Swayamkrushi, a Hyderabad-based non-profit organisation working for persons with intellectual disabilities, is celebrating 35 years of service with a focus on education, vocational training and independent living. Founder Manjula Kalyan was felicitated by dignitaries.',
-    readTime: 'Newspaper Report',
-    tags: ['The Hindu', '35th Anniversary', 'Founder Felicitation', 'Special Education'],
-    articleUrl: 'https://share.google/YhznuCLOlokk6iVY6',
+    category: 'Digital Press',
+    badge: 'DECCAN CHRONICLE',
+    image: null,
+    isClipping: false,
+    excerpt: 'Deccan Chronicle spotlights Swayamkrushi’s milestone 35th anniversary, celebrating more than three decades of pioneering residential care, vocational skill building, and dedicated support for persons with intellectual disabilities.',
+    readTime: '3 min read',
+    tags: ['Deccan Chronicle', '35 Years', 'Milestone Celebration', 'Special Education'],
+    articleUrl: 'https://www.deccanchronicle.com/southern-states/telangana/swayamkrushi-marks-35-years-of-empowering-persons-with-disabilities-1975055',
+    featured: true
+  },
+  {
+    id: 'telangana-today-35-years',
+    title: 'Swayamkrushi Marks 35 Years of Empowering Persons with Intellectual Disabilities',
+    outlet: 'Telangana Today',
+    outletType: 'Digital & Magazines',
+    date: 'August 2026',
+    category: 'Online Edition',
+    badge: 'TELANGANA TODAY',
+    image: null,
+    isClipping: false,
+    excerpt: 'Telangana Today spotlights the 35th-anniversary celebration of Swayamkrushi, highlighting the school, women’s group homes, and university-affiliated collegiate institution empowering persons with intellectual disabilities.',
+    readTime: '4 min read',
+    tags: ['Telangana Today', '35 Years', 'Hyderabad', 'Special Education'],
+    articleUrl: 'https://telanganatoday.com/swayamkrushi-marks-35-years-of-empowering-persons-with-intellectual-disabilities',
     featured: true
   },
   {
@@ -38,37 +54,35 @@ export const MEDIA_ARTICLES = [
     featured: true
   },
   {
-    id: 'telangana-today-35-years',
-    title: 'Swayamkrushi Marks 35 Years of Empowering Persons with Intellectual Disabilities',
+    id: 'mana-telangana-35-years',
+    title: 'Mana Telangana: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Mana Telangana',
+    outletType: 'Print & Newspapers',
+    date: '04/08/2026',
+    category: 'Regional Press',
+    badge: 'MANA TELANGANA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'మన తెలంగాణ దినపత్రిక కథనం: మూడున్నర దశాబ్దాల పాటు మేధో వైకల్యం కలిగిన వ్యక్తుల విద్య, జీవనోపాధి, సాధికారతకు విశేష కృషి చేస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Mana Telangana', '35 Years', 'Telugu E-Paper', 'Hyderabad'],
+    articleUrl: 'https://epaper.manatelangana.news/4183407/HYDERABAD/04-08-2026#issue/4/2',
+    featured: false
+  },
+  {
+    id: 'telangana-today-epaper-35-years',
+    title: 'Telangana Today E-Paper: Swayamkrushi 35 Years Milestone Coverage',
     outlet: 'Telangana Today',
     outletType: 'Print & Newspapers',
     date: 'August 2026',
     category: 'E-Paper & Print',
-    badge: 'TELANGANA TODAY',
+    badge: 'TELANGANA TODAY E-PAPER',
     image: null,
     isClipping: false,
-    excerpt: 'Telangana Today spotlights the 35th-anniversary celebration of Swayamkrushi, highlighting the school, women’s group homes, and university-affiliated B.Ed Special Education collegiate institution.',
+    excerpt: 'Telangana Today print & e-paper edition feature on Swayamkrushi’s 35th milestone, celebrating founder Manjula Kalyan and the journey of special education in Secunderabad.',
     readTime: 'E-Paper Edition',
-    tags: ['Telangana Today', '35 Years', 'Hyderabad District', 'Special Education'],
-    articleUrl: 'https://epaper.telanganatoday.com/article/Hyderabad?OrgId=30830d8e731&imageview=1&standalone=1&device=mobile',
-    shareUrl: 'https://share.google/hr29E4yqbsxGLYhfz',
-    featured: true
-  },
-  {
-    id: 'sakshi-hyderabad-district',
-    title: 'Sakshi Hyderabad District Edition: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
-    outlet: 'Sakshi Telugu Daily',
-    outletType: 'Print & Newspapers',
-    date: '09/08/2026',
-    category: 'Regional Press',
-    badge: 'SAKSHI E-PAPER',
-    image: null,
-    isClipping: false,
-    excerpt: 'సాక్షి హైదరాబాద్ ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ సేవలు ఆదర్శనీయం.',
-    readTime: 'Telugu E-Paper',
-    tags: ['Sakshi Daily', 'Telugu E-Paper', 'District Edition', 'Residential Care'],
-    articleUrl: 'https://epaper.sakshi.com/Hyderabad_District?eid=123&edate=09/08/2026&pgid=916473&device=desktop&view=3',
-    shareUrl: 'https://share.google/eUEsCRt1PCmGTv3wc',
+    tags: ['Telangana Today', 'E-Paper', 'Hyderabad District', 'Special Education'],
+    articleUrl: 'https://epaper.telanganatoday.com/article/Hyderabad?OrgId=30830d8e731&imageview=1&standalone=1&device=desktop',
     featured: false
   },
   {
@@ -88,20 +102,36 @@ export const MEDIA_ARTICLES = [
     featured: false
   },
   {
-    id: 'telangana-today-digital-archive',
-    title: 'Swayamkrushi Marks 35 Years Of Empowering Persons With Disabilities',
-    outlet: 'Telangana Today Digital',
-    outletType: 'Digital & Magazines',
-    date: 'August 2026',
-    category: 'Online Edition',
-    badge: 'DIGITAL NEWS',
+    id: 'sakshi-hyderabad-district',
+    title: 'Sakshi Hyderabad District Edition: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Sakshi Telugu Daily',
+    outletType: 'Print & Newspapers',
+    date: '09/08/2026',
+    category: 'Regional Press',
+    badge: 'SAKSHI E-PAPER',
     image: null,
     isClipping: false,
-    excerpt: 'Digital media report on the anniversary convention celebrating 35 years of inclusive education, parent support programs, vocational crafts, and independent living.',
-    readTime: '3 min read',
-    tags: ['Digital Press', 'Telangana Today', 'Milestone Celebration'],
-    articleUrl: 'https://share.google/qjsO3mphDfJO4K8o3',
+    excerpt: 'సాక్షి హైదరాబాద్ ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ సేవలు ఆదర్శనీయం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Sakshi Daily', 'Telugu E-Paper', 'District Edition', 'Residential Care'],
+    articleUrl: 'https://epaper.sakshi.com/login/loginpage?ReturnUrl=%2fHyderabad_Main%3feid%3d123%26edate%3d09%2f08%2f2026%26pgid%3d916473%26device%3dmobile%26view%3d0%26sedId%3d0%26uemail%3d&eid=123&edate=09/08/2026&pgid=916473&device=mobile&view=0&sedId=0&uemail=',
     featured: false
+  },
+  {
+    id: 'hindu-35-years-milestone',
+    title: 'NGO Celebrates 35 Years of Serving Persons with Intellectual Disabilities',
+    outlet: 'The Hindu',
+    outletType: 'Print & Newspapers',
+    date: 'August 2026',
+    category: 'Newspaper Clipping',
+    badge: 'THE HINDU SPOTLIGHT',
+    image: hinduClipping,
+    isClipping: true,
+    excerpt: 'Swayamkrushi, a Hyderabad-based non-profit organisation working for persons with intellectual disabilities, is celebrating 35 years of service with a focus on education, vocational training and independent living. Founder Manjula Kalyan was felicitated by dignitaries.',
+    readTime: 'Newspaper Report',
+    tags: ['The Hindu', '35th Anniversary', 'Founder Felicitation', 'Special Education'],
+    articleUrl: 'https://share.google/YhznuCLOlokk6iVY6',
+    featured: true
   }
 ]
 
@@ -114,9 +144,9 @@ export default function MediaBuzzPage() {
     async function loadBuzz() {
       try {
         const data = await fetchMediaBuzz()
-        if (Array.isArray(data) && data.length > 0) {
+        if (Array.isArray(data) && data.length > 0 && data.some((a) => a.id === 'deccan-chronicle-35-years')) {
           const mapped = data.map((a) => {
-            if (a.id === 'hindu-35-years-milestone' && (!a.image || a.image === 'hinduClipping')) {
+            if (a.id === 'hindu-35-years-milestone') {
               return { ...a, image: hinduClipping }
             }
             return a
@@ -124,9 +154,11 @@ export default function MediaBuzzPage() {
           setArticlesList(mapped)
         } else {
           localStorage.setItem('swayamkrushi_media_buzz', JSON.stringify(MEDIA_ARTICLES))
+          setArticlesList(MEDIA_ARTICLES)
         }
       } catch (err) {
         console.warn('Error loading media buzz:', err)
+        setArticlesList(MEDIA_ARTICLES)
       }
     }
     loadBuzz()
