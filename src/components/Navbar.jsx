@@ -88,7 +88,7 @@ export default function Navbar() {
                 <Link to="/article/story-visa" onClick={() => setMobileMenuOpen(false)}>Visa to go abroad</Link>
               </li>
               <li>
-                <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>Chance encounter that changed my life</Link>
+                <Link to="/article/story-sai-baba" onClick={() => setMobileMenuOpen(false)}>The mysterious appearance of Shirdi Sai Baba</Link>
               </li>
             </ul>
           </li>
