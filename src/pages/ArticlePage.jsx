@@ -114,9 +114,8 @@ export default function ArticlePage({ defaultId }) {
         <div className="article-meta-row">
           <div className="article-byline-group">
             <span className="article-author">
-              {article.attribution ? `By ${article.attribution}` : 'By SWAYAMKRUSHI ARCHIVES'}
+              {article.attribution ? `By ${article.attribution}` : 'By SWAYAMKRUSHI'}
             </span>
-            <span className="article-date">Published in Swayamkrushi Archives</span>
           </div>
 
           <div className="article-actions-group">
@@ -226,7 +225,7 @@ export default function ArticlePage({ defaultId }) {
                 />
               </div>
               <figcaption className="article-hero-caption">
-                Video spotlight: {article.title} &mdash; Swayamkrushi Archives.
+                Video spotlight: {article.title}
               </figcaption>
             </figure>
           )
@@ -246,7 +245,7 @@ export default function ArticlePage({ defaultId }) {
                 }}
               />
               <figcaption className="article-hero-caption">
-                Archival spotlight: {article.title} &mdash; Swayamkrushi, Secunderabad.
+                Archival spotlight: {article.title}
               </figcaption>
             </figure>
           )

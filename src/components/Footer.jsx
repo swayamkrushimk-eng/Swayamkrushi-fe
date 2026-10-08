@@ -184,7 +184,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="#give" onClick={(e) => { e.preventDefault(); handleNavAnchor('give'); }} className="footer-give-highlight">
-                  Support & Donations →
+                  Support →
                 </a>
               </li>
             </ul>
