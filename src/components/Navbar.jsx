@@ -1,11 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { leftSideArticles } from '../data/articlesData'
+import { fetchArticles } from '../services/api'
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState(null)
   const location = useLocation()
   const navigate = useNavigate()
+
+  const filterFunFacts = (list) => {
+    if (!Array.isArray(list)) return []
+    return list.filter(
+      (a) =>
+        a.id !== 'story-encounter' &&
+        a.id !== 'story-direct-speak' &&
+        !a.title?.toLowerCase().includes('chance encounter') &&
+        !a.title?.toLowerCase().includes('direct speak')
+    )
+  }
+
+  const [funFacts, setFunFacts] = useState(() => filterFunFacts(leftSideArticles))
+
+  useEffect(() => {
+    fetchArticles({ section: 'left' }).then((data) => {
+      if (data && Array.isArray(data) && data.length > 0) {
+        setFunFacts(filterFunFacts(data))
+      }
+    })
+  }, [])
 
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name)
@@ -81,15 +104,16 @@ export default function Navbar() {
               Fun facts
             </a>
             <ul className="submenu">
-              <li>
-                <Link to="/article/story-thinking" onClick={() => setMobileMenuOpen(false)}>Thinking out of the box!</Link>
-              </li>
-              <li>
-                <Link to="/article/story-visa" onClick={() => setMobileMenuOpen(false)}>Visa to go abroad</Link>
-              </li>
-              <li>
-                <Link to="/article/story-sai-baba" onClick={() => setMobileMenuOpen(false)}>The mysterious appearance of Shirdi Sai Baba</Link>
-              </li>
+              {funFacts.map((article) => (
+                <li key={article.id}>
+                  <Link
+                    to={`/article/${article.id}`}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {article.title}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </li>
           <li className={`has-sub ${openDropdown === 'success-stories' ? 'is-open' : ''}`}>

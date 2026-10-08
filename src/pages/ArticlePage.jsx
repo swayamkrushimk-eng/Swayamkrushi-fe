@@ -110,8 +110,6 @@ export default function ArticlePage({ defaultId }) {
 
         <h1 className="article-headline">{article.title}</h1>
 
-        <p className="article-lede-summary">{article.excerpt}</p>
-
         {/* Metadata Byline & Action Icons */}
         <div className="article-meta-row">
           <div className="article-byline-group">

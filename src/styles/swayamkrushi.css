@@ -1226,7 +1226,9 @@ img {
   position: absolute;
   left: -14px;
   top: 100%;
-  min-width: 246px;
+  min-width: 270px;
+  max-height: 75vh;
+  overflow-y: auto;
   margin: 0;
   padding: 8px 0;
   list-style: none;
