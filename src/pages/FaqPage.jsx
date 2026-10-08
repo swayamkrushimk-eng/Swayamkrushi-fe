@@ -53,7 +53,6 @@ export default function FaqPage() {
     'faq-donations': true,
     'faq-bed-recognition': true
   })
-  const [activeCategory, setActiveCategory] = useState('All')
   const [siteSettings, setSiteSettings] = useState({
     phone1: '+91 9704245454',
     phone2: '+91 9963766729',
@@ -100,12 +99,6 @@ export default function FaqPage() {
 
   const areAllOpen = items.every((item) => openItems[item.id])
 
-  const categories = ['All', 'Admissions & Care', 'Residential & Support', 'Volunteering & Community', 'Donations & Governance', 'Academics & Degrees']
-
-  const filteredItems = activeCategory === 'All'
-    ? items
-    : items.filter((item) => item.category === activeCategory)
-
   const handleContactAnchor = (e) => {
     e.preventDefault()
     navigate('/')
@@ -151,20 +144,7 @@ export default function FaqPage() {
       </header>
 
       {/* Controls Bar */}
-      <div className="faq-controls-bar">
-        <div className="faq-filter-group" role="tablist" aria-label="Filter FAQ by Category">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={`faq-filter-btn ${activeCategory === cat ? 'active' : ''}`}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
+      <div className="faq-controls-bar" style={{ justifyContent: 'flex-end' }}>
         <button
           type="button"
           className="faq-toggle-all-btn"
@@ -177,7 +157,7 @@ export default function FaqPage() {
 
       {/* FAQ Accordion List */}
       <section className="faq-list" aria-label="Frequently Asked Questions List">
-        {filteredItems.map((item, index) => {
+        {items.map((item, index) => {
           const isOpen = !!openItems[item.id]
           const displayNumber = String(index + 1).padStart(2, '0')
 
