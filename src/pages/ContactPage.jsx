@@ -4,7 +4,7 @@ import { fetchSettings } from '../services/api'
 import SEO from '../components/SEO'
 import './ContactPage.css'
 
-const API_BASE = 'http://localhost:5000/api'
+const API_BASE = import.meta.env.VITE_API_URL || 'https://api.swayamkrushi.org/api'
 
 const INQUIRY_TYPES = [
   { value: 'inquiry',    label: 'General Inquiry' },
@@ -22,7 +22,7 @@ export default function ContactPage() {
     phone2: '+91 9963766729',
     email: 'swayamkrushimk@gmail.com',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
-    visitingHours: 'Mon – Sat: 10 am – 5 pm'
+    visitingHours: 'Mon – Sat: 10 am – 4 pm'
   })
   const [form, setForm] = useState({
     name: '', email: '', phone: '', type: 'inquiry', subject: '', message: ''
@@ -143,7 +143,6 @@ export default function ContactPage() {
             <div className="contact-info-text">
               <h3>Email</h3>
               <a href={`mailto:${settings.email}`}>{settings.email}</a>
-              <span className="contact-info-note">We respond within 2 working days.</span>
             </div>
           </div>
 
@@ -169,7 +168,7 @@ export default function ContactPage() {
             </div>
             <div className="contact-info-text">
               <h3>Visiting Hours</h3>
-              <p>{settings.visitingHours || 'Mon – Sat: 10 am – 5 pm'}</p>
+              <p>{settings.visitingHours || 'Mon – Sat: 10 am – 4 pm'}</p>
               <span className="contact-info-note">Prior appointment preferred.</span>
             </div>
           </div>

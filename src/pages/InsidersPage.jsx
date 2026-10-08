@@ -228,28 +228,7 @@ export default function InsidersPage() {
 
       {/* Hero Header */}
       <header className="insiders-hero-header">
-        <div className="insiders-tag-badge">
-          <span className="insiders-tag-dot" />
-          <span>Vocal Video & Insider Perspectives</span>
-        </div>
         <h1 className="insiders-main-title">Swayamkrushi Insiders</h1>
-        <p className="insiders-subtitle">
-          Watch educators, therapists, alumni, caregivers, and families share how Swayamkrushi empowers persons with intellectual disabilities toward self-reliance, dignity, and lifelong purpose.
-        </p>
-
-        {/* Category Filter Tabs */}
-        <div className="insiders-filter-bar">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              type="button"
-              className={`insiders-filter-btn ${selectedCategory === cat ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(cat)}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
       </header>
 
       {/* Video Cards Grid - Matches 3x2 Vocal Video Testimonial Wall */}

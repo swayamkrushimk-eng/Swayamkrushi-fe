@@ -5,12 +5,23 @@ import { fetchArticles } from '../services/api'
 import ArticleCard from './ArticleCard'
 
 export default function FunFactsRail() {
-  const [articles, setArticles] = useState(leftSideArticles)
+  const filterFunFacts = (list) => {
+    if (!Array.isArray(list)) return []
+    return list.filter(
+      (a) =>
+        a.id !== 'story-encounter' &&
+        a.id !== 'story-direct-speak' &&
+        !a.title?.toLowerCase().includes('chance encounter') &&
+        !a.title?.toLowerCase().includes('direct speak')
+    )
+  }
+
+  const [articles, setArticles] = useState(() => filterFunFacts(leftSideArticles))
 
   useEffect(() => {
     fetchArticles({ section: 'left' }).then((data) => {
       if (data && Array.isArray(data) && data.length > 0) {
-        setArticles(data)
+        setArticles(filterFunFacts(data))
       }
     })
   }, [])
