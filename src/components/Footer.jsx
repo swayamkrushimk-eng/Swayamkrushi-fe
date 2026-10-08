@@ -1,16 +1,11 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { subscribeNewsletter, fetchSettings } from '../services/api'
+import { fetchSettings } from '../services/api'
 import logoImg from '../assets/images/logo.png'
 
 export default function Footer() {
   const location = useLocation()
   const navigate = useNavigate()
-
-  const [email, setEmail] = useState('')
-  const [subscribing, setSubscribing] = useState(false)
-  const [subscribeMessage, setSubscribeMessage] = useState(null)
-  const [subscribeError, setSubscribeError] = useState(null)
 
   const [settings, setSettings] = useState({
     orgName: 'Swayamkrushi',
@@ -57,67 +52,8 @@ export default function Footer() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleSubscribe = async (e) => {
-    e.preventDefault()
-    if (!email || !email.includes('@')) return
-
-    setSubscribing(true)
-    setSubscribeMessage(null)
-    setSubscribeError(null)
-
-    try {
-      const res = await subscribeNewsletter(email)
-      setSubscribeMessage(res.message || 'Thank you for subscribing to Swayamkrushi updates!')
-      setEmail('')
-    } catch (err) {
-      setSubscribeError(err.message || 'Failed to subscribe. Please try again.')
-    } finally {
-      setSubscribing(false)
-    }
-  }
-
   return (
     <>
-      {/* ─── NEWSLETTER SUBSCRIPTION CALLOUT ───────────────────────── */}
-      <section className="newsletter-banner" aria-label="Subscribe to Swayamkrushi Newsletter">
-        <div className="newsletter-inner">
-          <div className="newsletter-content">
-            <span className="newsletter-tag">STAY CONNECTED</span>
-            <h3 className="newsletter-title">Subscribe to the Swayamkrushi Chronicle</h3>
-            <p className="newsletter-desc">
-              Receive milestone stories, special event invitations, progress reports, and updates directly in your inbox.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubscribe} className="newsletter-form">
-            <div className="newsletter-input-group">
-              <input
-                type="email"
-                required
-                placeholder="Enter your email address..."
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="newsletter-input"
-                aria-label="Email address"
-              />
-              <button
-                type="submit"
-                disabled={subscribing}
-                className="newsletter-btn"
-              >
-                {subscribing ? 'Subscribing...' : 'Subscribe →'}
-              </button>
-            </div>
-            {subscribeMessage && (
-              <p className="newsletter-feedback newsletter-success">{subscribeMessage}</p>
-            )}
-            {subscribeError && (
-              <p className="newsletter-feedback newsletter-error">{subscribeError}</p>
-            )}
-          </form>
-        </div>
-      </section>
-
       {/* ─── COMPREHENSIVE BROADSHEET FOOTER (CONTACT & INFO) ──────── */}
       <footer className="footer-main-container" id="contact" aria-label="Footer and Contact details">
         <div className="footer-main-inner">
