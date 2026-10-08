@@ -104,7 +104,6 @@ export default function ContactPage() {
 
       {/* ── Page Header ─────────────────────────────────────────── */}
       <header className="contact-page-header">
-        <span className="contact-badge">Get in Touch</span>
         <h1 className="contact-page-title">We'd Love to Hear From You</h1>
         <p className="contact-page-sub">
           Whether you're a parent, volunteer, donor, researcher, or just curious —
@@ -331,14 +330,6 @@ export default function ContactPage() {
           </div>
         </section>
       </div>
-
-      {/* ── Back link ───────────────────────────────────────────── */}
-      <div className="contact-back-row">
-        <button className="contact-back-btn" onClick={() => navigate(-1)}>
-          ← Back
-        </button>
-      </div>
-
     </div>
   )
 }

@@ -1215,6 +1215,23 @@ img {
   color: var(--burgundy);
 }
 
+.nav-home-icon-link {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 6px !important;
+}
+
+.nav-home-icon-link svg {
+  color: var(--indigo);
+  transition: color .18s ease, transform .18s ease;
+}
+
+.nav-home-icon-link:hover svg {
+  color: var(--burgundy);
+  transform: scale(1.15);
+}
+
 .sitemenu .has-sub > a::after,
 .sitemenu .has-sub > button.nav-link::after {
   content: " \25BE";

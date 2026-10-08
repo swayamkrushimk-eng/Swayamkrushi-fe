@@ -61,6 +61,32 @@ export default function Navbar() {
         </button>
 
         <ul className={`sitemenu ${mobileMenuOpen ? 'mobile-open' : ''}`}>
+          <li className="nav-home-item">
+            <Link
+              to="/"
+              className="nav-home-icon-link"
+              onClick={() => {
+                setMobileMenuOpen(false)
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }}
+              title="Home"
+              aria-label="Home"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </Link>
+          </li>
           <li className={`has-sub ${openDropdown === 'about' ? 'is-open' : ''}`}>
             <a
               href="#about"
