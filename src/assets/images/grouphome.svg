@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <rect width="800" height="450" fill="#ede8e6"/>
+  <g fill="#6f6a6c" font-family="'Lora', Georgia, serif" text-anchor="middle">
+    <path d="M400 130 L490 210 H460 V310 H340 V210 H310 Z" fill="#bfaeab" opacity="0.6"/>
+    <rect x="375" y="240" width="50" height="70" fill="#6e1e38" opacity="0.8"/>
+    <text x="400" y="350" font-size="22" font-weight="600" fill="#4a2340">Group Home Courtyard &amp; Residence</text>
+    <text x="400" y="380" font-family="'Lato', sans-serif" font-size="14" fill="#6f6a6c">Swayamkrushi Community Living</text>
+  </g>
+</svg>

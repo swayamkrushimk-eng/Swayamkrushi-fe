@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <rect width="400" height="300" fill="#ede8e6"/>
+  <g fill="#6f6a6c" font-family="'Lora', Georgia, serif" text-anchor="middle">
+    <circle cx="200" cy="120" r="45" fill="#cbbdbb" opacity="0.6"/>
+    <path d="M185 105 L225 120 L185 135 Z" fill="#6e1e38"/>
+    <text x="200" y="200" font-size="18" font-weight="600" fill="#4a2340">Vocational Workshop</text>
+    <text x="200" y="226" font-family="'Lato', sans-serif" font-size="12" fill="#6f6a6c">Skill Training &amp; Empowerment</text>
+  </g>
+</svg>

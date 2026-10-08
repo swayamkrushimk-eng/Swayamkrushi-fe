@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <rect width="400" height="300" fill="#ede8e6"/>
+  <rect x="12" y="12" width="376" height="276" rx="4" fill="none" stroke="#d9d3d4" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <g transform="translate(200, 115)">
+    <g fill="#6e1e38">
+    <path d="M-35 15 Q0 -5 35 15 V-20 Q0 -40 -35 -20 Z" fill="#bfaeab" opacity="0.6"/>
+    <path d="M0 -35 V15" stroke="#4a2340" stroke-width="2.5"/>
+    <polygon points="0,-45 8,-28 26,-28 12,-18 17,-1 0,-11 -17,-1 -12,-18 -26,-28 -8,-28" fill="#6e1e38" transform="scale(0.55) translate(0, -60)"/>
+  </g>
+  </g>
+  <text x="200" y="195" font-family="'Lora', Georgia, serif" font-size="16" font-weight="600" fill="#4a2340" text-anchor="middle">NIOS Special Education</text>
+  <text x="200" y="220" font-family="'Lato', system-ui, sans-serif" font-size="11.5" font-weight="700" letter-spacing="0.08em" text-transform="uppercase" fill="#6e1e38" text-anchor="middle">Open Learning & Academics</text>
+</svg>

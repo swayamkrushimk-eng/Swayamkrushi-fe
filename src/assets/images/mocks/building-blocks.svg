@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <rect width="800" height="450" fill="#ede8e6"/>
+  <rect x="18" y="18" width="764" height="414" rx="6" fill="none" stroke="#d9d3d4" stroke-width="2" stroke-dasharray="6 6"/>
+  <g transform="translate(400, 185)">
+    <g fill="#6e1e38" opacity="0.85">
+    <rect x="-80" y="-40" width="45" height="45" rx="3" fill="#6e1e38"/>
+    <rect x="-25" y="-40" width="45" height="45" rx="3" fill="#4a2340"/>
+    <rect x="30" y="-40" width="45" height="45" rx="3" fill="#6e1e38"/>
+    <rect x="-52" y="-95" width="45" height="45" rx="3" fill="#4a2340"/>
+    <rect x="2" y="-95" width="45" height="45" rx="3" fill="#6e1e38"/>
+    <rect x="-25" y="-150" width="45" height="45" rx="3" fill="#6e1e38"/>
+  </g>
+  </g>
+  <text x="400" y="300" font-family="'Lora', Georgia, serif" font-size="24" font-weight="600" fill="#4a2340" text-anchor="middle">A Game of Building Blocks</text>
+  <text x="400" y="335" font-family="'Lato', system-ui, sans-serif" font-size="13.5" font-weight="700" letter-spacing="0.12em" text-transform="uppercase" fill="#6e1e38" text-anchor="middle">Swayamkrushi Campus · 1991 to Present</text>
+</svg>

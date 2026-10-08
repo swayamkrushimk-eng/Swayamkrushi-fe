@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <rect width="400" height="300" fill="#ede8e6"/>
+  <rect x="12" y="12" width="376" height="276" rx="4" fill="none" stroke="#d9d3d4" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <g transform="translate(200, 115)">
+    <g fill="#6e1e38">
+    <circle cx="-35" cy="-10" r="14" fill="#4a2340"/>
+    <path d="M-35 12 C-55 12 -65 30 -65 40 H-5 C-5 30 -15 12 -35 12 Z" fill="#4a2340"/>
+    <path d="M5 -15 C20 -30 45 -30 55 -15 M15 0 C25 -10 38 -10 45 0 M22 15 C28 8 35 8 40 15" stroke="#6e1e38" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </g>
+  </g>
+  <text x="200" y="195" font-family="'Lora', Georgia, serif" font-size="16" font-weight="600" fill="#4a2340" text-anchor="middle">Speech Therapy Unit</text>
+  <text x="200" y="220" font-family="'Lato', system-ui, sans-serif" font-size="11.5" font-weight="700" letter-spacing="0.08em" text-transform="uppercase" fill="#6e1e38" text-anchor="middle">Breakthrough in Communication</text>
+</svg>

@@ -1,0 +1,125 @@
+/* Styling for empty / in-design pages */
+.empty-page-wrap {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 36px 24px 90px;
+  width: 100%;
+  min-height: 60vh;
+}
+
+.empty-page-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted, #6f6a6c);
+  margin-bottom: 28px;
+}
+
+.empty-page-breadcrumb a,
+.empty-page-breadcrumb button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--burgundy, #6e1e38);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.empty-page-breadcrumb a:hover,
+.empty-page-breadcrumb button:hover {
+  color: var(--plum, #4a2340);
+}
+
+.empty-page-category {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--burgundy, #6e1e38);
+  margin-bottom: 12px;
+}
+
+.empty-page-category::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--burgundy, #6e1e38);
+}
+
+.empty-page-title {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: clamp(32px, 4.5vw, 44px);
+  line-height: 1.18;
+  font-weight: 700;
+  color: var(--ink, #1b1418);
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
+}
+
+.empty-page-lede {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: clamp(18px, 2.2vw, 21px);
+  line-height: 1.55;
+  color: #3b3236;
+  margin: 0 0 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--hair, #d9d3d4);
+}
+
+.empty-page-box {
+  background: #fff;
+  border: 1px dashed var(--hair, #d9d3d4);
+  border-radius: 4px;
+  padding: 48px 32px;
+  text-align: center;
+  margin-top: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.empty-page-box .placeholder-icon {
+  font-size: 38px;
+  margin-bottom: 16px;
+  color: var(--burgundy, #6e1e38);
+}
+
+.empty-page-box h3 {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 22px;
+  color: var(--ink, #1b1418);
+  margin: 0 0 10px;
+}
+
+.empty-page-box p {
+  color: var(--muted, #6f6a6c);
+  font-size: 16px;
+  max-width: 520px;
+  margin: 0 auto 24px;
+  line-height: 1.55;
+}
+
+.empty-page-box .back-link-btn {
+  display: inline-block;
+  padding: 10px 22px;
+  background: var(--burgundy, #6e1e38);
+  color: #fff;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: background 0.15s ease;
+}
+
+.empty-page-box .back-link-btn:hover {
+  background: var(--plum, #4a2340);
+  color: #fff;
+}

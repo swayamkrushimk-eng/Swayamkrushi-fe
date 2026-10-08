@@ -1,0 +1,24 @@
+{
+  "name": "Swayamkrushi NGO",
+  "short_name": "Swayamkrushi",
+  "description": "Self reliance for persons with intellectual disability, since 1991.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fffaf6",
+  "theme_color": "#6e1e38",
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "48x48 72x72 96x96 128x128 256x256 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": [
+    "education",
+    "social",
+    "nonprofit"
+  ]
+}

@@ -1,0 +1,212 @@
+/* Inworld AI Audio Player Bar */
+.article-audio-bar {
+  margin: 12px 0 16px;
+  padding: 10px 14px;
+  background: #fff;
+  border: 1px solid var(--hair, #6e1e38);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(110, 30, 56, 0.06);
+  animation: audioBarSlideDown 0.25s ease-out;
+}
+
+.audio-bar-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.audio-play-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--burgundy, #6e1e38);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.18s ease, transform 0.15s ease;
+}
+
+.audio-play-btn:hover:not(:disabled) {
+  background: var(--plum, #4a2340);
+  transform: scale(1.05);
+}
+
+.audio-play-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.audio-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spinAudio 0.8s linear infinite;
+}
+
+@keyframes spinAudio {
+  to { transform: rotate(360deg); }
+}
+
+.audio-info-col {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.audio-status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audio-tag {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--burgundy, #6e1e38);
+}
+
+.audio-wave-anim {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.audio-wave-anim .bar {
+  width: 2px;
+  background: var(--burgundy, #6e1e38);
+  border-radius: 1px;
+  animation: wavePulse 1s ease-in-out infinite alternate;
+}
+
+.audio-wave-anim .b1 { height: 4px; animation-delay: 0.1s; }
+.audio-wave-anim .b2 { height: 9px; animation-delay: 0.3s; }
+.audio-wave-anim .b3 { height: 6px; animation-delay: 0.2s; }
+.audio-wave-anim .b4 { height: 8px; animation-delay: 0.4s; }
+
+@keyframes wavePulse {
+  0% { transform: scaleY(0.4); }
+  100% { transform: scaleY(1.2); }
+}
+
+.audio-article-title {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink, #1b1418);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 280px;
+}
+
+.audio-progress-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 160px;
+}
+
+.audio-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted, #6f6a6c);
+  font-variant-numeric: tabular-nums;
+}
+
+.audio-scrubber {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(110, 30, 56, 0.15);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.audio-scrubber::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--burgundy, #6e1e38);
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.audio-scrubber::-webkit-slider-thumb:hover {
+  transform: scale(1.3);
+}
+
+.audio-speed-btn {
+  background: rgba(110, 30, 56, 0.07);
+  border: 1px solid var(--hair, #6e1e38);
+  border-radius: 3px;
+  padding: 3px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--burgundy, #6e1e38);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.audio-speed-btn:hover {
+  background: var(--burgundy, #6e1e38);
+  color: #fff;
+}
+
+.audio-close-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--muted, #6f6a6c);
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.15s ease;
+}
+
+.audio-close-btn:hover {
+  color: var(--burgundy, #6e1e38);
+}
+
+.audio-error-msg {
+  font-size: 11.5px;
+  color: #c4183c;
+  margin-top: 6px;
+}
+
+@keyframes audioBarSlideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 600px) {
+  .audio-progress-group {
+    width: 100%;
+    order: 4;
+  }
+  .audio-article-title {
+    max-width: 190px;
+  }
+}

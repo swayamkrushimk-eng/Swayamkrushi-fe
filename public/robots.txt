@@ -1,0 +1,9 @@
+# Robots.txt for Swayamkrushi NGO (https://swayamkrushi.org)
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+
+# Host & Sitemap Definition
+Host: https://swayamkrushi.org
+Sitemap: https://swayamkrushi.org/sitemap.xml

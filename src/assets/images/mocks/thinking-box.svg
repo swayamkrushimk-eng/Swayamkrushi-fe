@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" width="100%" height="100%">
+  <rect width="800" height="450" fill="#ede8e6"/>
+  <rect x="20" y="20" width="760" height="410" rx="8" fill="none" stroke="#d9d3d4" stroke-width="2" stroke-dasharray="6 6"/>
+  <g transform="translate(400, 180)">
+    <g fill="#6e1e38">
+    <rect x="-35" y="-30" width="70" height="60" rx="4" fill="#bfaeab" opacity="0.6"/>
+    <path d="M-40 -30 L0 -55 L40 -30 Z" fill="#6e1e38"/>
+    <circle cx="0" cy="0" r="14" fill="#4a2340"/>
+    <path d="M-6 -6 L6 6 M6 -6 L-6 6" stroke="#ffffff" stroke-width="2"/>
+  </g>
+  </g>
+  <text x="400" y="295" font-family="'Lora', Georgia, serif" font-size="24" font-weight="600" fill="#4a2340" text-anchor="middle">Thinking Out of the Box</text>
+  <text x="400" y="330" font-family="'Lato', system-ui, sans-serif" font-size="13" font-weight="700" letter-spacing="0.12em" text-transform="uppercase" fill="#6e1e38" text-anchor="middle">The "DOS" Club & Community Ingenuity</text>
+</svg>
