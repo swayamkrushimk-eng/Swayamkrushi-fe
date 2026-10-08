@@ -235,7 +235,7 @@ export default function MainContent() {
         <h2>Give</h2>
         <p>Every contribution, whatever its size, helps us bring one more person into the circle.</p>
         <div className="row">
-          <a className="solid" href="#contact">Donate now</a>
+          <a className="solid" href="#contact">Join our family</a>
           <a className="hollow" href="#contact">Other ways to give</a>
           <a className="hollow" href="#contact">Volunteer with us</a>
         </div>

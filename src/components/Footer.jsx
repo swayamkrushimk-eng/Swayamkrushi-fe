@@ -227,6 +227,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/committee">
+                  Managing Committee
+                </Link>
+              </li>
+              <li>
                 <Link to="/accolades">
                   Accolades & Recognition
                 </Link>

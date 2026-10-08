@@ -22,7 +22,7 @@ export default function FounderRail() {
 
   return (
     <aside className="shoulder right">
-      <div className="rail-head">The founder</div>
+      <div className="rail-head">Manjula's Musings</div>
       <div className="rail-item founder-card">
         <img className="founder-img" src={manjulaPortrait} alt="Ms Manjula Kalyan" />
         <h4>Ms Manjula Kalyan</h4>

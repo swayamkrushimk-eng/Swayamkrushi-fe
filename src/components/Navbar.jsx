@@ -58,7 +58,7 @@ export default function Navbar() {
                 <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Our story</a>
               </li>
               <li>
-                <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Managing committee</a>
+                <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Managing committee</Link>
               </li>
               <li>
                 <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Annual reports</a>
