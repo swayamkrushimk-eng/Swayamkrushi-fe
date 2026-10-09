@@ -75,18 +75,6 @@ export const leftSideArticles = [
     ]
   },
   {
-    "id": "story-kitchen",
-    "title": "Kitchen — Beehive of Activity",
-    "excerpt": "A bustling hub from 5 AM, the kitchen team prepares nutritious meals daily for over 150 residents and day scholars.",
-    "attribution": "Campus Life",
-    "paragraphs": [
-      "The kitchen in Swayamkrushi is a beehive of activity right from 5 AM in the morning when the cooks and other kitchen staff start arriving. By 5.30 AM, the stoves are lit and fresh, aromatic tea is served to everyone around. The staff, comprising two cooks and three assistants, begin preparation for breakfast for 80-odd persons by 7 AM. Breakfast is typically a south Indian fare – idly, dosa, upma, pongal etc with accompaniments.",
-      "“I come in by 5 AM to ensure that breakfast and milk is ready for the residents who start trooping in along with their care-givers by 7 AM. Once breakfast is done with, we immediately start preparations for lunch, which is usually for around 150 persons including the day scholars in schools,” says I Sharada, the person in-charge of the spacious kitchen section. The dining tables and chairs are made of steel and each table can seat six persons. What is impressive is that both the dining hall and the kitchen area are kept clean, with the ayahs and helpers constantly cleaning the place. Dinner is cooked early and kept ready for the 80-odd residents before the cooks leave for the day at around 5 PM.",
-      "The lunch is simple but nutritious comprising either sambar or dal, a vegetable side dish, white rice and yoghurt. On festival says and special occasions of course, everyone is treated to special lunch that will typically include a sweet too. “On an average, we cook about 17 kg of rice and use about 10 kg of vegetables for the dishes every day. Besides, there is similar quantity of lentils consumed every day,” says Sarada, who joined Swayamkrushi in 2018 as assistant cook.",
-      "Sarada says since enjoys her work and feels very happy when some of the children come to her and appreciate a particular dish. “Nothing is more rewarding for a cook than someone appreciating the dishes, and more so if it comes from a person with intellectual disabilities,” says the head cook."
-    ]
-  },
-  {
     "id": "story-kadiam",
     "title": "Destination Kadiam, for Plants",
     "excerpt": "An 800-km sapling journey to Kadiam transformed the 5-acre campus into a lush, fruit-bearing mini-forest for children.",
@@ -119,11 +107,9 @@ export const rightSideArticles = [
   {
     "id": "story-encounter",
     "title": "Chance Encounter That Changed My Life",
-    "excerpt": "A chance encounter with Dr Maria Egg-Benes, a renowned special educator from Switzerland, at a workshop in Bengaluru, turned out to be the turning point in my life, and a defining moment...",
+    "excerpt": "A chance encounter with renowned Swiss special educator Dr Maria Egg-Benes inspired a life dedicated to special education, leading from Okhla Centre to founding Swayamkrushi.",
     "attribution": "Direct Speak",
     "paragraphs": [
-      "Direct Speak",
-      "Chance encounter that changed my life",
       "A chance encounter with Dr Maria Egg-Benes, a renowned special educator from Switzerland, at a workshop in Bengaluru, turned out to be the turning point in my life, and a defining moment which revealed the path I was to take to serve the less fortunate ones in society. That was in 1969, and being married to an Air Force officer took me to various cities including New Delhi, Chennai and Hyderabad. My transition from a teacher in a regular school teaching normal children to that of a special educator caring for the intellectually challenged took shape in New Delhi where I joined Amrit Kaur Bal Vihar, popularly known as Okhla Centre. The seven years that I spent at the Centre laid a strong foundation and prepared me for the tough journey that I would be facing in the years ahead.",
       "Later, we moved to Hyderabad and subsequently Chennai, and in both the cities, I was involved with the Durgabhai Deshmukh Vocational Training Centre. While working in Hyderabad, I converted the Centre which essentially imparted training to women with physical disabilities into an integrated agency to include women with intellectual disabilities. In 1984, my husband and I decided to make Hyderabad our home and that is when my early calling took wings. After obtaining a Master’s in Special Education from the University of Pittsburgh in the US, I returned to India with a strong desire to make a difference in the lives of the intellectually-challenged persons in the county, further their cause and bring about awareness among the people. There was no dearth of career opportunities in the US but my country was a priority for me.",
       "With close to two decades of quality service in the field and armed with sufficient academic qualifications, my next stop was the National Institute for the Mentally Handicapped in Secunderabad as a lecturer, where I conceived a ‘Post School Programme’ for women over the age of 18 with developmental challenges. Under the programme, these women were trained in activities of daily living that included home maintenance besides equipping them with skills to make them work-ready. The programme was an instant success but restricted as I was by the Institute’s broader functions, I decided to break-free and go on my own path.",
@@ -132,12 +118,10 @@ export const rightSideArticles = [
   },
   {
     "id": "story-group-homes-initiative",
-    "title": "Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit",
-    "excerpt": "In a pioneering initiative in the country, I conceived the idea of group homes which would house eight women (all above the age of 18) with different levels of intellectual disabilities...",
+    "title": "Direct Reflections: Pioneering Group Homes",
+    "excerpt": "Conceived in 1991 as family-style residential units for adult women, group homes integrated trainees into community life 16 years ahead of national inclusion laws.",
     "attribution": "Direct Speak",
     "paragraphs": [
-      "Direct Speak",
-      "Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit",
       "In a pioneering initiative in the country, I conceived the idea of group homes which would house eight women (all above the age of 18) with different levels of intellectual disabilities, living together akin to extended Indian families. Each single group comprises three women in the mild range, four in moderate range and one from the severe range. The first seven are trained to take care of the house as also the woman with severe challenges. And I am proud to say that Swayamkrushi had established eight such homes, all located in residential colonies that are in close proximity to the Institute to facilitate their participation in the institute’s training sessions and classes. The number, however, has now dropped to five on account of rising rent and other cost factors.",
       "When I started setting up the Group Homes, there was quite a bit of resistance from the people in the colonies who were not comfortable about women with intellectual disabilities living amongst them. I had to put in a lot of effort to convince them that inclusiveness was essential in society and that people with various forms of disabilities had to be accommodated and included in the social mainstream. Over time, the residents accepted the women and even helped them when the need arose.",
       "Particularly satisfying for me is the fact that following the success of the Group Homes concept and the training programmes, I had advocated and pioneered inclusion of the intellectually challenged way back in 1991, a full 16 years before the Inclusion Act was ratified by the Government of India and the United Nations in 2007.",
@@ -147,12 +131,10 @@ export const rightSideArticles = [
   },
   {
     "id": "story-womens-empowerment",
-    "title": "Women’s empowerment - A byproduct of Swayamkrushi",
-    "excerpt": "I have always felt that women’s empowerment, particularly those from the impoverished sections and lower strata of society, was an essential part of the development process.",
+    "title": "Women’s Empowerment — A Swayamkrushi Byproduct",
+    "excerpt": "With 95% of staff recruited from economically weaker backgrounds and trained from sweepers into certified special educators, dignity of labour drives the campus.",
     "attribution": "Direct Speak",
     "paragraphs": [
-      "Direct Speak",
-      "Women’s empowerment - A byproduct of Swayamkrushi",
       "I have always felt that women’s empowerment, particularly those from the impoverished sections and lower strata of society, was an essential part of the development process. If one were to study the staff profile in Swayamkrushi, they would realise that 95 per cent of the staff are women, most of them from the economically weaker section of society. Initially, most of the women working in the organisation were destitutes with no one to care for them or no place to call home.",
       "When the new campus at Jawahar Nagar started coming up, most of the people (read women) I employed were from neighbouring areas. I personally took upon the task of training them for specific jobs based on their background, aptitude and skill levels. They are placed in various roles such as care-givers, ayahs, cooks and gardeners.",
       "Many of them have been with the organisation right from inception and form the backbone of the Swayamkrushi family. A special feature of the work ethics in the organisation is total recognition of dignity of labour. Everyone does whatever is required without complaining, irrespective of whether it is part of their job profile. You may find a teacher or the speech therapist helping in moving furniture, taking an unwell girl to the hospital or even slipping into the role of a driver.",
@@ -163,10 +145,9 @@ export const rightSideArticles = [
   {
     "id": "story-fifteen-years",
     "title": "15 Years for One Word, and Then the Exhilaration!",
-    "excerpt": "When 15-year-old Sai uttered the word ‘Amma” one day, tears of joy rolled down the cheeks of D Dora Babu, the speech therapist at Swayamkrushi. This was the reward he was waiting for after weeks of effort put in to help Sai, who besides hav...",
+    "excerpt": "When 15-year-old Sai uttered the word ‘Amma’ after weeks of patient therapy, it marked a breakthrough moment defeating silence for a child with dual disabilities.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "To go in Shoulder",
       "When 15-year-old Sai uttered the word ‘Amma” one day, tears of joy rolled down the cheeks of D Dora Babu, the speech therapist at Swayamkrushi. This was the reward he was waiting for after weeks of effort put in to help Sai, who besides having hearing impairment also suffers from intellectual disabilities. This was the first word to tumble out of Sai’s mouth in 15 years and Babu’s exhilaration was justifiably palpable.",
       "The speech therapy unit in Swayamkrushi at present has 10 students, all of them with intellectual disabilities and hearing impairment. Babu uses flash cards, mirror, picture cards, toys and story books, among other things, as tools to help the children say a few words if not sentences. “The mirror in my class room is an important tool as it facilitates oral motor exercise. It helps the students focus on lip movement and imitate, thereby pronouncing some words,” says Babu, who has done D.Ed Special (Hearing Impairment) in Nandyal, Andhra Pradesh.",
       "Babu also has a fascinating story to narrate why he chose this line of work. “I come from Chennur near Nandyal and in our neighbourhood, I came across some children with hearing impairment. They were attending regular government schools but didn’t learn anything since the schools did not have special educators who could have helped them. It was then I decided to do something for such children and came across this course in Nandyal,” says the 30-year-old speech therapist whose sister is also a teacher at Swayamkrushi.",
@@ -180,10 +161,9 @@ export const rightSideArticles = [
   {
     "id": "story-art-equaliser",
     "title": "Art — The Great Equaliser",
-    "excerpt": "Art, they say, is the great equalizer. Nothing describes better the creative expressions of Bharati Saini, a 25-year-old bubbly girl, an artist from Uttarakhand, who draws and paints using just her elbow stumps. Fate changed the path for Bh...",
+    "excerpt": "Undeterred by the loss of her upper limbs in a childhood accident, 25-year-old artist Bharati Saini paints with elbow stumps and teaches creative expression at Swayamkrushi.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "For Right Shoulder",
       "Art, they say, is the great equalizer. Nothing describes better the creative expressions of Bharati Saini, a 25-year-old bubbly girl, an artist from Uttarakhand, who draws and paints using just her elbow stumps. Fate changed the path for Bharati when she, as a playful 11-year-old girl, picked up an object that turned out to be an explosive device apparently meant to scare away animals. The consequent blast ripped through her upper limbs, leaving her with just elbow stumps after amputation.",
       "Completely undeterred by the loss of her limbs in the ‘accident,’ Bharathi, then a sixth standard student, returned to school in just a month-and-half with her elbow stumps still bandaged. Subsequently, she found her voice in art, and her drawings and paintings using just her elbow stumps were soon the talk of the town. The proverbial turning point for Bharati came when she was in 10th standard. The District Magistrate who was visiting the school was impressed by her paintings and casually suggested that she pursue her interest seriously by taking up fine art in graduation. Bharati, who was then not even aware about the existence of such a degree, joined Nainital University for her Bachelor’s degree in Fine Art and later Master’s from Kurukshetra University in Haryana.",
       "Bharati’s journey in art brought her to Hyderabad recently, and she is currently teaching drawing and painting to persons with intellectual disabilities at Swayamkrushi. “Working with these people gives me immense satisfaction, and it appears to be a two-way street. My students are very reluctant to leave my art class when it is time for them to go to other classes,” says a beaming Bharati, who came to Hyderabad to help friend and fellow artist Vishnu Kondoj set up a studio-cum-workshop under the aegis of Masterbrush Art Foundation. She is a member of the core team of Masterbrush and has participated in several art exhibitions across the country.",
@@ -197,10 +177,9 @@ export const rightSideArticles = [
   {
     "id": "story-exercise",
     "title": "Exercise of a Different Kind",
-    "excerpt": "“Their unqualified innocence and unconditional love for me conquered my heart,” says J Priyadarshini, the physiotherapist at Swayamkrushi, of the special children she has been treating, putting them through a set of daily exercises. The gen...",
+    "excerpt": "Through customized daily routines with static cycles, treadmills, and pulleys, physiotherapist J Priyadarshini helps children with cerebral palsy and motor challenges gain strength and mobility.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "Right Shoulder",
       "“Their unqualified innocence and unconditional love for me conquered my heart,” says J Priyadarshini, the physiotherapist at Swayamkrushi, of the special children she has been treating, putting them through a set of daily exercises. The genial 32-year-old holds a Bachelor’s Degree in Physiotherapy that she acquired after four-and-half years of academics and internships, something that is as taxing and grinding as a medical course.",
       "Priyadarshini’s face lights up when she talks about her job that is a clear reflection of her love for the profession and particularly being with the special children who are under her wings at the physiotherapy unit in Swayamkrushi. “Most of the children who come to me are afflicted with cerebral palsy, autism and down syndrome and some with intellectual disabilities. I take them in batches of 10, one kid per 45-minute session per day and the treatment may go on for a month or two or even longer, depending on the severity of the child’s condition,” explains Priyadarshini, who joined the organization in 2023.",
       "The physiotherapy unit is well equipped with treadmill, static cycle, shoulder pulleys, finger ladder and other smaller instruments that are used to help the children with their exercises. The physiotherapist, who has helped dozens of children ‘loosen up’ in the past three years, says their initial hesitation and apprehension disappear when they start using the various equipment. “In fact, there are some children who enter the unit and start doing their exercises even without my saying anything or helping them which clearly indicates their level of understanding. The exercises are basically aimed at muscle strengthening, increasing flexibility, posture correction and helping mobility,” says Priyadarshini.",
@@ -213,7 +192,7 @@ export const rightSideArticles = [
   {
     "id": "story-hard-work",
     "title": "Hard Work Never Goes Unrewarded!",
-    "excerpt": "When G Aruna joined Swayamkrushi as a gardener in 2020, little would she have known then that her decision would prove to be a game-changer in her life.",
+    "excerpt": "Raised in poverty and starting as a campus gardener, G Aruna completed her MBA and B.Ed with Swayamkrushi's support, rising to become a dedicated special educator.",
     "bigExcerpt": "From campus gardener to MBA graduate and certified special educator — Aruna's inspiring transformation.",
     "attribution": "Special Feature",
     "paragraphs": [
@@ -230,10 +209,9 @@ export const rightSideArticles = [
   {
     "id": "story-paper-bag",
     "title": "Paper Bag Making — It's a 'Mild' Job",
-    "excerpt": "“It’s a different world out here, and for those six hours that I spend in Swayamkrushi every day, I am a different person,” says G Maheshwari, who takes care of the paper bag making and screen-printing units in the organization. She has six...",
+    "excerpt": "A dedicated six-member assembly team crafts 100 eco-friendly paper bags daily, mastering screen printing and building vocational independence.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "To go in Shoulder",
       "“It’s a different world out here, and for those six hours that I spend in Swayamkrushi every day, I am a different person,” says G Maheshwari, who takes care of the paper bag making and screen-printing units in the organization. She has six ‘employees,’ five of them women, and all of them with ‘mild’ intellectual disabilities. The group, working on the ‘Assembly Line’ concept, churns out 100 paper bags per day, and the same gang of six is involved in screen printing.",
       "Maheshwari has an easy connection with all six of them, and they do her bidding in a happy frame of mind. “They enjoy what they do as much as I enjoy interacting with them and everything in the unit is team work,” says Maheshwari, a former technical officer of DMRL who ‘returned home’ after retirement. When Maheshwari joined Swayamkrushi in 2022, the organization’s founder-director Manjulaa Kalyaan was no stranger to her since the former had worked for the latter even as a teenager at Andhra Mahila Sabha.",
       "So, what does the work involve for these persons with mild intellectual disabilities? “Basically, it’s a five-step process, very simple, and involves paper pasting, bag size folding, base folding, handle pasting and sticker pasting. Each one has a simple task specifically cut out for them and all of them enjoy the work,” says Maheshwari, who holds a Diploma in Printing and Book Binding from ITI.",
@@ -246,11 +224,10 @@ export const rightSideArticles = [
   {
     "id": "story-nios",
     "title": "NIOS — Boon for Persons with Intellectual Disabilities",
-    "excerpt": "Arushee is a 27-year-old girl who does three-digit multiplication, is conversant in English and Hindi, and has even walked the ramp! So, what’s the big deal? Well, she happens to be a person with intellectual disabilities, albeit mild. Arus...",
+    "excerpt": "From multiplication and quiz wins to public speaking, the National Institute of Open Schooling program unlocks latent potential for students with mild intellectual disabilities.",
     "attribution": "Special Feature",
     "hasThumbnail": false,
     "paragraphs": [
-      "Right shoulder",
       "Arushee is a 27-year-old girl who does three-digit multiplication, is conversant in English and Hindi, and has even walked the ramp! So, what’s the big deal? Well, she happens to be a person with intellectual disabilities, albeit mild. Arushee, daughter of an IAF officer, was initially seen as a loner who shunned company, but she now comes across as a very friendly and very helpful person. She even won a gold medal recently for portraying Indira Gandhi at “Taare Zameen Par,” an event organized for persons with disabilities in Hyderabad in August, 2026.",
       "And then you have Thayamma and Sathwik Sai, both persons with intellectual disabilities who took the third spot at “Quizabled,” a competition organized by well-known Bengaluru-based NGO Seva-in-Action for persons with disabilities involving 250 schools from across the five southern States. Thayamma and Sathwik used placards to ‘speak’ on the “Telangana Movement” while participating in the online competition. What makes their win all the more creditable and a major achievement is the fact that first two spots were taken by persons with hearing impairment which meant that their mental faculties were fully functional while both Thayamma and Sathwik are persons with intellectual disabilities. The two also got certificates of merit for scoring 20 out of 20 in the general knowledge section.",
       "Arushee, Thayamma and Sathwik are all students of the National Institute of Open Schooling (NIOS) at Swayamkrushi. The organization has two NIOS classes for the nine students with mild intellectual disabilities, but even among them, their capabilities are at different levels. Each student has to be dealt with individually and their study schedule drawn accordingly, say J Parimala Suhasini and Kotaprolu Jayasri, the two NIOS teachers.",
@@ -263,7 +240,7 @@ export const rightSideArticles = [
   {
     "id": "story-champions",
     "title": "Champions All the Way — Special Olympics",
-    "excerpt": "Swayamkrushi trainees have competed and won at district, state, national, and international levels — bringing laurels to the nation.",
+    "excerpt": "From four gold medals at the 1996 National Olympics to the World Cup in Japan and Special Olympics in Greece and Australia, trainees have brought laurels to the nation.",
     "bigExcerpt": "From 4 Gold Medals in National Olympics to World Cup Japan and Special Olympics Greece & Australia.",
     "attribution": "Special Feature",
     "paragraphs": [
@@ -280,10 +257,9 @@ export const rightSideArticles = [
   {
     "id": "story-sowing-seeds",
     "title": "Sowing Seeds of Creativity",
-    "excerpt": "The tailoring unit in Swayamkrushi offers persons with intellectual disabilities in the mild and moderate range the right setting and environment to sow their seeds of creativity. The fully operational unit produces cloth and jute bags, pur...",
+    "excerpt": "The campus tailoring unit produces cotton and jute bags, yoga mats, and embroidered handicrafts — securing corporate orders and empowering trainees with artisan skills.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "Right Shoulder",
       "The tailoring unit in Swayamkrushi offers persons with intellectual disabilities in the mild and moderate range the right setting and environment to sow their seeds of creativity. The fully operational unit produces cloth and jute bags, purses and pouches, among other things, and some of the students take to embroidery on handkerchiefs that reflect their creativity and even their inner sentiments.",
       "Y Lalitha Kumari, who is the seniormost employee in the organization having joined as a special educator way back in 1999, heads the tailoring unit. “The unit has seven normal persons and six students with mild intellectual disabilities and the group churns out 50 each of jute and cotton bags of different sizes each day. The process involves cutting of cloth by the regular employees and then helping the students with the stitching and finishing. Some of them manage on their own and are very creative too,” says Lalitha Kumari, who is also quick to point out that the attention span of these girls is very limited. “They can’t sit for long in one place and do some work,” she says.",
       "The unit has 10 regular sewing machines to stitch cotton bags and five heavy duty machines to stitch the jute bags. “We get regular orders for bags used as return gifts and for functions like marriages and birthday parties. We also have some corporate clients besides some in Mumbai, Bengaluru, Kochi and even Dubai. In fact, the mother of one of our students, who is based in Dubai, picks up bags and pouches worth Rs 50,000 regularly on her annual trips. We also receive orders for yoga mats from a Vipasana centre in Bengaluru,” says the unit head. The bags and pouches are priced between Rs 50 and Rs 500 based on size and material used.",
@@ -294,7 +270,7 @@ export const rightSideArticles = [
   {
     "id": "story-kitchen",
     "title": "Kitchen — Beehive of Activity",
-    "excerpt": "A bustling hub from 5 AM, the kitchen team prepares nutritious meals daily for over 150 residents and day scholars.",
+    "excerpt": "A bustling hub from 5 AM, the kitchen team prepares nutritious daily meals for over 150 resident women and school students with care and precision.",
     "attribution": "Campus Life",
     "paragraphs": [
       "The kitchen in Swayamkrushi is a beehive of activity right from 5 AM in the morning when the cooks and other kitchen staff start arriving. By 5.30 AM, the stoves are lit and fresh, aromatic tea is served to everyone around. The staff, comprising two cooks and three assistants, begin preparation for breakfast for 80-odd persons by 7 AM. Breakfast is typically a south Indian fare – idly, dosa, upma, pongal etc with accompaniments.",
@@ -306,10 +282,9 @@ export const rightSideArticles = [
   {
     "id": "story-covid",
     "title": "The Covid Years — Opportunities to Serve",
-    "excerpt": "The Covid Years – Opportunities to serve",
+    "excerpt": "During the pandemic, Swayamkrushi launched 'Parent Homes' — lifelong in-campus dwelling units providing lifetime security, dedicated care, and peace of mind for families.",
     "attribution": "Special Feature",
     "paragraphs": [
-      "The Covid Years – Opportunities to serve",
       "The Covid years, dreaded as they were, also had its positives, opening up clogged minds of several people trapped in their homes, as they looked for avenues to augment their shrinking income. Many came up with brilliant business ideas that soon took root as ‘startups,’ a term that had just begun making a big buzz in India for new businesses in the Internet and e-commerce era. But not all were looking for means to convert the depressing situation into monetary opportunities, and a case in point is that of Manjulaa Kalyaan, the founder-director of Swayamkrushi.",
       "In fact, what caught Manjulaa’s attention and sowed the seeds of opportunity for humanitarian service in her mind was a small newspaper report about a boy with intellectual disabilities, unaware that his single mother had died of Covid and continued staying in the house for a couple of days before the deathly stench alerted neighbours. A disturbed Manjulaa, who has been taking care of persons with intellectual disabilities and interacting with their families for well over three decades, immediately saw the potential and the need to help such families. She came up with ‘Parent Homes,’ a unique one-bedroom in-campus dwelling initiative under which such helpless families can also be brought under the umbrella and care of Swayamkrushi.",
       "The house-on-lease concept virtually signalled the shifting of the stress and trauma that parents of children with intellectual disabilities undergo, to Swayamkrushi since these children attend classes and other activities in the school during the day and return to their parents late in the evening. “The unique feature of this facility is that the parents can continue to stay in the unit for their lifetime if the child passes away, and in the event of the parents passing away, we take care of the child for life,” points out Manjulaa Kalyaan.",

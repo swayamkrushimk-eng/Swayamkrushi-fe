@@ -197,19 +197,34 @@ export async function fetchArticles(params = {}) {
 }
 
 export async function fetchArticleById(id) {
+  if (!id) return null
+  const aliasMap = {
+    'story-fifteen-years': 'story-15-years',
+    'story-15-years': 'story-fifteen-years',
+    'story-sowing-seeds': 'story-tailoring',
+    'story-tailoring': 'story-sowing-seeds',
+  }
+  const altId = aliasMap[id]
+
   for (const k of Object.keys(_memoryArticlesCache)) {
     const list = _memoryArticlesCache[k]
     if (Array.isArray(list)) {
-      const found = list.find((a) => a.id === id || a._id === id)
+      const found = list.find(
+        (a) => a.id === id || (altId && a.id === altId) || a._id === id
+      )
       if (found) return found
     }
   }
 
-  const cached = localStorage.getItem('swayamkrushi_articles_cache') || localStorage.getItem('swayamkrushi_articles_all')
+  const cached =
+    localStorage.getItem('swayamkrushi_articles_cache') ||
+    localStorage.getItem('swayamkrushi_articles_all')
   if (cached) {
     try {
       const list = JSON.parse(cached)
-      const found = list.find((a) => a.id === id || a._id === id)
+      const found = list.find(
+        (a) => a.id === id || (altId && a.id === altId) || a._id === id
+      )
       if (found) return found
     } catch {}
   }
@@ -217,6 +232,10 @@ export async function fetchArticleById(id) {
   try {
     const res = await fetch(`${API_BASE_URL}/articles/${id}`)
     if (res.ok) return await res.json()
+    if (altId) {
+      const resAlt = await fetch(`${API_BASE_URL}/articles/${altId}`)
+      if (resAlt.ok) return await resAlt.json()
+    }
   } catch {}
 
   return null

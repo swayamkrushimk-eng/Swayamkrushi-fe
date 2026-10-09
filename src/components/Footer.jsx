@@ -145,7 +145,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/insiders">
-                  Insiders Views
+                  Insider's Views
                 </Link>
               </li>
               <li>
@@ -189,7 +189,7 @@ export default function Footer() {
               <span>·</span>
               <Link to="/donation">Donation</Link>
               <span>·</span>
-              <Link to="/insiders">Insiders view</Link>
+              <Link to="/insiders">Insider's views</Link>
               <span>·</span>
               <Link to="/contact">Contact</Link>
               <span>·</span>

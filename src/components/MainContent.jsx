@@ -230,8 +230,7 @@ export default function MainContent() {
         <h2>Give</h2>
         <p>Every contribution, whatever its size, helps us bring one more person into the circle.</p>
         <div className="row">
-          <Link className="solid" to="/donation">Donate now</Link>
-          <Link className="hollow" to="/donation">Make a donation</Link>
+          <Link className="solid" to="/donation">Make a donation</Link>
           <a className="hollow" href="#contact">Volunteer with us</a>
         </div>
       </section>

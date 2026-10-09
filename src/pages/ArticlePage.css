@@ -148,28 +148,85 @@
   margin-bottom: 32px;
 }
 
+.article-editorial-body::after,
+.article-rich-content::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
 .article-editorial-body p {
   margin: 0 0 16px;
   font-weight: 400;
 }
 
-.first-body-paragraph {
-  font-weight: 400 !important;
+/* Inline Floated Editorial Media (Inside Article Body with text flowing beside it) */
+.article-inline-figure {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 380px !important;
+  max-width: 48% !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  clear: both !important;
 }
 
-.first-body-paragraph::first-letter {
+/* Explicit float-right */
+.article-inline-figure.float-right,
+.article-inline-figure:not(.float-left) {
+  float: right !important;
+  clear: both !important;
+  margin: 10px 0 22px 28px !important;
+}
+
+/* Explicit float-left */
+.article-inline-figure.float-left {
+  float: left !important;
+  clear: both !important;
+  margin: 10px 28px 22px 0 !important;
+}
+
+.article-inline-figure + .article-inline-figure {
+  margin-top: 24px !important;
+}
+
+.article-inline-figure img,
+.article-inline-figure .article-inline-img {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  float: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 4px !important;
+  object-fit: cover !important;
+}
+
+.article-inline-caption {
+  display: block !important;
+  width: 100% !important;
+  float: none !important;
+  clear: both !important;
   font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 3.1em;
-  float: left;
-  line-height: 0.8;
-  margin-right: 8px;
-  margin-top: 2px;
-  color: var(--burgundy, #6e1e38);
-  font-weight: 700;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted, #6f6a6c);
+  margin-top: 8px !important;
+  padding: 0 !important;
+  border: none !important;
+  text-align: left;
 }
 
 /* Also Read callout matching editorial newspaper inset */
 .editorial-also-read {
+  clear: both;
   margin: 20px 0;
   padding: 10px 14px;
   background: rgba(110, 30, 56, 0.04);
@@ -253,10 +310,10 @@
 }
 
 .bottom-section-title {
-  font-family: var(--head, "Lora", Georgia, serif);
+  font-family: 'Noto Serif', Georgia, serif;
   font-size: 19px;
-  font-weight: 800;
-  color: var(--burgundy, #6e1e38);
+  font-weight: 700;
+  color: #830000;
   margin: 0;
 }
 
@@ -458,6 +515,22 @@
     width: 100%;
     justify-content: flex-start;
   }
+  .article-inline-figure,
+  .article-inline-figure.float-right,
+  .article-inline-figure.float-left,
+  .article-rich-content > img,
+  .article-rich-content p > img,
+  .article-rich-chunk > img {
+    float: none !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 16px 0 !important;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
 }
 
 /* Rich Content Body (Images, Videos, Embeds from Tiptap Editor) */
@@ -471,18 +544,6 @@
 .article-rich-chunk p,
 .article-rich-block p {
   margin: 0 0 18px;
-}
-
-.article-rich-content > .article-rich-chunk:first-child p:first-child::first-letter,
-.article-rich-content > p:first-child::first-letter {
-  font-family: var(--head, "Lora", Georgia, serif);
-  font-size: 3.1em;
-  float: left;
-  line-height: 0.8;
-  margin-right: 8px;
-  margin-top: 2px;
-  color: var(--burgundy, #6e1e38);
-  font-weight: 700;
 }
 
 /* Embedded Custom Pro Video Player inside Articles */
@@ -500,13 +561,22 @@
   border-radius: 12px;
 }
 
-.article-rich-content img {
-  max-width: 100%;
+.article-rich-content > img,
+.article-rich-content p > img,
+.article-rich-chunk > img {
+  float: right;
+  width: 380px;
+  max-width: 48%;
   height: auto;
-  border-radius: 6px;
-  margin: 22px auto;
+  border-radius: 4px;
+  margin: 10px 0 22px 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
   display: block;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
+  box-sizing: border-box;
+  clear: both;
 }
 
 .article-rich-content iframe {

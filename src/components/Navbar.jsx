@@ -13,12 +13,14 @@ export default function Navbar() {
     if (!Array.isArray(list)) return []
     return list.filter(
       (a) =>
+        a.id !== 'story-kitchen' &&
         a.id !== 'story-encounter' &&
         a.id !== 'story-group-homes-initiative' &&
         a.id !== 'story-womens-empowerment' &&
         a.id !== 'story-direct-speak' &&
         a.id !== 'story-recipe-success' &&
         a.id !== 'story-luck-hardwork' &&
+        !a.title?.toLowerCase().includes('kitchen') &&
         !a.title?.toLowerCase().includes('chance encounter') &&
         !a.title?.toLowerCase().includes('direct speak')
     )
@@ -114,7 +116,7 @@ export default function Navbar() {
                 <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Who's Who</Link>
               </li>
               <li>
-                <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insiders views</Link>
+                <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insider's views</Link>
               </li>
               <li>
                 <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Annual reports</a>
@@ -204,11 +206,6 @@ export default function Navbar() {
               <li>
                 <Link to="/article/story-sowing-seeds" onClick={() => setMobileMenuOpen(false)}>
                   Sowing Seeds of Creativity
-                </Link>
-              </li>
-              <li>
-                <Link to="/article/story-kitchen" onClick={() => setMobileMenuOpen(false)}>
-                  Kitchen — Beehive of Activity
                 </Link>
               </li>
               <li>

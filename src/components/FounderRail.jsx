@@ -60,7 +60,7 @@ export default function FounderRail() {
       <div className="rail-item founder-card">
         <img className="founder-img" src={manjulaPortrait} alt="Manjulaa Kalyaan" />
         <h4>Manjulaa Kalyaan</h4>
-        <p>Founder and director.</p>
+        <p>Founder and director</p>
       </div>
 
       {musingArticles.map((article) => (

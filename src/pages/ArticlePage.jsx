@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Fragment } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getArticleById, articleImagesMap } from '../data/allArticles'
 import { fetchArticleById } from '../services/api'
@@ -86,6 +86,83 @@ export default function ArticlePage({ defaultId }) {
     ? article.paragraphs
     : [article.excerpt || '']
 
+  const localFallback = articleImagesMap[id] || articleImagesMap[article.id] || article.heroImage || null
+  const mediaInfo = resolveArticleMedia(article, localFallback)
+  const hasInlineImage = !mediaInfo.isText && !mediaInfo.isVideo && !!mediaInfo.posterUrl
+
+  // Gather all available story images for fallback paragraph mode
+  const allStoryImages = []
+  if (Array.isArray(article.images) && article.images.length > 0) {
+    article.images.forEach((img) => {
+      const url = typeof img === 'string' ? img : img?.url
+      if (url && !allStoryImages.some((x) => x.url === url)) {
+        allStoryImages.push({
+          url,
+          caption: (typeof img === 'object' && (img.caption || img.alt)) || ''
+        })
+      }
+    })
+  }
+  if (hasInlineImage && !allStoryImages.some((x) => x.url === mediaInfo.posterUrl)) {
+    allStoryImages.push({
+      url: mediaInfo.posterUrl,
+      caption: article.imageAlt || ''
+    })
+  }
+  if (article.imageUrl && !allStoryImages.some((x) => x.url === article.imageUrl)) {
+    allStoryImages.push({
+      url: article.imageUrl,
+      caption: article.imageAlt || ''
+    })
+  }
+  if (localFallback && allStoryImages.length === 0) {
+    allStoryImages.push({
+      url: localFallback,
+      caption: article.imageAlt || ''
+    })
+  }
+
+  const getArticleHash = (str = '') => {
+    let h = 0
+    for (let i = 0; i < str.length; i++) {
+      h = ((h << 5) - h + str.charCodeAt(i)) | 0
+    }
+    return Math.abs(h)
+  }
+
+  const seed = getArticleHash((article.id || id || '') + ':' + (article.title || ''))
+  const startsRight = seed % 2 === 0
+  const totalParas = allParagraphs.length
+
+  const imagePlacementMap = {}
+  let prevParaTarget = 0
+
+  allStoryImages.forEach((imgObj, imgIdx) => {
+    let targetPara = 0
+    if (imgIdx === 0) {
+      if (totalParas <= 1) {
+        targetPara = 0
+      } else if (totalParas === 2) {
+        targetPara = seed % 2
+      } else {
+        targetPara = seed % 3
+      }
+    } else {
+      const spacing = 2 + ((seed >> (imgIdx + 1)) % 2)
+      targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
+    }
+    prevParaTarget = targetPara
+
+    const isRight = imgIdx % 2 === 0 ? startsRight : !startsRight
+    const alignClass = isRight ? 'float-right' : 'float-left'
+
+    if (!imagePlacementMap[targetPara]) imagePlacementMap[targetPara] = []
+    imagePlacementMap[targetPara].push({
+      ...imgObj,
+      alignClass
+    })
+  })
+
   const articleSchema = {
     '@context': 'https://schema.org',
     '@type': 'Article',
@@ -128,54 +205,23 @@ export default function ArticlePage({ defaultId }) {
         <h1 className="article-headline">{article.title}</h1>
       </header>
 
-      {/* Featured Hero Media (Image or Custom Video Player) */}
-      {(() => {
-        const localFallback = articleImagesMap[id] || articleImagesMap[article.id] || article.heroImage || null
-        const mediaInfo = resolveArticleMedia(article, localFallback)
-
-        if (mediaInfo.isText) return null
-
-        if (mediaInfo.isVideo && mediaInfo.videoUrl) {
-          return (
-            <figure className="article-hero-figure article-hero-video-figure">
-              <div className="article-video-player-container">
-                <VideoPlayer
-                  src={mediaInfo.deliveryVideoUrl || mediaInfo.videoUrl}
-                  poster={mediaInfo.posterUrl || undefined}
-                  title={article.title}
-                  category={article.category || 'Featured Story'}
-                  autoPlay={false}
-                />
-              </div>
-              <figcaption className="article-hero-caption">
-                Video spotlight: {article.title}
-              </figcaption>
-            </figure>
-          )
-        }
-
-        if (mediaInfo.posterUrl) {
-          return (
-            <figure className="article-hero-figure">
-              <img
-                src={mediaInfo.posterUrl}
-                alt={article.title}
-                className="article-hero-img"
-                onError={(e) => {
-                  if (localFallback && e.target.src !== localFallback) {
-                    e.target.src = localFallback
-                  }
-                }}
-              />
-              <figcaption className="article-hero-caption">
-                Archival spotlight: {article.title}
-              </figcaption>
-            </figure>
-          )
-        }
-
-        return null
-      })()}
+      {/* Featured Hero Video (Only if story is a video) */}
+      {!mediaInfo.isText && mediaInfo.isVideo && mediaInfo.videoUrl && (
+        <figure className="article-hero-figure article-hero-video-figure">
+          <div className="article-video-player-container">
+            <VideoPlayer
+              src={mediaInfo.deliveryVideoUrl || mediaInfo.videoUrl}
+              poster={mediaInfo.posterUrl || undefined}
+              title={article.title}
+              category={article.category || 'Featured Story'}
+              autoPlay={false}
+            />
+          </div>
+          <figcaption className="article-hero-caption">
+            Video spotlight: {article.title}
+          </figcaption>
+        </figure>
+      )}
 
       {/* Main Editorial Story Flow: Supports Rich Text, Embedded Images & Custom Pro Video Players */}
       <div className="article-editorial-body">
@@ -183,23 +229,56 @@ export default function ArticlePage({ defaultId }) {
           <ArticleContentRenderer
             htmlContent={article.contentHtml}
             articleTitle={article.title}
+            articleId={article.id || id}
+            inlineMedia={hasInlineImage ? mediaInfo : null}
+            localFallback={localFallback}
+            imageAlt={article.imageAlt}
           />
         ) : (
-          allParagraphs.map((para, idx) => (
-            <div key={idx}>
-              <p className={idx === 0 ? 'first-body-paragraph' : ''}>{para}</p>
+          allParagraphs.map((para, idx) => {
+            const imgsForThisPara = imagePlacementMap[idx] || []
 
-              {/* Editorial callout after paragraph 2 matching classic broadsheet style */}
-              {idx === 2 && allParagraphs.length > 4 && (
-                <aside className="editorial-also-read">
-                  <span className="also-read-tag">Also read:</span>
-                  <Link to="/article/story-encounter" className="also-read-link">
-                    Chance encounter that changed my life &mdash; Manjulaa Kalyaan
-                  </Link>
-                </aside>
-              )}
-            </div>
-          ))
+            return (
+              <Fragment key={idx}>
+                {imgsForThisPara.map((imgObj, subIdx) => {
+                  return (
+                    <figure
+                      key={`para-img-${idx}-${subIdx}`}
+                      className={`article-inline-figure ${imgObj.alignClass}`}
+                    >
+                      <img
+                        src={imgObj.url}
+                        alt={imgObj.caption || article.title}
+                        className="article-inline-img"
+                        onError={(e) => {
+                          if (localFallback && e.target.src !== localFallback) {
+                            e.target.src = localFallback
+                          }
+                        }}
+                      />
+                      {imgObj.caption ? (
+                        <figcaption className="article-inline-caption">
+                          {imgObj.caption}
+                        </figcaption>
+                      ) : null}
+                    </figure>
+                  )
+                })}
+
+                <p className={idx === 0 ? 'first-body-paragraph' : ''}>{para}</p>
+
+                {/* Editorial callout after paragraph 2 matching classic broadsheet style */}
+                {idx === 2 && allParagraphs.length > 4 && (
+                  <aside className="editorial-also-read">
+                    <span className="also-read-tag">Also read:</span>
+                    <Link to="/article/story-encounter" className="also-read-link">
+                      Chance encounter that changed my life &mdash; Manjulaa Kalyaan
+                    </Link>
+                  </aside>
+                )}
+              </Fragment>
+            )
+          })
         )}
       </div>
 

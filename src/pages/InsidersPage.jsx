@@ -42,9 +42,9 @@ export default function InsidersPage() {
   return (
     <main className="insiders-page-wrap">
       <SEO
-        title="What they have to say.... | Swayamkrushi"
+        title="Insider's Views — What they have to say.... | Swayamkrushi"
         description="Watch inspiring video stories and interviews from special educators, speech therapists, alumni, parents, and leaders at Swayamkrushi."
-        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories"
+        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories, Insider's Views"
         canonicalUrl="https://swayamkrushi.org/#/insiders"
       />
 
