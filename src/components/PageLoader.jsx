@@ -11,7 +11,7 @@ export default function PageLoader({ fadeOut = false }) {
           <div className="page-loader-spinner-ring" />
         </div>
         <h2 className="page-loader-title">SWAYAMKRUSHI</h2>
-        <p className="page-loader-sub">Self reliance for persons with intellectual disability &middot; Reg. No. 3608/1991</p>
+        <p className="page-loader-sub">Self reliance for persons with intellectual disabilities &middot; Reg. No. 3608/1991</p>
         <div className="page-loader-progress-bar">
           <div className="page-loader-progress-fill" />
         </div>

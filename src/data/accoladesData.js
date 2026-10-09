@@ -31,9 +31,9 @@ export const timelineAccolades = [
     presenter: 'Dr. K. Shakunthala Devi · Konda Lakshman Bapuji Foundation',
     date: '19th November 2000',
     shortDesc:
-      'Presented jointly to Swayamkrushi and founder Mrs. Manjula Kalyan for dedicated medical, health, and rehabilitation voluntary services.',
+      'Presented jointly to Swayamkrushi and founder Manjulaa Kalyaan for dedicated medical, health, and rehabilitation voluntary services.',
     fullDesc:
-      'Presented jointly to Swayamkrushi and its founder Mrs. Manjula Kalyan on 19th November 2000, in recognition of outstanding and dedicated Medical, Health and other voluntary services rendered to mentally challenged persons — aiming to help them lead an independent life within the community.',
+      'Presented jointly to Swayamkrushi and its founder Manjulaa Kalyaan on 19th November 2000, in recognition of outstanding and dedicated Medical, Health and other voluntary services rendered to mentally challenged persons — aiming to help them lead an independent life within the community.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image3.jpeg',
       label: 'Dr. Shakunthala Devi Medical & Health Award Certificate'
@@ -49,7 +49,7 @@ export const timelineAccolades = [
     shortDesc:
       'Conferred by Manava Seva Dharma Samvardhani in deep appreciation of pioneering efforts in establishing Swayamkrushi in 1991.',
     fullDesc:
-      'Awarded by Manava Seva Dharma Samvardhani — a Charitable Trust for Promotion of Social Service Consciousness — in deep appreciation of Ms. Manjula Kalyan\'s outstanding and pioneering efforts in establishing Swayamkrushi in 1991 in Secunderabad, dedicated to the rehabilitation and integration of adults with developmental disabilities.',
+      'Awarded by Manava Seva Dharma Samvardhani — a Charitable Trust for Promotion of Social Service Consciousness — in deep appreciation of Manjulaa Kalyaan\'s outstanding and pioneering efforts in establishing Swayamkrushi in 1991 in Secunderabad, dedicated to the rehabilitation and integration of adults with developmental disabilities.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image4.jpeg',
       label: 'Sadguru Gnanananda Award Citation'
@@ -65,7 +65,7 @@ export const timelineAccolades = [
     shortDesc:
       'Certified by The National Trust for Welfare of Persons with Autism, Cerebral Palsy, Mental Retardation and Multiple Disabilities.',
     fullDesc:
-      'Certified by The National Trust for the Welfare of Persons with Autism, Cerebral Palsy, Mental Retardation and Multiple Disabilities on 20th August 2005. Manjula Kalyan completed a Training Workshop on Fund Raising and Resource Mobilization at the Spastics Society of Tamilnadu, Taramani, Chennai.',
+      'Certified by The National Trust for the Welfare of Persons with Autism, Cerebral Palsy, Mental Retardation and Multiple Disabilities on 20th August 2005. Manjulaa Kalyaan completed a Training Workshop on Fund Raising and Resource Mobilization at the Spastics Society of Tamilnadu, Taramani, Chennai.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image5.jpeg',
       label: 'National Trust Professional Certificate'
@@ -79,9 +79,9 @@ export const timelineAccolades = [
     presenter: 'Tr. Ambareesh Pittie & Cr. Madhavi Chandra · SMART 118 / SMLC 49',
     date: '4th March 2006',
     shortDesc:
-      'Presented to Smt. Manjula Kalyan in recognition of exemplary dedication and commitment towards training for special children.',
+      'Presented to Manjulaa Kalyaan in recognition of exemplary dedication and commitment towards training for special children.',
     fullDesc:
-      'Presented on 4th March 2006 to Smt. Manjula Kalyan in recognition of her exemplary dedication and commitment towards providing facilities and training for mentally challenged children. Signed by the Chairman of SMART 118 and the Chairperson of Secunderabad Metropolitan Ladies Circle 49.',
+      'Presented on 4th March 2006 to Manjulaa Kalyaan in recognition of her exemplary dedication and commitment towards providing facilities and training for mentally challenged children. Signed by the Chairman of SMART 118 and the Chairperson of Secunderabad Metropolitan Ladies Circle 49.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image6.jpeg',
       label: 'Special Recognition Certificate — SMART 118'
@@ -95,9 +95,9 @@ export const timelineAccolades = [
     presenter: 'Divya Balder · Secunderabad Metropolitan Ladies Circle 49',
     date: '5th September 2012',
     shortDesc:
-      'Recognised the remarkable lifetime contribution made by Ms. Manjula Kalyan in the field of Special Education.',
+      'Recognised the remarkable lifetime contribution made by Manjulaa Kalyaan in the field of Special Education.',
     fullDesc:
-      'The Secunderabad Metropolitan Ladies Circle 49 (Member — Ladies Circle India) recognised the remarkable contribution made by Ms. Manjula Kalyan of Swayamkrushi in the field of Special Education. Presented on 5th September 2012 by the Chairperson of SMLC 49 (2012–13).',
+      'The Secunderabad Metropolitan Ladies Circle 49 (Member — Ladies Circle India) recognised the remarkable contribution made by Manjulaa Kalyaan of Swayamkrushi in the field of Special Education. Presented on 5th September 2012 by the Chairperson of SMLC 49 (2012–13).',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image7.jpeg',
       label: 'Unsung Hero Award Citation'
@@ -113,7 +113,7 @@ export const timelineAccolades = [
     shortDesc:
       'Presented for outstanding pioneering efforts in establishing Swayamkrushi and spearheading the Group Homes model.',
     fullDesc:
-      'Presented on 1st March 2014 to Ms. Manjulaa Kalyaan, Director, Swayamkrushi — for her outstanding and pioneering efforts in establishing Swayamkrushi in 1991 and for her outstanding contribution in the field of Neuro Developmental Disabilities. Swayamkrushi\'s path-breaking "Group Homes" concept in India is recognised for its visionary impact.',
+      'Presented on 1st March 2014 to Manjulaa Kalyaan, Director, Swayamkrushi — for her outstanding and pioneering efforts in establishing Swayamkrushi in 1991 and for her outstanding contribution in the field of Neuro Developmental Disabilities. Swayamkrushi\'s path-breaking "Group Homes" concept in India is recognised for its visionary impact.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image8.jpeg',
       label: 'Pratibha Award Plaque — F.A.M.E. India'
@@ -145,7 +145,7 @@ export const timelineAccolades = [
     shortDesc:
       'Conferred an Honorary Doctorate in Special Education with specialisation in "Empowering People with Intellectual Disabilities".',
     fullDesc:
-      'The Evaluation Board of the Indian Virtual University — Registered under NITI Aayog, Government of India, and accredited by the India Accreditation Council — conferred an Honorary Doctorate in Special Education (MR), Honoris Causa, with specialisation in "Empowering People with Intellectual Disabilities" upon Manjulaa Kalyan on 27th August 2016.',
+      'The Evaluation Board of the Indian Virtual University — Registered under NITI Aayog, Government of India, and accredited by the India Accreditation Council — conferred an Honorary Doctorate in Special Education (MR), Honoris Causa, with specialisation in "Empowering People with Intellectual Disabilities" upon Manjulaa Kalyaan on 27th August 2016.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image10.jpeg',
       label: 'Honorary Doctorate Degree Certificate'
@@ -162,7 +162,7 @@ export const timelineAccolades = [
     shortDesc:
       'Conferred directly by the Vice President of India at Vigyan Bhawan, New Delhi for lifelong contribution to special education.',
     fullDesc:
-      'Presented on 3rd December 2018 at Vigyan Bhawan, New Delhi — the National Award for the Empowerment of Persons with Disabilities (Divyangjan) 2018. Mrs. Manjulaa Kalyaan received this prestigious national honour directly from the Vice President of India, Shri Venkaiah Naidu, in recognition of her lifelong contribution to the field of intellectual disability.',
+      'Presented on 3rd December 2018 at Vigyan Bhawan, New Delhi — the National Award for the Empowerment of Persons with Disabilities (Divyangjan) 2018. Manjulaa Kalyaan received this prestigious national honour directly from the Vice President of India, Shri Venkaiah Naidu, in recognition of her lifelong contribution to the field of intellectual disability.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image11.jpeg',
       label: 'National Award 2018 Official Citation'
@@ -178,7 +178,7 @@ export const timelineAccolades = [
     shortDesc:
       'Awarded for rendering selfless and passionate services towards empowering women with intellectual disabilities for 50 years.',
     fullDesc:
-      'Ms. Manjulaa Kalyaan was awarded the "Naari Shakthi Puraskar" for rendering selfless and passionate services towards "empowering women with intellectual disabilities" for the past 50 years. This award was conferred at NIVEDITHAM-2019 organised at Tagore Auditorium, Osmania University, Hyderabad on 29th December 2019.',
+      'Manjulaa Kalyaan was awarded the "Naari Shakthi Puraskar" for rendering selfless and passionate services towards "empowering women with intellectual disabilities" for the past 50 years. This award was conferred at NIVEDITHAM-2019 organised at Tagore Auditorium, Osmania University, Hyderabad on 29th December 2019.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image12.jpeg',
       label: 'Naari Shakthi Puraskar Certificate'
@@ -194,7 +194,7 @@ export const timelineAccolades = [
     shortDesc:
       'Presented by Smt. Satyavati Rathod at Ravindra Bharathi in recognition of outstanding service to special needs children.',
     fullDesc:
-      'The Government of Telangana\'s Women Development and Child Welfare Department and Department of Language and Culture presented the "Woman Achiever Award 2020" to Ms. Manjulaa Kalyaan (Director of Swayamkrushi) on 8th March 2020 — International Women\'s Day — at Ravindra Bharathi, Hyderabad, in recognition of her outstanding contribution in the field of Service to Children with Special Needs.',
+      'The Government of Telangana\'s Women Development and Child Welfare Department and Department of Language and Culture presented the "Woman Achiever Award 2020" to Manjulaa Kalyaan (Director of Swayamkrushi) on 8th March 2020 — International Women\'s Day — at Ravindra Bharathi, Hyderabad, in recognition of her outstanding contribution in the field of Service to Children with Special Needs.',
     image: {
       src: '/docs_media/To_go_in_menu_-_Accolades_image13.jpeg',
       label: 'Government of Telangana Woman Achiever Award'
@@ -241,7 +241,7 @@ export const certificateGallery = [
     year: '2002',
     title: 'President Dr. A.P.J. Abdul Kalam Presentation',
     src: '/docs_media/To_go_in_menu_-_Accolades_image2.jpeg',
-    caption: 'Ms. Manjula Kalyan receiving the National Award from President Kalam'
+    caption: 'Manjulaa Kalyaan receiving the National Award from President Kalam'
   },
   {
     year: '2005',

@@ -11,6 +11,8 @@ import AddonsPage from './pages/AddonsPage'
 import ContactPage from './pages/ContactPage'
 import CommitteePage from './pages/CommitteePage'
 import MediaBuzzPage from './pages/MediaBuzzPage'
+import EventsPage from './pages/EventsPage'
+import DonationPage from './pages/DonationPage'
 import { trackPageView } from './services/api'
 
 function PageTracker() {
@@ -45,6 +47,14 @@ function App() {
         <Route path="/addons" element={<AddonsPage />} />
         <Route path="/add-ons" element={<AddonsPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/activities-galore" element={<HomePage />} />
+        <Route path="/activities" element={<HomePage />} />
+        <Route path="/events" element={<EventsPage />} />
+        <Route path="/event" element={<EventsPage />} />
+        <Route path="/donation" element={<DonationPage />} />
+        <Route path="/donations" element={<DonationPage />} />
+        <Route path="/donate" element={<DonationPage />} />
+        <Route path="/give" element={<DonationPage />} />
       </Routes>
       <Footer />
     </HashRouter>

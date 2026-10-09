@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 const DEFAULT_SEO = {
   title: 'Swayamkrushi | Empowering Persons with Intellectual Disabilities Since 1991',
   description: 'Swayamkrushi (Reg. No. 3608/1991) is a pioneering NGO in Secunderabad, Telangana providing lifelong residential care, group homes, special education, speech & physiotherapy, and recognized B.Ed Special Education.',
-  keywords: 'Swayamkrushi, NGO Hyderabad, special education Secunderabad, intellectual disability residential care, group homes Telangana, vocational training special needs, Manjula Kalyan, B.Ed special education',
+  keywords: 'Swayamkrushi, NGO Hyderabad, special education Secunderabad, intellectual disability residential care, group homes Telangana, vocational training special needs, Manjulaa Kalyaan, B.Ed special education',
   canonicalUrl: 'https://swayamkrushi.org/',
   ogType: 'website',
   ogImage: 'https://swayamkrushi.org/assets/images/logo.png',

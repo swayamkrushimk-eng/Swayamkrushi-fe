@@ -54,7 +54,7 @@ export default function FaqPage() {
     'faq-bed-recognition': true
   })
   const [siteSettings, setSiteSettings] = useState({
-    phone1: '+91 XXXXXXXXXX',
+    phone1: '+91 9100106454',
     phone2: '',
     email: 'swayamkrushimk@gmail.com'
   })

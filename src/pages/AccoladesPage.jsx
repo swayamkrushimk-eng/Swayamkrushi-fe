@@ -73,16 +73,12 @@ export default function AccoladesPage() {
       <SEO
         title="Accolades & National Awards | 35+ Years of Recognition"
         description="Discover Swayamkrushi's 35+ year history of national and state recognition, including four National Awards from the President and Prime Minister of India for excellence in special education."
-        keywords="Swayamkrushi awards, National Award for Child Welfare, National Award Best Institution, Manjula Kalyan recognition, special education achievements"
+        keywords="Swayamkrushi awards, National Award for Child Welfare, National Award Best Institution, Manjulaa Kalyaan recognition, special education achievements"
         canonicalUrl="https://swayamkrushi.org/#/accolades"
       />
 
       {/* 1. Hero / Introduction */}
       <header className="accolades-hero-header">
-        <div className="accolades-badge">
-          <span className="accolades-badge-dot" />
-          <span>RECOGNITION / ACCOLADES</span>
-        </div>
         <h1 className="accolades-main-headline">
           Three-and-half decades of hard work, and the consequent recognition
         </h1>
@@ -214,7 +210,6 @@ export default function AccoladesPage() {
       {/* 4. Certificate Gallery (Separate Section at Bottom) */}
       <section className="certificate-gallery-section" id="certificates">
         <header className="gallery-header">
-          <div className="gallery-kicker">ARCHIVAL COLLECTION</div>
           <h2 className="gallery-title">CERTIFICATE GALLERY</h2>
           <p className="gallery-subtitle">Original certificates, plaques & citations</p>
           <p className="gallery-hint">

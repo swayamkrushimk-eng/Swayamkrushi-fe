@@ -66,7 +66,7 @@ export async function fetchSettings() {
   return _memorySettings || {
     orgName: 'Swayamkrushi',
     tagline: 'A Haven for the Mentally Challenged Since 1987',
-    phone1: '+91 XXXXXXXXXX',
+    phone1: '+91 9100106454',
     phone2: '',
     email: 'swayamkrushimk@gmail.com',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
@@ -345,6 +345,55 @@ export async function deleteCertificate(id) {
   const certs = JSON.parse(localStorage.getItem('swayamkrushi_certificates') || '[]')
   const filtered = certs.filter((c) => c._id !== id && c.id !== id)
   localStorage.setItem('swayamkrushi_certificates', JSON.stringify(filtered))
+  return { success: true }
+}
+
+// ─── EVENT IMAGES API ──────────────────────────────────────────────────────
+const EVENT_IMAGES_KEY = 'swayamkrushi_event_images'
+
+export async function fetchEventImages() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/events`)
+    if (res.ok) {
+      const data = await res.json()
+      if (Array.isArray(data)) {
+        localStorage.setItem(EVENT_IMAGES_KEY, JSON.stringify(data))
+        return data
+      }
+    }
+  } catch {}
+  return JSON.parse(localStorage.getItem(EVENT_IMAGES_KEY) || '[]')
+}
+
+export async function createEventImage(payload) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    if (res.ok) return await res.json()
+  } catch {}
+  const list = JSON.parse(localStorage.getItem(EVENT_IMAGES_KEY) || '[]')
+  const newEvt = {
+    ...payload,
+    _id: 'evt-' + Date.now(),
+    id: 'evt-' + Date.now(),
+    createdAt: new Date().toISOString()
+  }
+  list.unshift(newEvt)
+  localStorage.setItem(EVENT_IMAGES_KEY, JSON.stringify(list))
+  return newEvt
+}
+
+export async function deleteEventImage(id) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${id}`, { method: 'DELETE' })
+    if (res.ok) return await res.json()
+  } catch {}
+  const list = JSON.parse(localStorage.getItem(EVENT_IMAGES_KEY) || '[]')
+  const filtered = list.filter((item) => item._id !== id && item.id !== id)
+  localStorage.setItem(EVENT_IMAGES_KEY, JSON.stringify(filtered))
   return { success: true }
 }
 

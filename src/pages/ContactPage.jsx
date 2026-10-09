@@ -18,7 +18,7 @@ const INQUIRY_TYPES = [
 export default function ContactPage() {
   const navigate = useNavigate()
   const [settings, setSettings] = useState({
-    phone1: '+91 XXXXXXXXXX',
+    phone1: '+91 9100106454',
     phone2: '',
     email: 'swayamkrushimk@gmail.com',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
@@ -125,8 +125,8 @@ export default function ContactPage() {
             </div>
             <div className="contact-info-text">
               <h3>Phone</h3>
-              <a href={`tel:${((settings.phone1 && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 XXXXXXXXXX').replace(/\s+/g, '')}`}>
-                {(settings.phone1 && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 XXXXXXXXXX'}
+              <a href={`tel:${((settings.phone1 && !settings.phone1.includes('XXXXXXXXXX') && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 9100106454').replace(/\s+/g, '')}`}>
+                {(settings.phone1 && !settings.phone1.includes('XXXXXXXXXX') && !settings.phone1.includes('9704245454')) ? settings.phone1 : '+91 9100106454'}
               </a>
             </div>
           </div>

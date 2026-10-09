@@ -24,9 +24,9 @@ export default function HomePage() {
     <>
       {loading && <PageLoader fadeOut={fadeOut} />}
       <SEO
-        title="Swayamkrushi | Self Reliance for Persons with Intellectual Disability"
+        title="Swayamkrushi | Self Reliance for Persons with Intellectual Disabilities"
         description="Swayamkrushi (Reg. No. 3608/1991) is a premier non-profit organization in Secunderabad, Telangana offering pioneering group homes, residential care, special education, speech & physiotherapy, and recognized B.Ed Special Education."
-        keywords="Swayamkrushi, NGO Hyderabad, special education Secunderabad, intellectual disability residential care, group homes Telangana, vocational training special needs, Manjula Kalyan, NGO India"
+        keywords="Swayamkrushi, NGO Hyderabad, special education Secunderabad, intellectual disability residential care, group homes Telangana, vocational training special needs, Manjulaa Kalyaan, NGO India"
         canonicalUrl="https://swayamkrushi.org/"
       />
       <Masthead />

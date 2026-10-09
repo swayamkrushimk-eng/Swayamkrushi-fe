@@ -11,7 +11,7 @@ export default function Footer() {
     orgName: 'Swayamkrushi',
     address: 'Survey No.687, 688, Jawaharnagar Village, Chennapur, Shamirpet Mandal, Secunderabad, Telangana.',
     visitingHours: 'Open 10am to 4pm, Monday to Saturday.',
-    phone1: '+91 XXXXXXXXXX',
+    phone1: '+91 9100106454',
     phone2: '',
     email: 'swayamkrushimk@gmail.com',
     regNo: 'Reg. No. 3608/1991'
@@ -68,7 +68,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="footer-brand-tagline">
-              Self reliance for persons with intellectual disability, since 1991.
+              Self reliance for persons with intellectual disabilities, since 1991.
             </p>
             <p className="footer-brand-mission">
               Dedicated to providing lifelong residential care, functional academics, vocational empowerment, and dignity for individuals with special needs.
@@ -100,14 +100,14 @@ export default function Footer() {
                 <span className="footer-reach-label">Direct Phone Lines</span>
                 <div className="footer-phones-list">
                   <a
-                    href="tel:+91XXXXXXXXXX"
+                    href={`tel:${(settings.phone1 && !settings.phone1.includes('XXXXXXXXXX') && !settings.phone1.includes('9704245454') ? settings.phone1 : '+91 9100106454').replace(/\s+/g, '')}`}
                     className="footer-contact-link footer-phone-link"
-                    title="Direct Phone Line"
+                    title="Direct Phone Line: +91 9100106454"
                   >
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
                     </svg>
-                    {settings.phone1 && !settings.phone1.includes('9704245454') ? settings.phone1 : '+91 XXXXXXXXXX'}
+                    {settings.phone1 && !settings.phone1.includes('XXXXXXXXXX') && !settings.phone1.includes('9704245454') ? settings.phone1 : '+91 9100106454'}
                   </a>
                 </div>
               </div>
@@ -139,18 +139,23 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#programs" onClick={(e) => { e.preventDefault(); handleNavAnchor('programs'); }}>
-                  Programs & Group Homes
-                </a>
+                <Link to="/donation" className="footer-give-highlight">
+                  Donation →
+                </Link>
               </li>
               <li>
                 <Link to="/insiders">
-                  Insiders View
+                  Insiders Views
+                </Link>
+              </li>
+              <li>
+                <Link to="/events">
+                  Events Gallery
                 </Link>
               </li>
               <li>
                 <Link to="/committee">
-                  Who is Who
+                  Who's Who
                 </Link>
               </li>
               <li>
@@ -160,18 +165,13 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/media-buzz">
-                  Media Buzz & Press
+                  Media Buzz
                 </Link>
               </li>
               <li>
-                <Link to="/faqs">
+                <Link to="/faq">
                   Frequently Asked Questions
                 </Link>
-              </li>
-              <li>
-                <a href="#give" onClick={(e) => { e.preventDefault(); handleNavAnchor('give'); }} className="footer-give-highlight">
-                  Support →
-                </a>
               </li>
             </ul>
           </div>
@@ -187,11 +187,9 @@ export default function Footer() {
             <div className="footer-bottom-nav">
               <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>About</a>
               <span>·</span>
-              <a href="#programs" onClick={(e) => { e.preventDefault(); handleNavAnchor('programs'); }}>Programs</a>
+              <Link to="/donation">Donation</Link>
               <span>·</span>
               <Link to="/insiders">Insiders view</Link>
-              <span>·</span>
-              <a href="#give" onClick={(e) => { e.preventDefault(); handleNavAnchor('give'); }}>Give</a>
               <span>·</span>
               <Link to="/contact">Contact</Link>
               <span>·</span>

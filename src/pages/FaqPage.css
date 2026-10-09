@@ -6,62 +6,11 @@
   width: 100%;
 }
 
-/* Breadcrumb nav */
-.faq-breadcrumb-nav {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--muted, #6f6a6c);
-  margin-bottom: 16px;
-}
-
-.faq-breadcrumb-nav .breadcrumb-link {
-  color: var(--muted, #6f6a6c);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s ease;
-}
-
-.faq-breadcrumb-nav .breadcrumb-link:hover {
-  color: var(--burgundy, #6e1e38);
-  text-decoration: underline;
-}
-
-.faq-breadcrumb-nav .breadcrumb-separator {
-  opacity: 0.45;
-}
-
-.faq-breadcrumb-nav .breadcrumb-current {
-  font-weight: 700;
-  color: var(--indigo, #4b0082);
-}
-
 /* 1. Hero / Header */
 .faq-hero-header {
   margin-bottom: 32px;
   padding-bottom: 24px;
   border-bottom: 1.5px solid var(--hair, #6e1e38);
-}
-
-.faq-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--burgundy, #6e1e38);
-  margin-bottom: 10px;
-}
-
-.faq-badge-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--burgundy, #6e1e38);
-  display: inline-block;
 }
 
 .faq-main-headline {

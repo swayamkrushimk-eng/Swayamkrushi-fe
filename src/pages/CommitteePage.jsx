@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
 import { fetchCommitteeMembers } from '../services/api'
-import manjulaPortrait from '../assets/images/manjula-portrait.png'
+import manjulaPortrait from '../assets/images/manjula-portrait.jpeg'
 import chennaSaratbabuPortrait from '../assets/images/chenna-saratbabu-portrait.jpg'
 import bhanojiRaoPortrait from '../assets/images/bhanoji-rao-portrait.jpg'
 import tSureshPortrait from '../assets/images/t-suresh-portrait.jpg'
@@ -211,14 +211,14 @@ export default function CommitteePage() {
   return (
     <>
       <SEO
-        title="Who is Who | Swayamkrushi"
+        title="Who's Who | Swayamkrushi"
         description="Meet the leadership, Patron, and Executive Board of Swayamkrushi NGO guiding disability rehabilitation, special education, and group homes."
       />
 
       <div className="committee-page-wrap">
         {/* Editorial Masthead Header */}
         <header className="committee-header">
-          <h1 className="committee-headline">Who is Who</h1>
+          <h1 className="committee-headline">Who's Who</h1>
         </header>
 
         {/* Profile Card Grid */}

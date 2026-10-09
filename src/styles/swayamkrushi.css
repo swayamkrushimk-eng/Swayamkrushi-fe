@@ -458,7 +458,8 @@ img {
 .shoulder.left .rail-item p {
   font-size: 15.5px;
   line-height: 1.62;
-  color: var(--muted);
+  color: var(--ink);
+  font-weight: 700;
   margin: 0 0 14px;
 }
 
@@ -508,11 +509,23 @@ img {
 }
 
 .rail-head {
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: .16em;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--indigo);
+}
+
+.shoulder > .rail-head:first-child {
+  margin-top: 4px;
+}
+
+.shoulder > .rail-head:first-child,
+.rail-head-featured {
+  font-size: clamp(16.5px, 1.4vw, 18.5px);
+  font-weight: 900;
+  letter-spacing: .08em;
+  line-height: 1.3;
 }
 
 .rail-item {
@@ -536,7 +549,8 @@ img {
 .rail-item p {
   font-size: 14px;
   line-height: 1.5;
-  color: var(--muted);
+  color: var(--ink);
+  font-weight: 700;
   margin: 0 0 10px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -748,6 +762,11 @@ img {
   display: block;
 }
 
+.founder-card p {
+  font-weight: 400 !important;
+  color: var(--muted) !important;
+}
+
 .rail-more {
   display: inline-block;
   margin-top: 10px;
@@ -808,9 +827,10 @@ img {
 
 .lede {
   font-family: var(--head);
-  font-size: 20px;
+  font-size: 19px;
   line-height: 1.55;
   color: var(--plum);
+  font-weight: 700 !important;
 }
 
 .story-head {

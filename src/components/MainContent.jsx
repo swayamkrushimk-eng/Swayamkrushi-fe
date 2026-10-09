@@ -83,7 +83,7 @@ export default function MainContent() {
           </figure>
         )}
 
-        <p>{homeOfCare.paragraphs[0]}</p>
+        <p className="lede">{homeOfCare.paragraphs[0]}</p>
         <p>{homeOfCare.paragraphs[1]}</p>
 
         <p className="main-read-more-wrap">
@@ -120,7 +120,7 @@ export default function MainContent() {
           </figure>
         )}
 
-        <p>{groupHomes.paragraphs[0]}</p>
+        <p className="lede">{groupHomes.paragraphs[0]}</p>
         <p>{groupHomes.paragraphs[1]}</p>
 
         <p className="main-read-more-wrap">
@@ -157,7 +157,7 @@ export default function MainContent() {
           </figure>
         )}
 
-        <p>{bedHotspot.paragraphs[0]}</p>
+        <p className="lede">{bedHotspot.paragraphs[0]}</p>
         <p>{bedHotspot.paragraphs[1]}</p>
 
         <p className="main-read-more-wrap">
@@ -165,29 +165,6 @@ export default function MainContent() {
             Read full story &rarr;
           </Link>
         </p>
-
-        {/* Mission & Vision Callout */}
-        <div className="split">
-          <div>
-            <h4>Mission</h4>
-            <p>
-              To house and train persons with intellectual disability before facilitating their employment
-              and independent living within the community.
-            </p>
-          </div>
-          <div>
-            <h4>Vision</h4>
-            <p>
-              A society in which the less fortunate live with dignity, pride and as productive members of
-              that society.
-            </p>
-          </div>
-        </div>
-
-        <blockquote>
-          Every child deserves to live their best life.
-          <cite>Ms Manjula Kalyan, founder</cite>
-        </blockquote>
       </section>
 
       {/* 4. Fourth Feature: A Game of Building Blocks */}
@@ -228,15 +205,33 @@ export default function MainContent() {
         </p>
       </section>
 
-
+      {/* Mission & Vision Callout */}
+      <section className="mission-vision-section" id="mission-vision">
+        <div className="split">
+          <div>
+            <h4>Mission</h4>
+            <p>
+              To house and train persons with intellectual disability before facilitating their employment
+              and independent living within the community.
+            </p>
+          </div>
+          <div>
+            <h4>Vision</h4>
+            <p>
+              A society in which the less fortunate live with dignity, pride and as productive members of
+              that society.
+            </p>
+          </div>
+        </div>
+      </section>
 
       {/* Give Section */}
       <section className="give" id="give">
         <h2>Give</h2>
         <p>Every contribution, whatever its size, helps us bring one more person into the circle.</p>
         <div className="row">
-          <a className="solid" href="#contact">Join our family</a>
-          <a className="hollow" href="#contact">Other ways to give</a>
+          <Link className="solid" to="/donation">Donate now</Link>
+          <Link className="hollow" to="/donation">Make a donation</Link>
           <a className="hollow" href="#contact">Volunteer with us</a>
         </div>
       </section>

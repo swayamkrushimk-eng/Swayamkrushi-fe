@@ -31,7 +31,10 @@ import {
   fetchMediaBuzz,
   createMediaBuzz,
   updateMediaBuzz,
-  deleteMediaBuzz
+  deleteMediaBuzz,
+  fetchEventImages,
+  createEventImage,
+  deleteEventImage
 } from '../services/api'
 import { COMMITTEE_MEMBERS as DEFAULT_COMMITTEE_MEMBERS } from './CommitteePage'
 import { MEDIA_ARTICLES as DEFAULT_MEDIA_ARTICLES } from './MediaBuzzPage'
@@ -59,6 +62,7 @@ export default function AdminPage() {
   const [mediaBuzzItems, setMediaBuzzItems] = useState([])
   const [accolades, setAccolades] = useState({ featured: null, timeline: [] })
   const [certificates, setCertificates] = useState([])
+  const [eventImages, setEventImages] = useState([])
   const [faqs, setFaqs] = useState([])
   const [inquiries, setInquiries] = useState([])
   const [settings, setSettings] = useState({
@@ -162,6 +166,13 @@ export default function AdminPage() {
     order: 0
   })
 
+  const [eventForm, setEventForm] = useState({
+    title: '',
+    caption: '',
+    imageUrl: '',
+    order: 0
+  })
+
   const [editingFaq, setEditingFaq] = useState(null)
   const [faqForm, setFaqForm] = useState({
     question: '',
@@ -174,6 +185,7 @@ export default function AdminPage() {
   const [showArticleModal, setShowArticleModal] = useState(false)
   const [showAccoladeModal, setShowAccoladeModal] = useState(false)
   const [showCertModal, setShowCertModal] = useState(false)
+  const [showEventModal, setShowEventModal] = useState(false)
   const [showFaqModal, setShowFaqModal] = useState(false)
 
   const showNotification = (message, type = 'success') => {
@@ -220,7 +232,7 @@ export default function AdminPage() {
   const loadInitialData = async () => {
     setLoading(true)
     try {
-      const [statsData, settingsData, articlesData, accoladesData, faqsData, inqData, certsData, committeeData, mediaData] = await Promise.all([
+      const [statsData, settingsData, articlesData, accoladesData, faqsData, inqData, certsData, committeeData, mediaData, eventsData] = await Promise.all([
         fetchAdminStats(),
         fetchSettings(),
         fetchArticles(),
@@ -229,11 +241,13 @@ export default function AdminPage() {
         fetchInquiries(),
         fetchCertificates(),
         fetchCommitteeMembers(),
-        fetchMediaBuzz()
+        fetchMediaBuzz(),
+        fetchEventImages()
       ])
       if (statsData) setStats(statsData)
       if (settingsData) setSettings(settingsData)
       if (articlesData) setArticles(articlesData)
+      if (eventsData && Array.isArray(eventsData)) setEventImages(eventsData)
       if (accoladesData) {
         setAccolades({
           featured: accoladesData.featured,
@@ -672,6 +686,36 @@ export default function AdminPage() {
     }
   }
 
+  // ─── EVENT IMAGES ACTIONS ────────────────────────────────────────────────
+  const handleSaveEventImage = async (e) => {
+    e.preventDefault()
+    if (!eventForm.imageUrl) {
+      showNotification('Please upload an image or provide an image URL', 'error')
+      return
+    }
+    try {
+      await createEventImage(eventForm)
+      showNotification('Event image added successfully!')
+      setShowEventModal(false)
+      setEventForm({ title: '', caption: '', imageUrl: '', order: 0 })
+      const data = await fetchEventImages()
+      setEventImages(data)
+    } catch (err) {
+      showNotification('Failed to add event image: ' + err.message, 'error')
+    }
+  }
+
+  const handleDeleteEventImage = async (id, title) => {
+    if (!window.confirm(`Delete this event image?`)) return
+    try {
+      await deleteEventImage(id)
+      showNotification('Event image deleted')
+      setEventImages((prev) => prev.filter((item) => item._id !== id && item.id !== id))
+    } catch (err) {
+      showNotification('Failed to delete event image: ' + err.message, 'error')
+    }
+  }
+
   // ─── FAQ ACTIONS ────────────────────────────────────────────────────────
   const openNewFaqModal = () => {
     setEditingFaq(null)
@@ -927,6 +971,13 @@ export default function AdminPage() {
             >
               <span className="admin-nav-icon">📜</span>
               <span>Certificates & Media ({certificates.length})</span>
+            </button>
+            <button
+              className={`admin-nav-item ${activeTab === 'events' ? 'active' : ''}`}
+              onClick={() => setActiveTab('events')}
+            >
+              <span className="admin-nav-icon">📷</span>
+              <span>Events Gallery ({eventImages.length})</span>
             </button>
             <button
               className={`admin-nav-item ${activeTab === 'faqs' ? 'active' : ''}`}
@@ -1679,6 +1730,60 @@ export default function AdminPage() {
             </div>
           )}
 
+          {/* TAB: EVENTS PHOTO GALLERY */}
+          {activeTab === 'events' && (
+            <div className="admin-tab-content">
+              <div className="admin-content-header">
+                <div>
+                  <h1 className="admin-section-title">Events Photo Gallery</h1>
+                  <p className="admin-section-desc">
+                    Upload event images. Only uploaded images will be displayed on the public Events page.
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEventForm({ title: '', caption: '', imageUrl: '', order: eventImages.length + 1 })
+                    setShowEventModal(true)
+                  }}
+                  className="admin-btn admin-btn-primary"
+                >
+                  📷 Upload Event Image
+                </button>
+              </div>
+
+              {eventImages.length === 0 ? (
+                <div className="admin-empty-state">
+                  <p>No event images added yet. Click "Upload Event Image" to add photos for the Events page.</p>
+                </div>
+              ) : (
+                <div className="admin-media-grid">
+                  {eventImages.map((img) => {
+                    const imgUrl = img.imageUrl || img.url || img.image || img.src
+                    return (
+                      <div key={img._id || img.id} className="admin-media-card">
+                        <div className="admin-media-thumb-wrap">
+                          <img src={imgUrl} alt={img.title || 'Event'} className="admin-media-img" />
+                        </div>
+                        <div className="admin-media-info">
+                          <h4 className="admin-media-title">{img.title || 'Event Photo'}</h4>
+                          {img.caption && <p className="admin-media-caption">{img.caption}</p>}
+                        </div>
+                        <div className="admin-media-actions">
+                          <button
+                            onClick={() => handleDeleteEventImage(img._id || img.id, img.title)}
+                            className="admin-btn-action admin-btn-delete"
+                          >
+                            🗑️ Delete
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* TAB 5: FAQS MANAGER */}
           {activeTab === 'faqs' && (
             <div className="admin-tab-content">
@@ -2367,6 +2472,77 @@ export default function AdminPage() {
                 </button>
                 <button type="submit" className="admin-btn admin-btn-primary">
                   Upload & Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL: EVENT IMAGE UPLOAD ─────────────────────────────────── */}
+      {showEventModal && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal">
+            <div className="admin-modal-header">
+              <h2>Upload Event Image</h2>
+              <button onClick={() => setShowEventModal(false)} className="admin-modal-close">
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEventImage} className="admin-modal-form">
+              <div className="admin-form-group">
+                <label>Event Image *</label>
+                <div className="admin-image-picker-row">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileUpload(e, setEventForm, 'imageUrl')}
+                    className="admin-file-input"
+                    disabled={uploadingImage}
+                  />
+                  <span className="admin-or-divider">OR</span>
+                  <input
+                    type="text"
+                    placeholder="Image URL"
+                    value={eventForm.imageUrl}
+                    onChange={(e) => setEventForm({ ...eventForm, imageUrl: e.target.value })}
+                    className="admin-input"
+                  />
+                </div>
+                {uploadingImage && <p className="admin-uploading-text">Uploading image...</p>}
+                {eventForm.imageUrl && (
+                  <div className="admin-img-preview-box">
+                    <img src={eventForm.imageUrl} alt="Preview" className="admin-preview-img" />
+                  </div>
+                )}
+              </div>
+
+              <div className="admin-form-group">
+                <label>Title / Caption (Optional)</label>
+                <input
+                  type="text"
+                  value={eventForm.title}
+                  onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
+                  placeholder="e.g. Annual Day 2026 Celebration"
+                  className="admin-input"
+                />
+              </div>
+
+              <div className="admin-modal-actions">
+                <button
+                  type="button"
+                  onClick={() => setShowEventModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={uploadingImage || !eventForm.imageUrl}
+                  className="admin-btn admin-btn-primary"
+                >
+                  Save & Publish to Events
                 </button>
               </div>
             </form>

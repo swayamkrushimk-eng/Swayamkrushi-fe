@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import manjulaPortrait from '../assets/images/manjula-portrait.png'
+import manjulaPortrait from '../assets/images/manjula-portrait.jpeg'
 import { rightSideArticles } from '../data/articlesData'
 import { allArticles } from '../data/allArticles'
 import { fetchArticles } from '../services/api'
@@ -56,10 +56,10 @@ export default function FounderRail() {
 
   return (
     <aside className="shoulder right">
-      <div className="rail-head">Manjula's Musings</div>
+      <div className="rail-head rail-head-featured" id="manjula-musings">Manjula's Musings</div>
       <div className="rail-item founder-card">
-        <img className="founder-img" src={manjulaPortrait} alt="Ms Manjula Kalyan" />
-        <h4>Ms Manjula Kalyan</h4>
+        <img className="founder-img" src={manjulaPortrait} alt="Manjulaa Kalyaan" />
+        <h4>Manjulaa Kalyaan</h4>
         <p>Founder and director.</p>
       </div>
 
@@ -70,7 +70,7 @@ export default function FounderRail() {
         />
       ))}
 
-      <div className="rail-head" style={{ marginTop: '20px' }}>Activities galore</div>
+      <div className="rail-head rail-head-featured" id="activities-galore" style={{ marginTop: '24px' }}>Activities galore</div>
       {activitiesArticles.map((article) => (
         <ArticleCard
           key={article.id}

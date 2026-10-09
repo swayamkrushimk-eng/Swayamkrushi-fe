@@ -108,13 +108,113 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Humble beings</a>
+                <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Dare to Dream</a>
               </li>
               <li>
-                <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Who is who</Link>
+                <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Who's Who</Link>
+              </li>
+              <li>
+                <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insiders views</Link>
               </li>
               <li>
                 <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Annual reports</a>
+              </li>
+              <li>
+                <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
+              </li>
+              <li>
+                <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+              </li>
+            </ul>
+          </li>
+          <li className={`has-sub ${openDropdown === 'manjula-musings' ? 'is-open' : ''}`}>
+            <a
+              href="#manjula-musings"
+              onClick={(e) => {
+                if (window.innerWidth <= 992) {
+                  e.preventDefault()
+                  toggleDropdown('manjula-musings')
+                } else {
+                  e.preventDefault()
+                  handleNavAnchor('manjula-musings')
+                }
+              }}
+            >
+              Manjula's Musings
+            </a>
+            <ul className="submenu">
+              <li>
+                <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>
+                  Chance Encounter That Changed My Life
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-group-homes-initiative" onClick={() => setMobileMenuOpen(false)}>
+                  Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-womens-empowerment" onClick={() => setMobileMenuOpen(false)}>
+                  Women’s empowerment - A byproduct of Swayamkrushi
+                </Link>
+              </li>
+            </ul>
+          </li>
+          <li className={`has-sub ${openDropdown === 'activities-galore' ? 'is-open' : ''}`}>
+            <a
+              href="#activities-galore"
+              onClick={(e) => {
+                if (window.innerWidth <= 992) {
+                  e.preventDefault()
+                  toggleDropdown('activities-galore')
+                } else {
+                  e.preventDefault()
+                  handleNavAnchor('activities-galore')
+                }
+              }}
+            >
+              Activities galore
+            </a>
+            <ul className="submenu">
+              <li>
+                <Link to="/article/story-fifteen-years" onClick={() => setMobileMenuOpen(false)}>
+                  15 Years for One Word, and Then the Exhilaration!
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-art-equaliser" onClick={() => setMobileMenuOpen(false)}>
+                  Art — The Great Equaliser
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-nios" onClick={() => setMobileMenuOpen(false)}>
+                  NIOS — Boon for Persons with Intellectual Disabilities
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-paper-bag" onClick={() => setMobileMenuOpen(false)}>
+                  Paper Bag Making — It's a 'Mild' Job
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-exercise" onClick={() => setMobileMenuOpen(false)}>
+                  Exercise of a Different Kind
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-sowing-seeds" onClick={() => setMobileMenuOpen(false)}>
+                  Sowing Seeds of Creativity
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-kitchen" onClick={() => setMobileMenuOpen(false)}>
+                  Kitchen — Beehive of Activity
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-covid" onClick={() => setMobileMenuOpen(false)}>
+                  The Covid Years — Opportunities to Serve
+                </Link>
               </li>
             </ul>
           </li>
@@ -184,39 +284,6 @@ export default function Navbar() {
               </li>
             </ul>
           </li>
-          <li className={`has-sub ${openDropdown === 'manjula-musings' ? 'is-open' : ''}`}>
-            <a
-              href="#manjula-musings"
-              onClick={(e) => {
-                if (window.innerWidth <= 992) {
-                  e.preventDefault()
-                  toggleDropdown('manjula-musings')
-                } else {
-                  e.preventDefault()
-                  handleNavAnchor('stories')
-                }
-              }}
-            >
-              Manjula's Musings
-            </a>
-            <ul className="submenu">
-              <li>
-                <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>
-                  Chance Encounter That Changed My Life
-                </Link>
-              </li>
-              <li>
-                <Link to="/article/story-group-homes-initiative" onClick={() => setMobileMenuOpen(false)}>
-                  Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit
-                </Link>
-              </li>
-              <li>
-                <Link to="/article/story-womens-empowerment" onClick={() => setMobileMenuOpen(false)}>
-                  Women’s empowerment - A byproduct of Swayamkrushi
-                </Link>
-              </li>
-            </ul>
-          </li>
           <li>
             <Link to="/accolades" onClick={() => setMobileMenuOpen(false)}>Accolades</Link>
           </li>
@@ -224,13 +291,7 @@ export default function Navbar() {
             <Link to="/media-buzz" onClick={() => setMobileMenuOpen(false)}>Media buzz</Link>
           </li>
           <li>
-            <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insiders view</Link>
-          </li>
-          <li>
-            <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
-          </li>
-          <li>
-            <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>Events</Link>
           </li>
         </ul>
       </div>

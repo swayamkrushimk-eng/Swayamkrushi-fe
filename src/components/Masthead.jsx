@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import logoImg from '../assets/images/logo.png'
 import circleLeftImg from '../assets/images/circle-left.jpg'
 import facilitatorImg from '../assets/images/circle-facilitator.jpg'
@@ -45,7 +46,7 @@ export default function Masthead() {
           <h1 className="wordmark">
             Swayamkr<span className="ushi-part">ushi<small className="reg-sub">REG. NO. 3608/1991</small></span>
           </h1>
-          <p className="strapline">Self reliance for persons with intellectual disability, since 1991</p>
+          <p className="strapline">Self reliance for persons with intellectual disabilities, since 1991</p>
         </div>
       </div>
 
@@ -63,7 +64,7 @@ export default function Masthead() {
           <div className="facilitator">
             <img
               src={heroImages.center}
-              alt="Ms Manjula Kalyan, founder of Swayamkrushi"
+              alt="Manjulaa Kalyaan, founder of Swayamkrushi"
               style={{ objectPosition: heroImages.centerPos }}
               onError={(e) => { e.target.src = facilitatorImg }}
             />
@@ -79,13 +80,13 @@ export default function Masthead() {
           </div>
         </div>
 
-        <a href="#give" className="hero-side-badge" title="Join Us - Support Swayamkrushi" aria-label="Join Us - Support Swayamkrushi">
+        <Link to="/donation" className="hero-side-badge" title="Join Us - Support Swayamkrushi" aria-label="Join Us - Support Swayamkrushi">
           <img
             src={heroImages.badge}
             alt="Join us at Swayamkrushi"
             onError={(e) => { e.target.src = joinUsBadge }}
           />
-        </a>
+        </Link>
       </div>
 
       <p className="founder-line">
@@ -112,7 +113,7 @@ export default function Masthead() {
           </div>
           <div>
             <b>1000+</b>
-            <span>B.Ed educators</span>
+            <span>SPL educators</span>
           </div>
         </div>
       </div>

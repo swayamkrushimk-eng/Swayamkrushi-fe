@@ -1,12 +1,55 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { getArticleById, allArticles, articleImagesMap } from '../data/allArticles'
+import { getArticleById, articleImagesMap } from '../data/allArticles'
 import { fetchArticleById } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
 import VideoPlayer from '../components/VideoPlayer'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import SEO from '../components/SEO'
 import './ArticlePage.css'
+
+const EDITORIAL_SECTIONS = [
+  {
+    title: "Manjula's Musings",
+    articles: [
+      { id: 'story-encounter', title: 'Chance Encounter That Changed My Life' },
+      { id: 'story-group-homes-initiative', title: 'Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit' },
+      { id: 'story-womens-empowerment', title: 'Women’s empowerment - A byproduct of Swayamkrushi' },
+    ],
+  },
+  {
+    title: 'Activities galore',
+    articles: [
+      { id: 'story-fifteen-years', alias: 'story-15-years', title: '15 Years for One Word, and Then the Exhilaration!' },
+      { id: 'story-art-equaliser', title: 'Art — The Great Equaliser' },
+      { id: 'story-nios', title: 'NIOS — Boon for Persons with Intellectual Disabilities' },
+      { id: 'story-paper-bag', title: "Paper Bag Making — It's a 'Mild' Job" },
+      { id: 'story-exercise', title: 'Exercise of a Different Kind' },
+      { id: 'story-sowing-seeds', alias: 'story-tailoring', title: 'Sowing Seeds of Creativity' },
+      { id: 'story-kitchen', title: 'Kitchen — Beehive of Activity' },
+      { id: 'story-covid', title: 'The Covid Years — Opportunities to Serve' },
+    ],
+  },
+  {
+    title: 'Fun facts',
+    articles: [
+      { id: 'story-sai-baba', title: 'The Mysterious Appearance of Shirdi Sai Baba' },
+      { id: 'story-thinking', title: 'Thinking Out of the Box!' },
+      { id: 'story-visa', title: 'Visa to Go Abroad' },
+      { id: 'story-kadiam', title: 'Destination Kadiam, for Plants' },
+      { id: 'story-dairy', title: 'Dairy for a Purpose!' },
+    ],
+  },
+  {
+    title: 'Winning hearts',
+    articles: [
+      { id: 'story-hard-work', title: 'Hard Work Never Goes Unrewarded!' },
+      { id: 'story-luck-hardwork', title: 'Luck, Hard Work and Guardian Angel Spell Success' },
+      { id: 'story-recipe-success', title: 'Recipe for Success' },
+      { id: 'story-champions', title: 'Champions All the Way — Special Olympics' },
+    ],
+  },
+]
 
 export default function ArticlePage({ defaultId }) {
   const { id: paramId } = useParams()
@@ -42,11 +85,6 @@ export default function ArticlePage({ defaultId }) {
   const allParagraphs = (article.paragraphs && article.paragraphs.length > 0)
     ? article.paragraphs
     : [article.excerpt || '']
-
-  // Find 3 related articles for bottom recommendations
-  const relatedArticles = allArticles
-    .filter((a) => a.id !== article.id)
-    .slice(0, 3)
 
   const articleSchema = {
     '@context': 'https://schema.org',
@@ -87,11 +125,6 @@ export default function ArticlePage({ defaultId }) {
 
       {/* Editorial Header */}
       <header className="article-editorial-header">
-        <div className="article-category-badge">
-          <span className="badge-dot" />
-          <span>{article.category || 'SPECIAL REPORT'}</span>
-        </div>
-
         <h1 className="article-headline">{article.title}</h1>
       </header>
 
@@ -170,24 +203,40 @@ export default function ArticlePage({ defaultId }) {
         )}
       </div>
 
-
-      {/* Related Stories Grid */}
-      <section className="article-related-section">
-        <h3 className="related-section-title">More From Swayamkrushi</h3>
-        <div className="related-grid">
-          {relatedArticles.map((rel) => (
-            <Link
-              key={rel.id}
-              to={`/article/${rel.id}`}
-              className="related-story-card"
-            >
-              <h4 className="related-story-title">{rel.title}</h4>
-              <p className="related-story-excerpt">{rel.excerpt}</p>
-              <span className="related-story-link">Read full story &rarr;</span>
-            </Link>
+      {/* 4 Bottom Editorial Section Boxes: Manjula's Musings, Activities galore, Fun facts, Winning hearts */}
+      <section className="article-bottom-sections" aria-label="Explore Swayamkrushi Editorial Sections">
+        <div className="bottom-sections-header">
+          <h3 className="bottom-sections-main-heading">Explore Swayamkrushi Stories</h3>
+        </div>
+        <div className="bottom-sections-grid">
+          {EDITORIAL_SECTIONS.map((sec) => (
+            <div key={sec.title} className="bottom-section-box">
+              <div className="bottom-section-box-header">
+                <h4 className="bottom-section-title">{sec.title}</h4>
+                <span className="bottom-section-count">{sec.articles.length} stories</span>
+              </div>
+              <ul className="bottom-section-list">
+                {sec.articles.map((item) => {
+                  const isCurrent = id === item.id || (item.alias && id === item.alias)
+                  return (
+                    <li key={item.id} className={`bottom-section-item ${isCurrent ? 'is-current' : ''}`}>
+                      <Link
+                        to={`/article/${item.id}`}
+                        className="bottom-section-link"
+                      >
+                        <span className="bullet-icon" aria-hidden="true">&#10022;</span>
+                        <span className="article-link-text">{item.title}</span>
+                        {isCurrent && <span className="reading-tag">(Reading)</span>}
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
           ))}
         </div>
       </section>
+
     </article>
   )
 }

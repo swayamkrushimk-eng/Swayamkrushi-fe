@@ -79,7 +79,7 @@ export const MEDIA_ARTICLES = [
     badge: 'TELANGANA TODAY E-PAPER',
     image: null,
     isClipping: false,
-    excerpt: 'Telangana Today print & e-paper edition feature on Swayamkrushi’s 35th milestone, celebrating founder Manjula Kalyan and the journey of special education in Secunderabad.',
+    excerpt: 'Telangana Today print & e-paper edition feature on Swayamkrushi’s 35th milestone, celebrating founder Manjulaa Kalyaan and the journey of special education in Secunderabad.',
     readTime: 'E-Paper Edition',
     tags: ['Telangana Today', 'E-Paper', 'Hyderabad District', 'Special Education'],
     articleUrl: 'https://epaper.telanganatoday.com/article/Hyderabad?OrgId=30830d8e731&imageview=1&standalone=1&device=desktop',
@@ -127,7 +127,7 @@ export const MEDIA_ARTICLES = [
     badge: 'THE HINDU SPOTLIGHT',
     image: hinduClipping,
     isClipping: true,
-    excerpt: 'Swayamkrushi, a Hyderabad-based non-profit organisation working for persons with intellectual disabilities, is celebrating 35 years of service with a focus on education, vocational training and independent living. Founder Manjula Kalyan was felicitated by dignitaries.',
+    excerpt: 'Swayamkrushi, a Hyderabad-based non-profit organisation working for persons with intellectual disabilities, is celebrating 35 years of service with a focus on education, vocational training and independent living. Founder Manjulaa Kalyaan was felicitated by dignitaries.',
     readTime: 'Newspaper Report',
     tags: ['The Hindu', '35th Anniversary', 'Founder Felicitation', 'Special Education'],
     articleUrl: 'https://share.google/YhznuCLOlokk6iVY6',
@@ -186,10 +186,6 @@ export default function MediaBuzzPage() {
       <div className="media-buzz-wrap">
         {/* Masthead Header */}
         <header className="media-buzz-header">
-          <div className="buzz-kicker">
-            <span className="buzz-dot" />
-            <span>PRESS RELEASES · NEWSPAPER CLIPPINGS · EDITORIAL SPOTLIGHTS</span>
-          </div>
           <h1 className="buzz-headline">Media Buzz</h1>
         </header>
 

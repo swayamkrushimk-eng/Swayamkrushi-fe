@@ -7,7 +7,7 @@ import './InsidersPage.css'
 const INITIAL_INSIDERS = [
   {
     id: 'd-dora-babu',
-    name: 'Ms Manjula Kalyan',
+    name: 'Manjulaa Kalyaan',
     role: 'Founder and Director',
     videoUrl: 'https://res.cloudinary.com/ll9equhn/video/upload/v1791458704/swayamkrushi/videos/manjula_mam_video.mp4'
   },
@@ -42,7 +42,7 @@ export default function InsidersPage() {
   return (
     <main className="insiders-page-wrap">
       <SEO
-        title="Swayamkrushi Insiders View | Video Stories & Perspectives"
+        title="What they have to say.... | Swayamkrushi"
         description="Watch inspiring video stories and interviews from special educators, speech therapists, alumni, parents, and leaders at Swayamkrushi."
         keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories"
         canonicalUrl="https://swayamkrushi.org/#/insiders"
@@ -50,7 +50,7 @@ export default function InsidersPage() {
 
       {/* Hero Header */}
       <header className="insiders-hero-header">
-        <h1 className="insiders-main-title">Swayamkrushi Insiders View</h1>
+        <h1 className="insiders-main-title">What they have to say....</h1>
       </header>
 
       {/* Video Grid - Render only active posted stories */}
