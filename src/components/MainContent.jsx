@@ -45,7 +45,7 @@ export default function MainContent() {
 
   const homeOfCareMedia = resolveArticleMedia(homeOfCare, birthdayImg)
   const groupHomesMedia = resolveArticleMedia(groupHomes, grouphomeResidentsImg)
-  const bedHotspotMedia = resolveArticleMedia(bedHotspot, nationalTrustImg)
+  const bedHotspotMedia = resolveArticleMedia(bedHotspot, null)
   const buildingBlocksMedia = resolveArticleMedia(buildingBlocks, buildingBlocksSvg)
 
   return (
@@ -73,12 +73,14 @@ export default function MainContent() {
             ) : homeOfCareMedia.posterUrl ? (
               <img
                 src={homeOfCareMedia.posterUrl}
-                alt="Staff and residents around a birthday cake at Swayamkrushi"
+                alt="FUN AND FROLIC : A video collage of activities In Swayamkrushi"
                 onError={(e) => { e.target.src = birthdayImg }}
               />
             ) : null}
-            <figcaption>
-              A birthday marked in the courtyard &mdash; an ordinary afternoon at Swayamkrushi.
+            <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+              {(homeOfCare.imageAlt && homeOfCare.imageAlt !== 'A Home of Care, Growth and Hope' && homeOfCare.imageAlt !== 'A home of care, growth and hope')
+                ? homeOfCare.imageAlt
+                : 'FUN AND FROLIC : A video collage of activities In Swayamkrushi'}
             </figcaption>
           </figure>
         )}
@@ -114,8 +116,10 @@ export default function MainContent() {
                 onError={(e) => { e.target.src = grouphomeResidentsImg }}
               />
             ) : null}
-            <figcaption>
-              Residents outside their home &mdash; the group homes have run since 1991.
+            <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+              {(groupHomes.imageAlt && groupHomes.imageAlt.trim())
+                ? groupHomes.imageAlt
+                : 'Residents outside their home — the group homes have run since 1991.'}
             </figcaption>
           </figure>
         )}
@@ -151,8 +155,10 @@ export default function MainContent() {
                 onError={(e) => { e.target.src = nationalTrustImg }}
               />
             ) : null}
-            <figcaption>
-              Staff, students and residents together at a National Trust event.
+            <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+              {(bedHotspot.imageAlt && bedHotspot.imageAlt.trim())
+                ? bedHotspot.imageAlt
+                : 'Staff, students and residents together at a National Trust event.'}
             </figcaption>
           </figure>
         )}
@@ -189,11 +195,15 @@ export default function MainContent() {
             ) : buildingBlocksMedia.posterUrl ? (
               <img
                 src={buildingBlocksMedia.posterUrl}
-                alt="A Game of Building Blocks - Swayamkrushi campus"
+                alt="CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students"
                 onError={(e) => { e.target.src = buildingBlocksSvg }}
               />
             ) : null}
-            <figcaption>Building blocks of a dream &mdash; from a four-bedroom house in 1991 to a five-acre campus today.</figcaption>
+            <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+              {(buildingBlocks.imageAlt && buildingBlocks.imageAlt !== 'A Game of Building Blocks' && buildingBlocks.imageAlt !== 'Building blocks of a dream')
+                ? buildingBlocks.imageAlt
+                : 'CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students'}
+            </figcaption>
           </figure>
         )}
         <p>{buildingBlocks.paragraphs[1]}</p>
@@ -203,36 +213,6 @@ export default function MainContent() {
             Read full story &rarr;
           </Link>
         </p>
-      </section>
-
-      {/* Mission & Vision Callout */}
-      <section className="mission-vision-section" id="mission-vision">
-        <div className="split">
-          <div>
-            <h4>Mission</h4>
-            <p>
-              To house and train persons with intellectual disability before facilitating their employment
-              and independent living within the community.
-            </p>
-          </div>
-          <div>
-            <h4>Vision</h4>
-            <p>
-              A society in which the less fortunate live with dignity, pride and as productive members of
-              that society.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Give Section */}
-      <section className="give" id="give">
-        <h2>Give</h2>
-        <p>Every contribution, whatever its size, helps us bring one more person into the circle.</p>
-        <div className="row">
-          <Link className="solid" to="/donation">Make a donation</Link>
-          <a className="hollow" href="#contact">Volunteer with us</a>
-        </div>
       </section>
     </main>
   )

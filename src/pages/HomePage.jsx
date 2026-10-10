@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import Masthead from '../components/Masthead'
 import FunFactsRail from '../components/FunFactsRail'
@@ -36,6 +37,36 @@ export default function HomePage() {
           <MainContent />
           <FounderRail />
         </div>
+
+        {/* Mission & Vision Section — Distinct and separate from home page articles */}
+        <section className="mission-vision-section" id="mission-vision" aria-label="Mission and Vision">
+          <div className="mission-vision-cards">
+            <div className="mission-card">
+              <h4>Mission</h4>
+              <p>
+                To house and train persons with intellectual disability before facilitating their employment
+                and independent living within the community.
+              </p>
+            </div>
+            <div className="vision-card">
+              <h4>Vision</h4>
+              <p>
+                A society in which the less fortunate live with dignity, pride and as productive members of
+                that society.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Give Section — Dedicated callout banner */}
+        <section className="give" id="give" aria-label="Give and Support">
+          <h2>Give</h2>
+          <p>Every contribution, whatever its size, helps us bring one more person into the circle.</p>
+          <div className="row">
+            <Link className="solid" to="/donation">Make a donation</Link>
+            <a className="hollow" href="#contact">Volunteer with us</a>
+          </div>
+        </section>
       </div>
     </>
   )

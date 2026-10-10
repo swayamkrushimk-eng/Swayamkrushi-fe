@@ -4,7 +4,7 @@ import { getArticleById, articleImagesMap } from '../data/allArticles'
 import { fetchArticleById } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
 import VideoPlayer from '../components/VideoPlayer'
-import { resolveArticleMedia } from '../utils/mediaUtils'
+import { resolveArticleMedia, isSameImage } from '../utils/mediaUtils'
 import SEO from '../components/SEO'
 import './ArticlePage.css'
 
@@ -90,36 +90,45 @@ export default function ArticlePage({ defaultId }) {
   const mediaInfo = resolveArticleMedia(article, localFallback)
   const hasInlineImage = !mediaInfo.isText && !mediaInfo.isVideo && !!mediaInfo.posterUrl
 
-  // Gather all available story images for fallback paragraph mode
+  // Gather all available story images for fallback paragraph mode & rich renderer
   const allStoryImages = []
   if (Array.isArray(article.images) && article.images.length > 0) {
     article.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
-      if (url && !allStoryImages.some((x) => x.url === url)) {
+      if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
         allStoryImages.push({
           url,
-          caption: (typeof img === 'object' && (img.caption || img.alt)) || ''
+          caption: (typeof img === 'object' && (img.caption || img.alt)) || '',
+          alt: (typeof img === 'object' && (img.alt || img.caption)) || ''
         })
       }
     })
   }
-  if (hasInlineImage && !allStoryImages.some((x) => x.url === mediaInfo.posterUrl)) {
+  if (hasInlineImage && !allStoryImages.some((x) => isSameImage(x.url, mediaInfo.posterUrl))) {
     allStoryImages.push({
       url: mediaInfo.posterUrl,
-      caption: article.imageAlt || ''
+      caption: article.imageAlt || '',
+      alt: article.imageAlt || article.title
     })
   }
-  if (article.imageUrl && !allStoryImages.some((x) => x.url === article.imageUrl)) {
+  if (article.imageUrl && !allStoryImages.some((x) => isSameImage(x.url, article.imageUrl))) {
     allStoryImages.push({
       url: article.imageUrl,
-      caption: article.imageAlt || ''
+      caption: article.imageAlt || '',
+      alt: article.imageAlt || article.title
     })
   }
   if (localFallback && allStoryImages.length === 0) {
     allStoryImages.push({
       url: localFallback,
-      caption: article.imageAlt || ''
+      caption: article.imageAlt || '',
+      alt: article.imageAlt || article.title
     })
+  }
+
+  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it
+  if (article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
+    allStoryImages[0].caption = article.imageAlt
   }
 
   const getArticleHash = (str = '') => {
@@ -134,21 +143,25 @@ export default function ArticlePage({ defaultId }) {
   const startsRight = seed % 2 === 0
   const totalParas = allParagraphs.length
 
+  const hasEmbeddedVideo = Boolean(mediaInfo.isVideo && mediaInfo.videoUrl)
+  const initialPara = hasEmbeddedVideo
+    ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1 + (seed % 2))
+    : (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1)
+
+  const remainingParas = Math.max(0, totalParas - 1 - initialPara)
+  const remainingImages = Math.max(1, allStoryImages.length - 1)
+  const dynamicStep = Math.max(3, Math.min(6, Math.floor(remainingParas / remainingImages)))
+
   const imagePlacementMap = {}
   let prevParaTarget = 0
 
   allStoryImages.forEach((imgObj, imgIdx) => {
     let targetPara = 0
     if (imgIdx === 0) {
-      if (totalParas <= 1) {
-        targetPara = 0
-      } else if (totalParas === 2) {
-        targetPara = seed % 2
-      } else {
-        targetPara = seed % 3
-      }
+      targetPara = Math.min(totalParas - 1, initialPara)
     } else {
-      const spacing = 2 + ((seed >> (imgIdx + 1)) % 2)
+      const stepVariance = (seed >> (imgIdx + 1)) % 2
+      const spacing = Math.max(3, dynamicStep + stepVariance)
       targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
     }
     prevParaTarget = targetPara
@@ -218,7 +231,7 @@ export default function ArticlePage({ defaultId }) {
             />
           </div>
           <figcaption className="article-hero-caption">
-            Video spotlight: {article.title}
+            {article.imageAlt || `Video spotlight: ${article.title}`}
           </figcaption>
         </figure>
       )}
@@ -233,6 +246,8 @@ export default function ArticlePage({ defaultId }) {
             inlineMedia={hasInlineImage ? mediaInfo : null}
             localFallback={localFallback}
             imageAlt={article.imageAlt}
+            hasVideo={hasEmbeddedVideo}
+            storyImages={allStoryImages}
           />
         ) : (
           allParagraphs.map((para, idx) => {
@@ -251,8 +266,11 @@ export default function ArticlePage({ defaultId }) {
                         alt={imgObj.caption || article.title}
                         className="article-inline-img"
                         onError={(e) => {
-                          if (localFallback && e.target.src !== localFallback) {
+                          if (localFallback && e.target.src !== localFallback && !localFallback.toLowerCase().includes('.svg')) {
                             e.target.src = localFallback
+                          } else {
+                            const fig = e.target.closest('figure')
+                            if (fig) fig.style.display = 'none'
                           }
                         }}
                       />

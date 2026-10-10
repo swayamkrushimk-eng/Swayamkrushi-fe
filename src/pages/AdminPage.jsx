@@ -38,7 +38,99 @@ import {
 } from '../services/api'
 import { COMMITTEE_MEMBERS as DEFAULT_COMMITTEE_MEMBERS } from './CommitteePage'
 import { MEDIA_ARTICLES as DEFAULT_MEDIA_ARTICLES } from './MediaBuzzPage'
+import { isSameImage } from '../utils/mediaUtils'
 import './AdminPage.css'
+
+const DEFAULT_ARTICLE_CAPTIONS = {
+  'home-of-care': 'FUN AND FROLIC : A video collage of activities In Swayamkrushi',
+  'group-homes': 'Residents outside their home — the group homes have run since 1991.',
+  'bed-hotspot': 'Staff, students and residents together at a National Trust event.',
+  'building-blocks': 'CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students',
+  'story-sowing-seeds': 'Y Lalitha Kumari guiding special students at the sewing machines',
+  'story-tailoring': 'Y Lalitha Kumari guiding special students at the sewing machines',
+  'story-luck-hardwork': "GAME ON: When The going gets tough, the tough get going ,that's Srilatha for you",
+  'story-15-years': '15 Years for One Word, and Then the Exhilaration!',
+  'story-fifteen-years': '15 Years for One Word, and Then the Exhilaration!',
+  'story-art-equaliser': 'Art — The Great Equaliser',
+  'story-champions': 'Champions All the Way — Special Olympics',
+  'story-dairy': 'Dairy for a Purpose!',
+  'story-kadiam': 'Destination Kadiam, for Plants',
+  'story-encounter': 'Chance Encounter That Changed My Life',
+  'story-group-homes-initiative': 'Direct Reflections: Pioneering Group Homes',
+  'story-womens-empowerment': "Women's Empowerment — A Swayamkrushi Byproduct",
+  'story-direct-speak': 'Direct Speak: Reflections on Thirty-Five Years of Service',
+  'story-exercise': 'Exercise of a Different Kind',
+  'story-hard-work': 'Hard Work Never Goes Unrewarded!',
+  'story-kitchen': 'Kitchen — Beehive of Activity',
+  'story-sai-baba': "The Mysterious 'Appearance' of Shirdi Sai Baba",
+  'story-nios': 'NIOS — Boon for Persons with Intellectual Disabilities',
+  'story-paper-bag': "Paper Bag Making — It's a 'Mild' Job",
+  'story-recipe-success': 'Recipe for Success!',
+  'story-covid': 'The Covid Years — Opportunities to Serve',
+  'story-thinking': 'Thinking Out of the Box!',
+  'story-visa': 'Visa to Go Abroad',
+  'dare-to-dream': 'Dare to Dream — Swayamkrushi Founding Journey'
+}
+
+const DEFAULT_ARTICLE_IMAGES = {
+  'home-of-care': [
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531099/swayamkrushi/p2lfxtvjcg6pwrmstbq5.png',
+      caption: 'Akhila Hemmali and Tanuj Goyal welcoming visitors at the Swayamkrushi front desk',
+      alt: 'Akhila Hemmali and Tanuj Goyal welcoming visitors at Swayamkrushi'
+    },
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791571992/swayamkrushi/swayamkrushi_campus_building.jpg',
+      caption: 'Swayamkrushi Campus, Jawahar Nagar',
+      alt: 'Swayamkrushi Campus, Jawahar Nagar'
+    },
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531206/swayamkrushi/ge24b7evibo5wwgpvoqs.jpg',
+      caption: 'Vocational training and community integration at Swayamkrushi',
+      alt: 'Vocational training and community integration at Swayamkrushi'
+    },
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531289/swayamkrushi/xg9qemgyszqdhbsjymy8.jpg',
+      caption: 'The heart and soul of Swayamkrushi: Manjulaa Kalyaan, Founder-Director',
+      alt: 'The heart and soul of Swayamkrushi: Manjulaa Kalyaan, Founder-Director'
+    }
+  ],
+  'story-sowing-seeds': [
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791530115/swayamkrushi/pnui7ub8rucjkivunlmr.jpg',
+      caption: 'Y Lalitha Kumari guiding special students at the sewing machines',
+      alt: 'Y Lalitha Kumari guiding special students at the sewing machines in Swayamkrushi'
+    },
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791530141/swayamkrushi/wiucyh179ols5xikxett.jpg',
+      caption: 'Assorted eco-friendly jute and cotton bags created by the students',
+      alt: 'Handcrafted eco-friendly cotton and jute bags produced by Swayamkrushi trainees'
+    }
+  ],
+  'story-tailoring': [
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791530115/swayamkrushi/pnui7ub8rucjkivunlmr.jpg',
+      caption: 'Y Lalitha Kumari guiding special students at the sewing machines',
+      alt: 'Y Lalitha Kumari guiding special students at the sewing machines in Swayamkrushi'
+    },
+    {
+      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791530141/swayamkrushi/wiucyh179ols5xikxett.jpg',
+      caption: 'Assorted eco-friendly jute and cotton bags created by the students',
+      alt: 'Handcrafted eco-friendly cotton and jute bags produced by Swayamkrushi trainees'
+    }
+  ]
+}
+
+const isSameImage = (u1, u2) => {
+  if (!u1 || !u2) return false
+  const a = u1.trim().toLowerCase()
+  const b = u2.trim().toLowerCase()
+  if (a === b) return true
+  const matchA = a.match(/\/v\d+\/([^.?#]+)/)
+  const matchB = b.match(/\/v\d+\/([^.?#]+)/)
+  if (matchA && matchB && matchA[1] === matchB[1]) return true
+  return false
+}
 
 export default function AdminPage() {
   // Auth state
@@ -99,9 +191,11 @@ export default function AdminPage() {
     attribution: 'Swayamkrushi Archives',
     imageUrl: '',
     imageAlt: '',
+    images: [],
     featured: false,
     order: 0
   })
+  const [uploadingStoryImage, setUploadingStoryImage] = useState(false)
 
   const [editingCommitteeMember, setEditingCommitteeMember] = useState(null)
   const [showCommitteeModal, setShowCommitteeModal] = useState(false)
@@ -318,6 +412,7 @@ export default function AdminPage() {
       attribution: 'Swayamkrushi Archives',
       imageUrl: '',
       imageAlt: '',
+      images: [],
       featured: false,
       order: articles.length + 1
     })
@@ -326,20 +421,156 @@ export default function AdminPage() {
 
   const openEditArticleModal = (art) => {
     setEditingArticle(art)
+    let initialHtml = art.contentHtml || ''
+    if (!initialHtml && art.paragraphs && art.paragraphs.length) {
+      initialHtml = art.paragraphs.map((p) => `<p>${p}</p>`).join('')
+    }
+
+    let initialImages = []
+    if (Array.isArray(art.images) && art.images.length > 0) {
+      initialImages = art.images.map((img) => ({
+        url: typeof img === 'string' ? img : (img.url || ''),
+        caption: typeof img === 'object' ? (img.caption || img.alt || '') : '',
+        alt: typeof img === 'object' ? (img.alt || img.caption || '') : ''
+      }))
+    }
+
+    // ALSO check contentHtml for any additional images/figures and their captions
+    if (initialHtml) {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(initialHtml, 'text/html')
+      
+      const figures = Array.from(doc.querySelectorAll('figure'))
+      figures.forEach((fig) => {
+        const imgEl = fig.querySelector('img')
+        const figcap = fig.querySelector('figcaption')
+        const src = imgEl?.getAttribute('src')?.trim()
+        if (src) {
+          const existing = initialImages.find((x) => isSameImage(x.url, src))
+          const captionText = figcap?.textContent?.trim() || imgEl?.getAttribute('alt')?.trim() || ''
+          if (!existing) {
+            initialImages.push({
+              url: src,
+              caption: captionText,
+              alt: imgEl?.getAttribute('alt')?.trim() || captionText
+            })
+          } else if (!existing.caption && captionText) {
+            existing.caption = captionText
+          }
+        }
+      })
+
+      const standaloneImgs = Array.from(doc.querySelectorAll('img'))
+      standaloneImgs.forEach((imgEl) => {
+        if (imgEl.closest('figure')) return
+        const src = imgEl.getAttribute('src')?.trim()
+        if (src) {
+          const existing = initialImages.find((x) => isSameImage(x.url, src))
+          const altText = imgEl.getAttribute('alt')?.trim() || imgEl.getAttribute('title')?.trim() || ''
+          if (!existing) {
+            initialImages.push({
+              url: src,
+              caption: altText,
+              alt: altText
+            })
+          } else if (!existing.caption && altText) {
+            existing.caption = altText
+          }
+        }
+      })
+    }
+
+    if (initialImages.length === 0) {
+      const defaultImgs = DEFAULT_ARTICLE_IMAGES[art.id] || DEFAULT_ARTICLE_IMAGES[art._id]
+      if (Array.isArray(defaultImgs) && defaultImgs.length > 0) {
+        initialImages = defaultImgs.map((img) => ({ ...img }))
+      }
+    }
+
     setArticleForm({
       id: art.id,
       title: art.title || '',
       excerpt: art.excerpt || '',
+      contentHtml: initialHtml,
       paragraphs: art.paragraphs && art.paragraphs.length ? art.paragraphs : [''],
       category: art.category || 'Stories & Milestones',
       section: art.section || 'main',
       attribution: art.attribution || 'Swayamkrushi Archives',
       imageUrl: art.imageUrl || '',
-      imageAlt: art.imageAlt || '',
+      imageAlt: (art.imageAlt && art.imageAlt.trim())
+        ? art.imageAlt
+        : (DEFAULT_ARTICLE_CAPTIONS[art.id] || DEFAULT_ARTICLE_CAPTIONS[art._id] || ''),
+      images: initialImages,
       featured: !!art.featured,
       order: art.order || 0
     })
     setShowArticleModal(true)
+  }
+
+  const handleUpdateStoryImageCaption = (index, newCaption) => {
+    setArticleForm((prev) => {
+      const nextImages = [...(prev.images || [])]
+      if (nextImages[index]) {
+        nextImages[index] = { ...nextImages[index], caption: newCaption }
+      }
+      return { ...prev, images: nextImages }
+    })
+  }
+
+  const handleRemoveStoryImage = (index) => {
+    setArticleForm((prev) => ({
+      ...prev,
+      images: (prev.images || []).filter((_, i) => i !== index)
+    }))
+  }
+
+  const handleUploadStoryImage = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingStoryImage(true)
+    try {
+      const url = await uploadImage(file)
+      setArticleForm((prev) => ({
+        ...prev,
+        images: [
+          ...(prev.images || []),
+          { url, caption: '', alt: '' }
+        ]
+      }))
+      showNotification('Story photo added! You can now write its caption in the box below it.')
+    } catch (err) {
+      showNotification('Failed to upload image: ' + err.message, 'error')
+    } finally {
+      setUploadingStoryImage(false)
+      e.target.value = ''
+    }
+  }
+
+  const handleAddStoryImageUrl = () => {
+    const url = window.prompt('Enter Image URL (e.g. Cloudinary or web link):')
+    if (url && url.trim()) {
+      setArticleForm((prev) => ({
+        ...prev,
+        images: [
+          ...(prev.images || []),
+          { url: url.trim(), caption: '', alt: '' }
+        ]
+      }))
+    }
+  }
+
+  const handleEditStoryImageUrl = (index) => {
+    const currentUrl = articleForm.images?.[index]?.url || ''
+    const next = window.prompt('Edit Image URL:', currentUrl)
+    if (next !== null && next.trim()) {
+      setArticleForm((prev) => {
+        const nextImages = [...(prev.images || [])]
+        if (nextImages[index]) {
+          nextImages[index] = { ...nextImages[index], url: next.trim() }
+        }
+        return { ...prev, images: nextImages }
+      })
+    }
   }
 
   const handleArticleParagraphChange = (index, value) => {
@@ -361,9 +592,65 @@ export default function AdminPage() {
   const handleSaveArticle = async (e) => {
     e.preventDefault()
     try {
+      // Synchronize image captions into contentHtml figures & images
+      let finalContentHtml = articleForm.contentHtml || ''
+      if (finalContentHtml && Array.isArray(articleForm.images) && articleForm.images.length > 0) {
+        const parser = new DOMParser()
+        const doc = parser.parseFromString(finalContentHtml, 'text/html')
+        let changed = false
+
+        articleForm.images.forEach((imgObj) => {
+          if (!imgObj.url) return
+          const targetCaption = (imgObj.caption || '').trim()
+
+          // 1. Sync <figure> tags
+          const figures = Array.from(doc.querySelectorAll('figure'))
+          figures.forEach((fig) => {
+            const imgEl = fig.querySelector('img')
+            const src = imgEl?.getAttribute('src')?.trim()
+            if (src && (src === imgObj.url || isSameImage(src, imgObj.url))) {
+              let figcap = fig.querySelector('figcaption')
+              if (!figcap) {
+                figcap = doc.createElement('figcaption')
+                figcap.className = 'article-inline-caption'
+                fig.appendChild(figcap)
+              }
+              figcap.textContent = targetCaption
+              imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
+              changed = true
+            }
+          })
+
+          // 2. Sync standalone <img> tags
+          const standaloneImgs = Array.from(doc.querySelectorAll('img'))
+          standaloneImgs.forEach((imgEl) => {
+            if (imgEl.closest('figure')) return
+            const src = imgEl.getAttribute('src')?.trim()
+            if (src && (src === imgObj.url || isSameImage(src, imgObj.url))) {
+              imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
+              imgEl.setAttribute('title', targetCaption || imgObj.alt || '')
+              changed = true
+            }
+          })
+        })
+
+        if (changed) {
+          finalContentHtml = doc.body.innerHTML
+        }
+      }
+
+      const cleanedImages = (articleForm.images || []).map((img) => ({
+        url: typeof img === 'string' ? img.trim() : (img.url || '').trim(),
+        caption: typeof img === 'object' ? (img.caption || '') : '',
+        alt: typeof img === 'object' ? (img.alt || img.caption || '') : ''
+      })).filter((img) => img.url.length > 0)
+
       const cleanedPayload = {
         ...articleForm,
-        paragraphs: articleForm.paragraphs.filter((p) => p.trim().length > 0)
+        contentHtml: finalContentHtml,
+        paragraphs: articleForm.paragraphs.filter((p) => p.trim().length > 0),
+        images: cleanedImages,
+        imageAlt: articleForm.imageAlt || ''
       }
       if (editingArticle) {
         await updateArticle(editingArticle.id || editingArticle._id, cleanedPayload)
@@ -1549,6 +1836,12 @@ export default function AdminPage() {
                           <td>
                             <strong className="admin-item-title">{art.title}</strong>
                             <p className="admin-item-snippet">{art.excerpt}</p>
+                            {(art.imageAlt || DEFAULT_ARTICLE_CAPTIONS[art.id] || DEFAULT_ARTICLE_CAPTIONS[art._id]) && (
+                              <p style={{ fontSize: '11px', color: '#6e1e38', fontStyle: 'italic', margin: '4px 0 0 0' }}>
+                                <strong style={{ fontStyle: 'normal', color: '#444' }}>Caption: </strong>
+                                "{art.imageAlt || DEFAULT_ARTICLE_CAPTIONS[art.id] || DEFAULT_ARTICLE_CAPTIONS[art._id]}"
+                              </p>
+                            )}
                             {art.featured && <span className="admin-badge-featured">★ FEATURED</span>}
                           </td>
                           <td><span className="admin-tag">{art.category}</span></td>
@@ -2086,15 +2379,35 @@ export default function AdminPage() {
               </div>
 
               <div className="admin-form-group">
-                <label>Excerpt / Subheadline *</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>Excerpt / Short Summary *</label>
+                  <span style={{ fontSize: '12px', color: '#6e1e38', background: '#fbf4f6', border: '1px solid #f2d2dc', padding: '2px 9px', borderRadius: '12px', fontWeight: 600 }}>
+                    {(articleForm.excerpt || '').length} characters &bull; {(articleForm.excerpt?.trim() ? articleForm.excerpt.trim().split(/\s+/).filter(Boolean).length : 0)} words added
+                  </span>
+                </div>
                 <textarea
-                  rows={2}
+                  rows={4}
                   required
                   value={articleForm.excerpt}
                   onChange={(e) => setArticleForm({ ...articleForm, excerpt: e.target.value })}
-                  placeholder="Brief summary displayed on frontpage cards..."
+                  placeholder="Enter your summary or lead excerpt text for frontpage & sidebar cards..."
                   className="admin-textarea"
+                  style={{ minHeight: '95px', resize: 'vertical', lineHeight: '1.5', fontSize: '13.5px' }}
                 />
+                <div style={{ marginTop: '6px', padding: '8px 12px', background: '#fdfbfa', border: '1px dashed #d5c8be', borderRadius: '4px', fontSize: '12px', color: '#554b43' }}>
+                  <span style={{ fontWeight: 700, color: '#6e1e38', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.5px' }}>
+                    Live Card Teaser:
+                  </span>{' '}
+                  {articleForm.excerpt?.trim() ? (
+                    <span>
+                      "{articleForm.excerpt.trim()}{articleForm.excerpt.trim().endsWith('...') || articleForm.excerpt.trim().endsWith('…') ? '' : '...'}"
+                    </span>
+                  ) : (
+                    <span style={{ color: '#999', fontStyle: 'italic' }}>
+                      Type your excerpt above to see live preview with trailing ...
+                    </span>
+                  )}
+                </div>
               </div>
 
               <div className="admin-grid-3">
@@ -2166,6 +2479,147 @@ export default function AdminPage() {
                     >
                       Remove
                     </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Cover Photo Caption */}
+              <div className="admin-form-group">
+                <label style={{ fontWeight: 600, color: '#3d342f' }}>Cover / Hero Photo Caption</label>
+                <input
+                  type="text"
+                  placeholder="Caption for cover / hero photo..."
+                  value={articleForm.imageAlt || ''}
+                  onChange={(e) => setArticleForm({ ...articleForm, imageAlt: e.target.value })}
+                  className="admin-input"
+                />
+                <span style={{ fontSize: '11px', color: '#776e65', marginTop: '4px', display: 'block' }}>
+                  This caption is displayed directly beneath the cover photo on cards and in the article header.
+                </span>
+              </div>
+
+              {/* 🖼️ STORY PHOTOS & INDIVIDUAL IMAGE CAPTIONS */}
+              <div className="admin-form-group" style={{ background: '#fdfbf7', border: '1px solid #ebd9c8', borderRadius: '8px', padding: '16px', marginTop: '6px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#3d342f' }}>
+                      🖼️ Story Photos & Individual Image Captions
+                    </h4>
+                    <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#776e65' }}>
+                      Every image has its own caption box directly beneath it. You can edit any caption or add new photos below.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <label className="admin-btn admin-btn-secondary admin-btn-sm" style={{ cursor: 'pointer', margin: 0 }}>
+                      + Upload Photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleUploadStoryImage}
+                        disabled={uploadingStoryImage}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="admin-btn admin-btn-secondary admin-btn-sm"
+                      onClick={handleAddStoryImageUrl}
+                    >
+                      + Add Image URL
+                    </button>
+                  </div>
+                </div>
+
+                {uploadingStoryImage && (
+                  <p style={{ fontSize: '12px', color: '#6e1e38', fontWeight: 600, margin: '8px 0' }}>
+                    Uploading story photo to Cloudinary CDN...
+                  </p>
+                )}
+
+                {(!articleForm.images || articleForm.images.length === 0) ? (
+                  <div style={{ textAlign: 'center', padding: '20px 12px', background: '#fff', border: '1px dashed #d7ccc8', borderRadius: '6px' }}>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#776e65' }}>No additional story photos added yet.</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9e9087' }}>Click <strong>+ Upload Photo</strong> or <strong>+ Add Image URL</strong> above to add photos with individual captions.</p>
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
+                    {articleForm.images.map((imgItem, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e0d7ce',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                        }}
+                      >
+                        {/* Photo Thumbnail */}
+                        <div style={{ position: 'relative', height: '150px', background: '#f5f0eb' }}>
+                          <img
+                            src={imgItem.url}
+                            alt={imgItem.caption || `Story photo ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                            onError={(e) => { e.currentTarget.style.display = 'none' }}
+                          />
+                          <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: '11px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px' }}>
+                            Photo #{idx + 1}
+                          </div>
+                          <div style={{ position: 'absolute', top: '6px', right: '6px', display: 'flex', gap: '4px' }}>
+                            <button
+                              type="button"
+                              onClick={() => handleEditStoryImageUrl(idx)}
+                              style={{ background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: '4px', padding: '4px 6px', cursor: 'pointer', fontSize: '11px' }}
+                              title="Edit Image URL"
+                            >
+                              ✎
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveStoryImage(idx)}
+                              style={{ background: 'rgba(110, 30, 56, 0.92)', border: 'none', borderRadius: '4px', padding: '4px 6px', cursor: 'pointer', color: '#fff', fontSize: '11px' }}
+                              title="Delete this photo"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Dedicated Caption Input Box DIRECTLY BELOW this photo */}
+                        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, background: '#faf8f5', borderTop: '1px solid #ebd9c8' }}>
+                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
+                            Caption for Photo #{idx + 1}:
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={imgItem.caption || ''}
+                            onChange={(e) => handleUpdateStoryImageCaption(idx, e.target.value)}
+                            placeholder={`Enter caption describing photo #${idx + 1}...`}
+                            className="admin-textarea"
+                            style={{
+                              fontSize: '12px',
+                              padding: '7px 9px',
+                              minHeight: '52px',
+                              resize: 'vertical',
+                              background: '#ffffff',
+                              border: '1px solid #cbbaa8',
+                              borderRadius: '4px',
+                              lineHeight: 1.35
+                            }}
+                          />
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#887b70' }}>
+                            <span title={imgItem.url} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+                              {imgItem.url ? imgItem.url.split('/').pop() : 'No URL'}
+                            </span>
+                            <a href={imgItem.url} target="_blank" rel="noreferrer" style={{ color: '#6e1e38', textDecoration: 'underline' }}>
+                              View full
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -2896,13 +3350,19 @@ export default function AdminPage() {
               </div>
 
               <div className="admin-form-group">
-                <label>Story Excerpt / Summary</label>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ margin: 0 }}>Story Excerpt / Summary</label>
+                  <span style={{ fontSize: '12px', color: '#6e1e38', background: '#fbf4f6', border: '1px solid #f2d2dc', padding: '2px 9px', borderRadius: '12px', fontWeight: 600 }}>
+                    {(mediaBuzzForm.excerpt || '').length} characters &bull; {(mediaBuzzForm.excerpt?.trim() ? mediaBuzzForm.excerpt.trim().split(/\s+/).filter(Boolean).length : 0)} words added
+                  </span>
+                </div>
                 <textarea
-                  rows={3}
+                  rows={4}
                   value={mediaBuzzForm.excerpt}
                   onChange={(e) => setMediaBuzzForm({ ...mediaBuzzForm, excerpt: e.target.value })}
                   placeholder="Summary of the news story or newspaper feature..."
                   className="admin-textarea"
+                  style={{ minHeight: '90px', resize: 'vertical', lineHeight: '1.5' }}
                 />
               </div>
 

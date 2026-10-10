@@ -63,6 +63,13 @@ export default function ArticleCard(props) {
   const shouldRenderThumbnail =
     isThumbnailSettingEnabled && !mediaInfo.isText && (Boolean(currentPoster) || mediaInfo.isVideo)
 
+  const cleanExcerpt = typeof excerpt === 'string' ? excerpt.trim() : ''
+  const formattedExcerpt = cleanExcerpt
+    ? (cleanExcerpt.endsWith('...') || cleanExcerpt.endsWith('…')
+        ? cleanExcerpt
+        : `${cleanExcerpt.replace(/[.,;:\s]+$/, '')}...`)
+    : ''
+
   return (
     <Link
       to={`/article/${id}`}
@@ -80,36 +87,22 @@ export default function ArticleCard(props) {
               className="rail-thumb-img"
             />
           ) : (
-            <div className="rail-video-placeholder-thumb">
-              <div className="rail-video-play-center-btn" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="6 4 20 12 6 20 6 4" />
-                </svg>
-              </div>
-            </div>
+            <div className="rail-video-placeholder-thumb" />
           )}
 
-          {/* Video Play Overlay & Badge */}
+          {/* Video Play Button Overlay */}
           {mediaInfo.isVideo && (
-            <>
-              <div className="rail-video-play-center-btn" aria-hidden="true">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="6 4 20 12 6 20 6 4" />
-                </svg>
-              </div>
-              <div className="rail-video-badge-pill" aria-label="Video story">
-                <svg className="rail-video-pill-icon" width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
-                  <polygon points="6 4 20 12 6 20 6 4" />
-                </svg>
-                <span>VIDEO</span>
-              </div>
-            </>
+            <div className="rail-video-play-center-btn" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                <polygon points="6 4 20 12 6 20 6 4" />
+              </svg>
+            </div>
           )}
         </div>
       )}
 
       <h4>{title}</h4>
-      <p>{excerpt}</p>
+      {formattedExcerpt && <p>{formattedExcerpt}</p>}
       <span className="rail-more">{mediaInfo.isVideo ? 'Watch & read story →' : 'Read more'}</span>
     </Link>
   )

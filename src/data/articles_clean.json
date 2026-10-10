@@ -1,5 +1,37 @@
 [
   {
+    "_id": "6ac7f2b1c0ea93c488f735c0",
+    "id": "dare-to-dream",
+    "title": "Dare to Dream",
+    "excerpt": "Swayamkrushi, Manjulaa Kalyaan’s dream NGO project, was born in a four-bedroom house in Ishaque Colony, Secunderabad, way back in 1991, and had just two girls with intellectual disabilities to start with. She decided to take in four boys with intellectual disabilities as day scholars in the schools. She took in a girl, a fresh graduate, and trained and taught her the finer points of teaching children with intellectual difficulties. She also hired two care-givers to start with.",
+    "paragraphs": [
+      "Swayamkrushi, Manjulaa Kalyaan’s dream NGO project, was born in a four-bedroom house in Ishaque Colony, Secunderabad, way back in 1991, and had just two girls with intellectual disabilities to start with. She decided to take in four boys with intellectual disabilities as day scholars in the schools. She took in a girl, a fresh graduate, and trained and taught her the finer points of teaching children with intellectual difficulties. She also hired two care-givers to start with.",
+      "Then began Manjulaa Kalyaan’s journey of shifting houses as the strength of both students as well as resident girls increased. In a way, she had already initiated the concept of Group Home long before it was recognized under the Inclusion Act in 2007.",
+      "Cut to 2026, Swayamkrushi which Manjulaa Kalyaan had dared to dream in 1991, is now a full-blown Not-for-Profit Organisation, and home to about 75 persons, mostly young adult girls with intellectual disabilities and a school with a total strength of about 150. The organization, now located in its own five-acre campus in Jawahar Nagar, also conducts a two-year B.Ed in Special Education (Intellectual Disabilities) and it boasts of a staff strength of about 70.",
+      "The organization has all the required specialized areas and tools including Group Homes, integration with the real world, speech therapy, art therapy, music therapy, regular classes, NIOS and vocational training and support through paper bag making, printing and tailoring units. And a full fledged kitchen dining hall to cater to the needs of the residents."
+    ],
+    "contentHtml": "<p><strong>Swayamkrushi, Manjulaa Kalyaan’s dream NGO project, was born in a four-bedroom house in Ishaque Colony, Secunderabad, way back in 1991, and had just two girls with intellectual disabilities to start with. She decided to take in four boys with intellectual disabilities as day scholars in the schools. She took in a girl, a fresh graduate, and trained and taught her the finer points of teaching children with intellectual difficulties. She also hired two care-givers to start with.</strong></p><p>Then began Manjulaa Kalyaan’s journey of shifting houses as the strength of both students as well as resident girls increased. In a way, she had already initiated the concept of Group Home long before it was recognized under the Inclusion Act in 2007.</p><p>Cut to 2026, Swayamkrushi which Manjulaa Kalyaan had dared to dream in 1991, is now a full-blown Not-for-Profit Organisation, and home to about 75 persons, mostly young adult girls with intellectual disabilities and a school with a total strength of about 150. The organization, now located in its own five-acre campus in Jawahar Nagar, also conducts a two-year B.Ed in Special Education (Intellectual Disabilities) and it boasts of a staff strength of about 70.</p><p>The organization has all the required specialized areas and tools including Group Homes, integration with the real world, speech therapy, art therapy, music therapy, regular classes, NIOS and vocational training and support through paper bag making, printing and tailoring units. And a full fledged kitchen dining hall to cater to the needs of the residents.</p>",
+    "category": "About Swayamkrushi",
+    "section": "about",
+    "attribution": "Swayamkrushi Archives",
+    "featuredMediaType": "text",
+    "mediaType": "text",
+    "videoUrl": "",
+    "videoThumbnailUrl": "",
+    "videoPosterUrl": "",
+    "imageUrl": "",
+    "imageAlt": "",
+    "hasThumbnail": false,
+    "featured": false,
+    "order": 0,
+    "createdAt": "2026-10-10T04:44:56.002Z",
+    "updatedAt": "2026-10-10T04:47:58.950Z",
+    "__v": 0,
+    "images": [],
+    "imageUrls": [],
+    "heroImage": null
+  },
+  {
     "id": "mission-statement",
     "slug": "mission-statement",
     "title": "A Home of Care, Growth and Hope",

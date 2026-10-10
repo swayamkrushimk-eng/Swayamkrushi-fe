@@ -234,3 +234,17 @@ export function resolveArticleMedia(article, fallbackImage = null) {
     hasThumbnail: Boolean(rawImageUrl)
   }
 }
+
+/**
+ * Checks if two image URLs point to the same file (supports Cloudinary public IDs and standard URLs)
+ */
+export function isSameImage(url1, url2) {
+  if (!url1 || !url2) return false
+  const u1 = url1.trim().toLowerCase()
+  const u2 = url2.trim().toLowerCase()
+  if (u1 === u2) return true
+  const matchA = u1.match(/\/v\d+\/([^.?#]+)/)
+  const matchB = u2.match(/\/v\d+\/([^.?#]+)/)
+  if (matchA && matchB && matchA[1] === matchB[1]) return true
+  return false
+}

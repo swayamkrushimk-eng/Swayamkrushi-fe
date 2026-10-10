@@ -110,7 +110,7 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Dare to Dream</a>
+                <Link to="/article/dare-to-dream" onClick={() => setMobileMenuOpen(false)}>Dare to Dream</Link>
               </li>
               <li>
                 <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Who's Who</Link>
