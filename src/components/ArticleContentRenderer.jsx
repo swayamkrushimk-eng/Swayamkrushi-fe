@@ -44,13 +44,53 @@ export default function ArticleContentRenderer({
       const parser = new DOMParser()
       const doc = parser.parseFromString(htmlContent, 'text/html')
 
+      const hasEmbeddedVideo = hasVideo || Boolean(inlineMedia?.isVideo) || Boolean(doc.body.querySelector('video, iframe'))
+
+      // Filter helper for video thumbnails/posters
+      const isVideoPosterOrThumb = (url) => {
+        if (!hasEmbeddedVideo || !url) return false
+        if (inlineMedia) {
+          if (isSameImage(url, inlineMedia.posterUrl)) return true
+          if (isSameImage(url, inlineMedia.videoThumbnailUrl)) return true
+          if (isSameImage(url, inlineMedia.videoUrl)) return true
+          if (isSameImage(url, inlineMedia.deliveryVideoUrl)) return true
+        }
+        return false
+      }
+
       // 1. Check for intentional in-place <figure> elements
       const figureElements = Array.from(doc.body.querySelectorAll('figure'))
-      const hasExplicitFigures = figureElements.length > 0
+      
+      // Remove any explicit figures that contain duplicate video thumbnails/posters
+      if (hasEmbeddedVideo) {
+        figureElements.forEach((fig) => {
+          const img = fig.querySelector('img')
+          const src = img?.getAttribute('src')?.trim()
+          if (src && isVideoPosterOrThumb(src)) {
+            fig.remove()
+          }
+        })
+      }
+
+      // Remove any orphan figcaptions that are not inside a figure (e.g. malformed closing tags)
+      const allFigcaptions = Array.from(doc.body.querySelectorAll('figcaption'))
+      allFigcaptions.forEach((fc) => {
+        if (!fc.closest('figure')) {
+          fc.remove()
+        }
+      })
+
+      // Remove any empty figure tags without images
+      Array.from(doc.body.querySelectorAll('figure')).forEach((fig) => {
+        if (!fig.querySelector('img')) fig.remove()
+      })
+
+      const cleanFigureElements = Array.from(doc.body.querySelectorAll('figure'))
+      const hasExplicitFigures = cleanFigureElements.length > 0
 
       // Sync captions for intentional in-place <figure> elements from storyImages
       if (hasExplicitFigures && Array.isArray(storyImages) && storyImages.length > 0) {
-        figureElements.forEach((fig) => {
+        cleanFigureElements.forEach((fig) => {
           const imgEl = fig.querySelector('img')
           const src = imgEl?.getAttribute('src')?.trim()
           if (!src) return
@@ -68,7 +108,7 @@ export default function ArticleContentRenderer({
         })
       }
 
-      const figureSources = figureElements
+      const figureSources = cleanFigureElements
         .map((fig) => fig.querySelector('img')?.getAttribute('src')?.trim())
         .filter(Boolean)
 
@@ -77,12 +117,12 @@ export default function ArticleContentRenderer({
 
       if (!hasExplicitFigures) {
         // Legacy: Extract from <figure> if not marked for in-place
-        figureElements.forEach((fig) => {
+        cleanFigureElements.forEach((fig) => {
           const img = fig.querySelector('img')
           const figcaption = fig.querySelector('figcaption')
           if (img) {
             const src = img.getAttribute('src')?.trim()
-            if (src && !extractedImages.some((x) => isSameImage(x.src, src))) {
+            if (src && !isVideoPosterOrThumb(src) && !extractedImages.some((x) => isSameImage(x.src, src))) {
               const caption =
                 figcaption?.textContent?.trim() ||
                 img.getAttribute('alt') ||
@@ -106,6 +146,20 @@ export default function ArticleContentRenderer({
         if (hasExplicitFigures && img.closest('figure')) return
 
         const src = img.getAttribute('src')?.trim()
+
+        if (src && isVideoPosterOrThumb(src)) {
+          // Remove duplicate video thumbnail from body
+          const parent = img.parentNode
+          img.remove()
+          if (parent && parent.tagName && parent.tagName.toLowerCase() === 'p') {
+            const cleanedHtml = parent.innerHTML
+              .replace(/^(\s*(&nbsp;)?\s*)*\.\s*(?=[A-Za-z0-9])/gi, '')
+              .trim()
+            parent.innerHTML = cleanedHtml
+          }
+          return
+        }
+
         if (
           src &&
           !figureSources.some((fSrc) => isSameImage(fSrc, src)) &&
@@ -143,9 +197,10 @@ export default function ArticleContentRenderer({
         }
       })
 
-      // 2. Check cover / featured image (only for legacy articles without curated in-place figures)
+      // 2. Check cover / featured image (only for legacy non-video articles without curated in-place figures)
       const coverUrl =
         !hasExplicitFigures &&
+        !hasEmbeddedVideo &&
         inlineMedia &&
         !inlineMedia.isVideo &&
         inlineMedia.posterUrl
@@ -180,8 +235,8 @@ export default function ArticleContentRenderer({
       }
       allImages.push(...extractedImages)
 
-      // Fallback if no images found at all (only for legacy articles without explicit figures)
-      if (!hasExplicitFigures && allImages.length === 0 && localFallback && !localFallback.toLowerCase().includes('.svg')) {
+      // Fallback if no images found at all (only for legacy non-video articles without explicit figures)
+      if (!hasEmbeddedVideo && !hasExplicitFigures && allImages.length === 0 && localFallback && !localFallback.toLowerCase().includes('.svg')) {
         allImages.push({
           src: localFallback,
           caption: imageAlt || '',
@@ -193,7 +248,7 @@ export default function ArticleContentRenderer({
       if (Array.isArray(storyImages) && storyImages.length > 0) {
         storyImages.forEach((si) => {
           const siUrl = typeof si === 'string' ? si : si.url
-          if (!siUrl) return
+          if (!siUrl || isVideoPosterOrThumb(siUrl)) return
           const siCap = typeof si === 'object' ? (si.caption || si.alt || '') : ''
           const siAlt = typeof si === 'object' ? (si.alt || si.caption || '') : ''
 
@@ -211,8 +266,8 @@ export default function ArticleContentRenderer({
         })
       }
 
-      // If an explicit imageAlt is passed, apply it to the first image if it has no custom caption
-      if (imageAlt && allImages.length > 0) {
+      // If an explicit imageAlt is passed, apply it to the first image if it has no custom caption (only for non-video articles)
+      if (!hasEmbeddedVideo && imageAlt && allImages.length > 0) {
         if (!allImages[0].caption || allImages[0].caption.trim() === '' || allImages[0].caption === articleTitle) {
           allImages[0].caption = imageAlt
         }
@@ -237,24 +292,21 @@ export default function ArticleContentRenderer({
       })
 
       // 4. Deterministic editorial layout & image pacing
-      // Rule 1: Never place an image directly below the video (at least 1-2 paragraphs of text separation).
-      // Rule 2: Never cluster images too close to each other (minimum 3 paragraphs apart, evenly distributed).
       const seed = getArticleHash((articleId || '') + ':' + (articleTitle || ''))
       const startsRight = seed % 2 === 0
       const totalParas = pNodeIndices.length
 
-      const hasEmbeddedVideo = hasVideo || Boolean(doc.body.querySelector('video, iframe'))
-
       // Determine initial paragraph index:
-      // When video is present, the first image NEVER starts at para 0 (starts at para 1 or 2).
+      // When video is present, the hero video is at the top. The first paragraph is below the video.
+      // We start inline story photos around paragraph 1 or 2 so text flows naturally.
       // For text articles, starts at para 1 so the lede paragraph is clean broadsheet lead text.
       const initialPara = hasEmbeddedVideo
-        ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1 + (seed % 2))
+        ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : (totalParas <= 4 ? 1 : 1 + (seed % 2)))
         : (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1)
 
       const remainingParas = Math.max(0, totalParas - 1 - initialPara)
       const remainingImages = Math.max(1, allImages.length - 1)
-      const dynamicStep = Math.max(3, Math.min(6, Math.floor(remainingParas / remainingImages)))
+      const dynamicStep = Math.max(2, Math.min(5, Math.floor(remainingParas / remainingImages)))
 
       // Map node index -> array of image objects to insert BEFORE that node
       const insertBeforeMap = new Map()
@@ -265,9 +317,9 @@ export default function ArticleContentRenderer({
         if (imgIdx === 0) {
           targetPara = Math.min(totalParas - 1, initialPara)
         } else {
-          // Space subsequent images apart by at least 3 paragraphs, with dynamic pacing
+          // Space subsequent images apart
           const stepVariance = (seed >> (imgIdx + 1)) % 2
-          const spacing = Math.max(3, dynamicStep + stepVariance)
+          const spacing = Math.max(2, dynamicStep + stepVariance)
           targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
         }
         prevParaTarget = targetPara
@@ -418,6 +470,11 @@ export default function ArticleContentRenderer({
               dangerouslySetInnerHTML={{ __html: node.innerHTML }}
             />
           )
+        }
+
+        // Ignore standalone figcaptions (already handled inside figures)
+        if (tagName === 'figcaption') {
+          return null
         }
 
         // Standard regular HTML elements (h1, h2, h3, blockquote, ul, ol, etc.)

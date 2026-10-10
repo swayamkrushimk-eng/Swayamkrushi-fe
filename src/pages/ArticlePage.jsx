@@ -96,6 +96,15 @@ export default function ArticlePage({ defaultId }) {
     article.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
+        // If article has a hero video, do not include the video thumbnail / poster / video url as a body story image
+        if (
+          mediaInfo.isVideo &&
+          (isSameImage(url, mediaInfo.videoThumbnailUrl) ||
+            isSameImage(url, mediaInfo.posterUrl) ||
+            isSameImage(url, mediaInfo.videoUrl))
+        ) {
+          return
+        }
         allStoryImages.push({
           url,
           caption: (typeof img === 'object' && (img.caption || img.alt)) || '',
@@ -111,14 +120,14 @@ export default function ArticlePage({ defaultId }) {
       alt: article.imageAlt || article.title
     })
   }
-  if (article.imageUrl && !allStoryImages.some((x) => isSameImage(x.url, article.imageUrl))) {
+  if (!mediaInfo.isVideo && article.imageUrl && !allStoryImages.some((x) => isSameImage(x.url, article.imageUrl))) {
     allStoryImages.push({
       url: article.imageUrl,
       caption: article.imageAlt || '',
       alt: article.imageAlt || article.title
     })
   }
-  if (localFallback && allStoryImages.length === 0) {
+  if (!mediaInfo.isVideo && localFallback && allStoryImages.length === 0) {
     allStoryImages.push({
       url: localFallback,
       caption: article.imageAlt || '',
@@ -126,8 +135,8 @@ export default function ArticlePage({ defaultId }) {
     })
   }
 
-  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it
-  if (article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
+  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it (only for non-video articles)
+  if (!mediaInfo.isVideo && article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
     allStoryImages[0].caption = article.imageAlt
   }
 
@@ -145,12 +154,12 @@ export default function ArticlePage({ defaultId }) {
 
   const hasEmbeddedVideo = Boolean(mediaInfo.isVideo && mediaInfo.videoUrl)
   const initialPara = hasEmbeddedVideo
-    ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1 + (seed % 2))
+    ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : (totalParas <= 4 ? 1 : 1 + (seed % 2)))
     : (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1)
 
   const remainingParas = Math.max(0, totalParas - 1 - initialPara)
   const remainingImages = Math.max(1, allStoryImages.length - 1)
-  const dynamicStep = Math.max(3, Math.min(6, Math.floor(remainingParas / remainingImages)))
+  const dynamicStep = Math.max(2, Math.min(5, Math.floor(remainingParas / remainingImages)))
 
   const imagePlacementMap = {}
   let prevParaTarget = 0
@@ -161,7 +170,7 @@ export default function ArticlePage({ defaultId }) {
       targetPara = Math.min(totalParas - 1, initialPara)
     } else {
       const stepVariance = (seed >> (imgIdx + 1)) % 2
-      const spacing = Math.max(3, dynamicStep + stepVariance)
+      const spacing = Math.max(2, dynamicStep + stepVariance)
       targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
     }
     prevParaTarget = targetPara
@@ -243,7 +252,7 @@ export default function ArticlePage({ defaultId }) {
             htmlContent={article.contentHtml}
             articleTitle={article.title}
             articleId={article.id || id}
-            inlineMedia={hasInlineImage ? mediaInfo : null}
+            inlineMedia={mediaInfo}
             localFallback={localFallback}
             imageAlt={article.imageAlt}
             hasVideo={hasEmbeddedVideo}
