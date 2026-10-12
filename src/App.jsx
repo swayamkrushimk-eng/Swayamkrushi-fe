@@ -13,6 +13,8 @@ import CommitteePage from './pages/CommitteePage'
 import MediaBuzzPage from './pages/MediaBuzzPage'
 import EventsPage from './pages/EventsPage'
 import DonationPage from './pages/DonationPage'
+import AnnualReportsPage from './pages/AnnualReportsPage'
+import ImagePreviewModal from './components/ImagePreviewModal'
 import { trackPageView } from './services/api'
 
 function PageTracker() {
@@ -49,6 +51,9 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/activities-galore" element={<HomePage />} />
         <Route path="/activities" element={<HomePage />} />
+        <Route path="/annual-reports" element={<AnnualReportsPage />} />
+        <Route path="/annual-report" element={<AnnualReportsPage />} />
+        <Route path="/about/annual-reports" element={<AnnualReportsPage />} />
         <Route path="/events" element={<EventsPage />} />
         <Route path="/event" element={<EventsPage />} />
         <Route path="/donation" element={<DonationPage />} />
@@ -57,6 +62,7 @@ function App() {
         <Route path="/give" element={<DonationPage />} />
       </Routes>
       <Footer />
+      <ImagePreviewModal />
     </HashRouter>
   )
 }

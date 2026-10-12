@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react'
 import VideoPlayer from './VideoPlayer'
+import { isSameImage, isVideoUrl } from '../utils/mediaUtils'
 
 /**
  * Deterministic hash function to generate consistent, pseudo-random layout variations
@@ -13,19 +14,16 @@ function getArticleHash(str = '') {
   return Math.abs(h)
 }
 
-/**
- * Checks if two image URLs point to the same file (supports Cloudinary public IDs)
- */
-function isSameImage(url1, url2) {
-  if (!url1 || !url2) return false
-  const u1 = url1.trim().toLowerCase()
-  const u2 = url2.trim().toLowerCase()
-  if (u1 === u2) return true
-  const matchA = u1.match(/\/v\d+\/([^.?#]+)/)
-  const matchB = u2.match(/\/v\d+\/([^.?#]+)/)
-  if (matchA && matchB && matchA[1] === matchB[1]) return true
-  return false
-}
+const BED_HOTSPOT_VIDEOS = [
+  {
+    title: 'M Sarada (Principal)',
+    caption: 'An overview...Principal Sarada speaks about the B.ED course'
+  },
+  {
+    title: 'PVB Sudhakar (HoD)',
+    caption: 'Direct from the Head....Sudhakar gives an intro'
+  }
+]
 
 export default function ArticleContentRenderer({
   htmlContent,
@@ -44,31 +42,86 @@ export default function ArticleContentRenderer({
       const parser = new DOMParser()
       const doc = parser.parseFromString(htmlContent, 'text/html')
 
+      const hasEmbeddedVideo = hasVideo || Boolean(inlineMedia?.isVideo) || Boolean(doc.body.querySelector('video, iframe'))
+
+      // Filter helper for video thumbnails/posters
+      const isVideoPosterOrThumb = (url) => {
+        if (!hasEmbeddedVideo || !url) return false
+        if (inlineMedia) {
+          if (isSameImage(url, inlineMedia.posterUrl)) return true
+          if (isSameImage(url, inlineMedia.videoThumbnailUrl)) return true
+          if (isSameImage(url, inlineMedia.videoUrl)) return true
+          if (isSameImage(url, inlineMedia.deliveryVideoUrl)) return true
+        }
+        return false
+      }
+
       // 1. Check for intentional in-place <figure> elements
       const figureElements = Array.from(doc.body.querySelectorAll('figure'))
-      const hasExplicitFigures = figureElements.length > 0
-
-      // Sync captions for intentional in-place <figure> elements from storyImages
-      if (hasExplicitFigures && Array.isArray(storyImages) && storyImages.length > 0) {
+      
+      // Remove any explicit figures that contain duplicate video thumbnails/posters
+      if (hasEmbeddedVideo) {
         figureElements.forEach((fig) => {
-          const imgEl = fig.querySelector('img')
-          const src = imgEl?.getAttribute('src')?.trim()
-          if (!src) return
-          const matched = storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
-          if (matched && matched.caption) {
-            let figcaption = fig.querySelector('figcaption')
-            if (!figcaption) {
-              figcaption = doc.createElement('figcaption')
-              figcaption.className = 'article-inline-caption'
-              fig.appendChild(figcaption)
-            }
-            figcaption.textContent = matched.caption
-            imgEl.setAttribute('alt', matched.caption)
+          const img = fig.querySelector('img')
+          const src = img?.getAttribute('src')?.trim()
+          if (src && isVideoPosterOrThumb(src)) {
+            fig.remove()
           }
         })
       }
 
-      const figureSources = figureElements
+      // Remove any orphan figcaptions that are not inside a figure (e.g. malformed closing tags)
+      const allFigcaptions = Array.from(doc.body.querySelectorAll('figcaption'))
+      allFigcaptions.forEach((fc) => {
+        if (!fc.closest('figure')) {
+          fc.remove()
+        }
+      })
+
+      // Remove any empty figure tags without images
+      Array.from(doc.body.querySelectorAll('figure')).forEach((fig) => {
+        if (!fig.querySelector('img')) fig.remove()
+      })
+
+      const cleanFigureElements = Array.from(doc.body.querySelectorAll('figure'))
+      const hasExplicitFigures = cleanFigureElements.length > 0
+
+      // Sync captions and classes for intentional in-place <figure> elements from storyImages
+      if (hasExplicitFigures && Array.isArray(storyImages)) {
+        cleanFigureElements.forEach((fig) => {
+          const imgEl = fig.querySelector('img')
+          const src = imgEl?.getAttribute('src')?.trim()
+          if (!src) return
+
+          // If storyImages array is defined, strictly purge any figure that was removed from storyImages!
+          if (storyImages.length > 0) {
+            const matched = storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
+            if (!matched) {
+              fig.remove()
+              return
+            }
+            if (matched.caption) {
+              let figcaption = fig.querySelector('figcaption')
+              if (!figcaption) {
+                figcaption = doc.createElement('figcaption')
+                figcaption.className = 'article-inline-caption'
+                fig.appendChild(figcaption)
+              }
+              figcaption.textContent = matched.caption
+              imgEl.setAttribute('alt', matched.caption)
+            } else {
+              const figcaption = fig.querySelector('figcaption')
+              if (figcaption) figcaption.remove()
+            }
+
+            const align = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
+            const sz = matched.size === 'big' ? 'size-big' : 'size-small'
+            fig.className = `article-inline-figure ${align} ${sz}`
+          }
+        })
+      }
+
+      const figureSources = cleanFigureElements
         .map((fig) => fig.querySelector('img')?.getAttribute('src')?.trim())
         .filter(Boolean)
 
@@ -77,12 +130,12 @@ export default function ArticleContentRenderer({
 
       if (!hasExplicitFigures) {
         // Legacy: Extract from <figure> if not marked for in-place
-        figureElements.forEach((fig) => {
+        cleanFigureElements.forEach((fig) => {
           const img = fig.querySelector('img')
           const figcaption = fig.querySelector('figcaption')
           if (img) {
             const src = img.getAttribute('src')?.trim()
-            if (src && !extractedImages.some((x) => isSameImage(x.src, src))) {
+            if (src && !isVideoPosterOrThumb(src) && !extractedImages.some((x) => isSameImage(x.src, src))) {
               const caption =
                 figcaption?.textContent?.trim() ||
                 img.getAttribute('alt') ||
@@ -106,6 +159,20 @@ export default function ArticleContentRenderer({
         if (hasExplicitFigures && img.closest('figure')) return
 
         const src = img.getAttribute('src')?.trim()
+
+        if (src && isVideoPosterOrThumb(src)) {
+          // Remove duplicate video thumbnail from body
+          const parent = img.parentNode
+          img.remove()
+          if (parent && parent.tagName && parent.tagName.toLowerCase() === 'p') {
+            const cleanedHtml = parent.innerHTML
+              .replace(/^(\s*(&nbsp;)?\s*)*\.\s*(?=[A-Za-z0-9])/gi, '')
+              .trim()
+            parent.innerHTML = cleanedHtml
+          }
+          return
+        }
+
         if (
           src &&
           !figureSources.some((fSrc) => isSameImage(fSrc, src)) &&
@@ -143,9 +210,10 @@ export default function ArticleContentRenderer({
         }
       })
 
-      // 2. Check cover / featured image (only for legacy articles without curated in-place figures)
+      // 2. Build image list for paragraph flow
       const coverUrl =
         !hasExplicitFigures &&
+        !hasEmbeddedVideo &&
         inlineMedia &&
         !inlineMedia.isVideo &&
         inlineMedia.posterUrl
@@ -165,54 +233,81 @@ export default function ArticleContentRenderer({
         : false
 
       const allImages = []
-      if (
-        coverUrl &&
-        !isCoverAlreadyExtracted &&
-        !isCoverPlaceholder &&
-        extractedImages.length === 0
-      ) {
-        allImages.push({
-          src: coverUrl,
-          caption:
-            imageAlt || (articleTitle ? `Archival spotlight: ${articleTitle}` : ''),
-          alt: imageAlt || articleTitle || ''
-        })
+
+      if (extractedImages.length > 0) {
+        // If images were uploaded inside the article HTML, use ONLY those images
+        allImages.push(...extractedImages)
+
+        // Sync custom captions/alt from storyImages without appending new/duplicate images
+        if (Array.isArray(storyImages) && storyImages.length > 0) {
+          storyImages.forEach((si) => {
+            const siUrl = typeof si === 'string' ? si : si.url
+            if (!siUrl) return
+            const siCap = typeof si === 'object' ? (si.caption || si.alt || '') : ''
+            const siAlt = typeof si === 'object' ? (si.alt || si.caption || '') : ''
+
+            const existing = allImages.find((img) => isSameImage(img.src, siUrl))
+            if (existing) {
+              if (siCap) existing.caption = siCap
+              if (siAlt) existing.alt = siAlt
+            }
+          })
+        }
+      } else if (!hasExplicitFigures && !hasEmbeddedVideo) {
+        // Only if HTML has NO images and NO explicit figures, check storyImages / fallback
+        if (Array.isArray(storyImages) && storyImages.length > 0) {
+          storyImages.forEach((si) => {
+            const siUrl = typeof si === 'string' ? si : si.url
+            if (!siUrl || isVideoPosterOrThumb(siUrl)) return
+            const siCap = typeof si === 'object' ? (si.caption || si.alt || '') : ''
+            const siAlt = typeof si === 'object' ? (si.alt || si.caption || '') : ''
+
+            if (!allImages.some((img) => isSameImage(img.src, siUrl))) {
+              allImages.push({
+                src: siUrl,
+                caption: siCap || imageAlt || '',
+                alt: siAlt || siCap || imageAlt || articleTitle || ''
+              })
+            }
+          })
+        }
+
+        // Fallback to coverUrl if no images in storyImages
+        if (
+          allImages.length === 0 &&
+          !inlineMedia?.isText &&
+          coverUrl &&
+          !isCoverAlreadyExtracted &&
+          !isCoverPlaceholder
+        ) {
+          allImages.push({
+            src: coverUrl,
+            caption:
+              imageAlt || (articleTitle ? `Archival spotlight: ${articleTitle}` : ''),
+            alt: imageAlt || articleTitle || ''
+          })
+        }
+
+        // Fallback to local asset ONLY if no storyImages was explicitly specified (i.e. storyImages was not provided or null)
+        const isExplicitlyNoStoryImages = Array.isArray(storyImages) && storyImages.length === 0
+        if (
+          allImages.length === 0 &&
+          !inlineMedia?.isText &&
+          !isExplicitlyNoStoryImages &&
+          localFallback &&
+          !localFallback.toLowerCase().includes('.svg') &&
+          !localFallback.toLowerCase().includes('/mocks/')
+        ) {
+          allImages.push({
+            src: localFallback,
+            caption: imageAlt || '',
+            alt: imageAlt || articleTitle || ''
+          })
+        }
       }
-      allImages.push(...extractedImages)
 
-      // Fallback if no images found at all (only for legacy articles without explicit figures)
-      if (!hasExplicitFigures && allImages.length === 0 && localFallback && !localFallback.toLowerCase().includes('.svg')) {
-        allImages.push({
-          src: localFallback,
-          caption: imageAlt || '',
-          alt: imageAlt || articleTitle || ''
-        })
-      }
-
-      // Sync extracted images with storyImages captions AND include any story photos not directly in HTML
-      if (Array.isArray(storyImages) && storyImages.length > 0) {
-        storyImages.forEach((si) => {
-          const siUrl = typeof si === 'string' ? si : si.url
-          if (!siUrl) return
-          const siCap = typeof si === 'object' ? (si.caption || si.alt || '') : ''
-          const siAlt = typeof si === 'object' ? (si.alt || si.caption || '') : ''
-
-          const existing = allImages.find((img) => isSameImage(img.src, siUrl))
-          if (existing) {
-            if (siCap) existing.caption = siCap
-            if (siAlt) existing.alt = siAlt
-          } else if (!figureSources.some((src) => isSameImage(src, siUrl))) {
-            allImages.push({
-              src: siUrl,
-              caption: siCap,
-              alt: siAlt || siCap || articleTitle
-            })
-          }
-        })
-      }
-
-      // If an explicit imageAlt is passed, apply it to the first image if it has no custom caption
-      if (imageAlt && allImages.length > 0) {
+      // If an explicit imageAlt is passed, apply it to the first image if it has no custom caption (only for non-video articles)
+      if (!hasEmbeddedVideo && imageAlt && allImages.length > 0) {
         if (!allImages[0].caption || allImages[0].caption.trim() === '' || allImages[0].caption === articleTitle) {
           allImages[0].caption = imageAlt
         }
@@ -237,43 +332,44 @@ export default function ArticleContentRenderer({
       })
 
       // 4. Deterministic editorial layout & image pacing
-      // Rule 1: Never place an image directly below the video (at least 1-2 paragraphs of text separation).
-      // Rule 2: Never cluster images too close to each other (minimum 3 paragraphs apart, evenly distributed).
       const seed = getArticleHash((articleId || '') + ':' + (articleTitle || ''))
       const startsRight = seed % 2 === 0
       const totalParas = pNodeIndices.length
 
-      const hasEmbeddedVideo = hasVideo || Boolean(doc.body.querySelector('video, iframe'))
-
       // Determine initial paragraph index:
-      // When video is present, the first image NEVER starts at para 0 (starts at para 1 or 2).
+      // When video is present, the hero video is at the top. The first paragraph is below the video.
+      // We start inline story photos around paragraph 1 or 2 so text flows naturally.
       // For text articles, starts at para 1 so the lede paragraph is clean broadsheet lead text.
       const initialPara = hasEmbeddedVideo
-        ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1 + (seed % 2))
+        ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : (totalParas <= 4 ? 1 : 1 + (seed % 2)))
         : (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1)
 
       const remainingParas = Math.max(0, totalParas - 1 - initialPara)
       const remainingImages = Math.max(1, allImages.length - 1)
-      const dynamicStep = Math.max(3, Math.min(6, Math.floor(remainingParas / remainingImages)))
+      const dynamicStep = Math.max(2, Math.min(5, Math.floor(remainingParas / remainingImages)))
 
       // Map node index -> array of image objects to insert BEFORE that node
       const insertBeforeMap = new Map()
       let prevParaTarget = 0
+
+      const isBedHotspot = articleId === 'bed-hotspot' || articleId === 'bedhotspot'
+      let embeddedVideoCount = 0
 
       allImages.forEach((imgObj, imgIdx) => {
         let targetPara = 0
         if (imgIdx === 0) {
           targetPara = Math.min(totalParas - 1, initialPara)
         } else {
-          // Space subsequent images apart by at least 3 paragraphs, with dynamic pacing
+          // Space subsequent images apart
           const stepVariance = (seed >> (imgIdx + 1)) % 2
-          const spacing = Math.max(3, dynamicStep + stepVariance)
+          const spacing = Math.max(2, dynamicStep + stepVariance)
           targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
         }
         prevParaTarget = targetPara
 
-        const isRight = imgIdx % 2 === 0 ? startsRight : !startsRight
+        const isRight = isBedHotspot ? (imgIdx % 2 === 0) : (imgIdx % 2 === 0 ? startsRight : !startsRight)
         const alignClass = isRight ? 'float-right' : 'float-left'
+        const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || (imgObj.size === 'big' ? 'size-big' : 'size-small'))
 
         const targetNodeIdx =
           pNodeIndices.length > 0
@@ -286,14 +382,56 @@ export default function ArticleContentRenderer({
         insertBeforeMap.get(targetNodeIdx).push({
           ...imgObj,
           alignClass,
+          sizeClass,
           key: `article-img-${imgIdx}`
         })
       })
 
       const renderFigure = (imgObj, key) => {
         if (!imgObj?.src) return null
+        const isVid = isVideoUrl(imgObj.src) || imgObj.type === 'video'
+        let alignClass = imgObj.alignClass || (imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left')
+        let sizeClass = imgObj.sizeClass || (imgObj.size === 'big' ? 'size-big' : 'size-small')
+
+        let hotspotMeta = null
+        if (isBedHotspot) {
+          const vIndex = embeddedVideoCount++
+          alignClass = vIndex % 2 === 0 ? 'float-right' : 'float-left'
+          sizeClass = 'size-small'
+          hotspotMeta = BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length]
+        }
+
+        if (isVid) {
+          const vidTitle = hotspotMeta ? hotspotMeta.title : (imgObj.caption || articleTitle)
+          const vidSubtitle = hotspotMeta ? hotspotMeta.caption : undefined
+
+          return (
+            <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
+              <div className="article-video-player-container">
+                <VideoPlayer
+                  src={imgObj.src}
+                  poster={imgObj.poster || undefined}
+                  autoPlay={false}
+                  title={vidTitle}
+                  subtitle={vidSubtitle}
+                  category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                />
+              </div>
+              {(hotspotMeta || imgObj.caption) ? (
+                <figcaption className="article-inline-caption">
+                  {hotspotMeta ? (
+                    <>
+                      <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                    </>
+                  ) : imgObj.caption}
+                </figcaption>
+              ) : null}
+            </figure>
+          )
+        }
+
         return (
-          <figure key={key} className={`article-inline-figure ${imgObj.alignClass}`}>
+          <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass}`}>
             <img
               src={imgObj.src}
               alt={imgObj.caption || imgObj.alt || articleTitle}
@@ -346,40 +484,112 @@ export default function ArticleContentRenderer({
             node.getAttribute('src') || node.querySelector('source')?.getAttribute('src')
           const poster = node.getAttribute('poster') || undefined
           if (src) {
+            const vIndex = embeddedVideoCount++
+            const alignClass = isBedHotspot
+              ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
+              : ''
+            const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
+            const vidTitle = hotspotMeta ? hotspotMeta.title : articleTitle
+            const vidSubtitle = hotspotMeta ? hotspotMeta.caption : undefined
+
             return (
-              <div key={key} className="article-embedded-video-card">
-                <VideoPlayer
-                  src={src}
-                  poster={poster}
-                  autoPlay={false}
-                  title={articleTitle}
-                  category="Story Clip"
-                />
+              <div key={key} className={`article-embedded-video-card ${alignClass}`}>
+                <div className="article-video-player-container">
+                  <VideoPlayer
+                    src={src}
+                    poster={poster}
+                    autoPlay={false}
+                    title={vidTitle}
+                    subtitle={vidSubtitle}
+                    category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                  />
+                </div>
+                {hotspotMeta && (
+                  <div className="article-embedded-video-caption">
+                    <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                  </div>
+                )}
               </div>
             )
           }
         }
 
         // Node containing video child(ren)
-        const videoEls = node.querySelectorAll('video')
+        const videoEls = Array.from(node.querySelectorAll('video'))
         if (videoEls.length > 0) {
-          const vid = videoEls[0]
-          const src =
-            vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src')
-          const poster = vid.getAttribute('poster') || undefined
-          if (src) {
-            return (
-              <div key={key} className="article-embedded-video-card">
-                <VideoPlayer
-                  src={src}
-                  poster={poster}
-                  autoPlay={false}
-                  title={articleTitle}
-                  category="Story Clip"
-                />
-              </div>
-            )
-          }
+          return (
+            <React.Fragment key={key}>
+              {videoEls.map((vid, vSubIdx) => {
+                const src =
+                  vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src')
+                const poster = vid.getAttribute('poster') || undefined
+                if (!src) return null
+                const vIndex = embeddedVideoCount++
+                const alignClass = isBedHotspot
+                  ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
+                  : ''
+                const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
+                const vidTitle = hotspotMeta ? hotspotMeta.title : articleTitle
+                const vidSubtitle = hotspotMeta ? hotspotMeta.caption : undefined
+
+                return (
+                  <div key={`${key}-vid-${vSubIdx}`} className={`article-embedded-video-card ${alignClass}`}>
+                    <div className="article-video-player-container">
+                      <VideoPlayer
+                        src={src}
+                        poster={poster}
+                        autoPlay={false}
+                        title={vidTitle}
+                        subtitle={vidSubtitle}
+                        category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                      />
+                    </div>
+                    {hotspotMeta && (
+                      <div className="article-embedded-video-caption">
+                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </React.Fragment>
+          )
+        }
+
+        // Node containing iframe(s) (e.g. video embed)
+        const iframeEls = tagName === 'iframe' ? [node] : Array.from(node.querySelectorAll('iframe'))
+        if (iframeEls.length > 0 && tagName !== 'p') {
+          return (
+            <React.Fragment key={key}>
+              {iframeEls.map((iframe, ifIdx) => {
+                const src = iframe.getAttribute('src')
+                if (!src) return null
+                const vIndex = embeddedVideoCount++
+                const alignClass = isBedHotspot
+                  ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
+                  : ''
+                const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
+
+                return (
+                  <div key={`${key}-iframe-${ifIdx}`} className={`article-embedded-video-card ${alignClass}`}>
+                    <iframe
+                      src={src}
+                      title={hotspotMeta ? hotspotMeta.title : articleTitle}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ width: '100%', height: isBedHotspot ? '220px' : '380px', borderRadius: '8px' }}
+                    />
+                    {hotspotMeta && (
+                      <div className="article-embedded-video-caption">
+                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </React.Fragment>
+          )
         }
 
         // In-place Figure Element
@@ -388,25 +598,43 @@ export default function ArticleContentRenderer({
           const figcaption = node.querySelector('figcaption')
           const src = img?.getAttribute('src')?.trim()
           if (!src) return null
+
+          // If storyImages is an array and has items, drop figure if removed from storyImages
+          if (Array.isArray(storyImages) && storyImages.length > 0) {
+            const isPresent = storyImages.some((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
+            if (!isPresent) return null
+          }
+
           let caption =
             figcaption?.textContent?.trim() ||
             img?.getAttribute('alt') ||
             img?.getAttribute('title') ||
             ''
+          let alignClass = 'float-left'
+          let sizeClass = 'size-small'
+
+          if (node.classList.contains('float-right')) alignClass = 'float-right'
+          else if (node.classList.contains('float-center')) alignClass = 'float-center'
+          else if (node.classList.contains('float-left')) alignClass = 'float-left'
+
+          if (node.classList.contains('size-big')) sizeClass = 'size-big'
+          else if (node.classList.contains('size-small')) sizeClass = 'size-small'
+
           if (Array.isArray(storyImages) && storyImages.length > 0) {
             const matched = storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
-            if (matched && matched.caption) {
-              caption = matched.caption
+            if (matched) {
+              if (matched.caption) caption = matched.caption
+              if (matched.placement) {
+                alignClass = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
+              }
+              if (matched.size) {
+                sizeClass = matched.size === 'big' ? 'size-big' : 'size-small'
+              }
             }
           }
           const alt = img?.getAttribute('alt') || caption || articleTitle
-          const alignClass = node.classList.contains('float-right')
-            ? 'float-right'
-            : node.classList.contains('float-left')
-            ? 'float-left'
-            : 'float-right'
 
-          return renderFigure({ src, caption, alt, alignClass }, key)
+          return renderFigure({ src, caption, alt, alignClass, sizeClass }, key)
         }
 
         // Standard Paragraph Element
@@ -418,6 +646,11 @@ export default function ArticleContentRenderer({
               dangerouslySetInnerHTML={{ __html: node.innerHTML }}
             />
           )
+        }
+
+        // Ignore standalone figcaptions (already handled inside figures)
+        if (tagName === 'figcaption') {
+          return null
         }
 
         // Standard regular HTML elements (h1, h2, h3, blockquote, ul, ol, etc.)

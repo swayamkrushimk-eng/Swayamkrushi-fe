@@ -24,6 +24,7 @@ import {
   updateInquiryStatus,
   deleteInquiry,
   uploadImage,
+  deleteMediaFromCloudinary,
   fetchCommitteeMembers,
   createCommitteeMember,
   updateCommitteeMember,
@@ -34,7 +35,8 @@ import {
   deleteMediaBuzz,
   fetchEventImages,
   createEventImage,
-  deleteEventImage
+  deleteEventImage,
+  isIdDeleted
 } from '../services/api'
 import { COMMITTEE_MEMBERS as DEFAULT_COMMITTEE_MEMBERS } from './CommitteePage'
 import { MEDIA_ARTICLES as DEFAULT_MEDIA_ARTICLES } from './MediaBuzzPage'
@@ -60,6 +62,7 @@ const DEFAULT_ARTICLE_CAPTIONS = {
   'story-womens-empowerment': "Women's Empowerment — A Swayamkrushi Byproduct",
   'story-direct-speak': 'Direct Speak: Reflections on Thirty-Five Years of Service',
   'story-exercise': 'Exercise of a Different Kind',
+  'story-therapy-body-soul-mind': 'Therapy for body, soul and mind',
   'story-hard-work': 'Hard Work Never Goes Unrewarded!',
   'story-kitchen': 'Kitchen — Beehive of Activity',
   'story-sai-baba': "The Mysterious 'Appearance' of Shirdi Sai Baba",
@@ -74,21 +77,6 @@ const DEFAULT_ARTICLE_CAPTIONS = {
 
 const DEFAULT_ARTICLE_IMAGES = {
   'home-of-care': [
-    {
-      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531099/swayamkrushi/p2lfxtvjcg6pwrmstbq5.png',
-      caption: 'Akhila Hemmali and Tanuj Goyal welcoming visitors at the Swayamkrushi front desk',
-      alt: 'Akhila Hemmali and Tanuj Goyal welcoming visitors at Swayamkrushi'
-    },
-    {
-      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791571992/swayamkrushi/swayamkrushi_campus_building.jpg',
-      caption: 'Swayamkrushi Campus, Jawahar Nagar',
-      alt: 'Swayamkrushi Campus, Jawahar Nagar'
-    },
-    {
-      url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531206/swayamkrushi/ge24b7evibo5wwgpvoqs.jpg',
-      caption: 'Vocational training and community integration at Swayamkrushi',
-      alt: 'Vocational training and community integration at Swayamkrushi'
-    },
     {
       url: 'https://res.cloudinary.com/ll9equhn/image/upload/v1791531289/swayamkrushi/xg9qemgyszqdhbsjymy8.jpg',
       caption: 'The heart and soul of Swayamkrushi: Manjulaa Kalyaan, Founder-Director',
@@ -121,16 +109,6 @@ const DEFAULT_ARTICLE_IMAGES = {
   ]
 }
 
-const isSameImage = (u1, u2) => {
-  if (!u1 || !u2) return false
-  const a = u1.trim().toLowerCase()
-  const b = u2.trim().toLowerCase()
-  if (a === b) return true
-  const matchA = a.match(/\/v\d+\/([^.?#]+)/)
-  const matchB = b.match(/\/v\d+\/([^.?#]+)/)
-  if (matchA && matchB && matchA[1] === matchB[1]) return true
-  return false
-}
 
 export default function AdminPage() {
   // Auth state
@@ -193,7 +171,13 @@ export default function AdminPage() {
     imageAlt: '',
     images: [],
     featured: false,
-    order: 0
+    order: 0,
+    videoUrl: '',
+    videoThumbnailUrl: '',
+    videoPosterUrl: '',
+    videoPlacement: 'top',
+    videoSize: 'big',
+    mediaType: 'text'
   })
   const [uploadingStoryImage, setUploadingStoryImage] = useState(false)
 
@@ -329,7 +313,7 @@ export default function AdminPage() {
       const [statsData, settingsData, articlesData, accoladesData, faqsData, inqData, certsData, committeeData, mediaData, eventsData] = await Promise.all([
         fetchAdminStats(),
         fetchSettings(),
-        fetchArticles(),
+        fetchArticles({ forceFresh: true }),
         fetchAccolades(),
         fetchFaqs(),
         fetchInquiries(),
@@ -360,16 +344,16 @@ export default function AdminPage() {
       if (Array.isArray(committeeData) && committeeData.length > 0) {
         setCommitteeMembers(committeeData)
       } else {
-        setCommitteeMembers(DEFAULT_COMMITTEE_MEMBERS)
-        localStorage.setItem('swayamkrushi_committee_members', JSON.stringify(DEFAULT_COMMITTEE_MEMBERS))
+        const fallbackCommittee = DEFAULT_COMMITTEE_MEMBERS.filter((m) => !isIdDeleted('committee', m.id))
+        setCommitteeMembers(fallbackCommittee)
       }
 
       // Media Buzz
       if (Array.isArray(mediaData) && mediaData.length > 0) {
         setMediaBuzzItems(mediaData)
       } else {
-        setMediaBuzzItems(DEFAULT_MEDIA_ARTICLES)
-        localStorage.setItem('swayamkrushi_media_buzz', JSON.stringify(DEFAULT_MEDIA_ARTICLES))
+        const fallbackMedia = DEFAULT_MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id))
+        setMediaBuzzItems(fallbackMedia)
       }
     } catch (err) {
       console.error('Error loading data:', err)
@@ -427,15 +411,17 @@ export default function AdminPage() {
     }
 
     let initialImages = []
-    if (Array.isArray(art.images) && art.images.length > 0) {
+    if (Array.isArray(art.images)) {
       initialImages = art.images.map((img) => ({
         url: typeof img === 'string' ? img : (img.url || ''),
         caption: typeof img === 'object' ? (img.caption || img.alt || '') : '',
-        alt: typeof img === 'object' ? (img.alt || img.caption || '') : ''
-      }))
+        alt: typeof img === 'object' ? (img.alt || img.caption || '') : '',
+        placement: typeof img === 'object' ? (img.placement || 'left') : 'left',
+        size: typeof img === 'object' ? (img.size || 'small') : 'small'
+      })).filter((img) => img.url && img.url.length > 0)
     }
 
-    // ALSO check contentHtml for any additional images/figures and their captions
+    // Inspect contentHtml to enrich placement / size / captions, or ONLY populate if art.images was NOT defined
     if (initialHtml) {
       const parser = new DOMParser()
       const doc = parser.parseFromString(initialHtml, 'text/html')
@@ -448,42 +434,61 @@ export default function AdminPage() {
         if (src) {
           const existing = initialImages.find((x) => isSameImage(x.url, src))
           const captionText = figcap?.textContent?.trim() || imgEl?.getAttribute('alt')?.trim() || ''
-          if (!existing) {
+          const figurePlacement = fig.classList.contains('float-right')
+            ? 'right'
+            : fig.classList.contains('float-center')
+            ? 'center'
+            : 'left'
+          const figureSize = fig.classList.contains('size-big') ? 'big' : 'small'
+
+          if (existing) {
+            if (!existing.caption && captionText) existing.caption = captionText
+            if (!existing.placement || existing.placement === 'left') existing.placement = figurePlacement
+            if (!existing.size) existing.size = figureSize
+          } else if (!Array.isArray(art.images)) {
+            // ONLY if art.images was NOT already an array, add it from legacy HTML
             initialImages.push({
               url: src,
               caption: captionText,
-              alt: imgEl?.getAttribute('alt')?.trim() || captionText
+              alt: imgEl?.getAttribute('alt')?.trim() || captionText,
+              placement: figurePlacement,
+              size: figureSize
             })
-          } else if (!existing.caption && captionText) {
-            existing.caption = captionText
           }
         }
       })
 
-      const standaloneImgs = Array.from(doc.querySelectorAll('img'))
-      standaloneImgs.forEach((imgEl) => {
-        if (imgEl.closest('figure')) return
-        const src = imgEl.getAttribute('src')?.trim()
-        if (src) {
-          const existing = initialImages.find((x) => isSameImage(x.url, src))
-          const altText = imgEl.getAttribute('alt')?.trim() || imgEl.getAttribute('title')?.trim() || ''
-          if (!existing) {
-            initialImages.push({
-              url: src,
-              caption: altText,
-              alt: altText
-            })
-          } else if (!existing.caption && altText) {
-            existing.caption = altText
+      if (!Array.isArray(art.images)) {
+        const standaloneImgs = Array.from(doc.querySelectorAll('img'))
+        standaloneImgs.forEach((imgEl) => {
+          if (imgEl.closest('figure')) return
+          const src = imgEl.getAttribute('src')?.trim()
+          if (src) {
+            const existing = initialImages.find((x) => isSameImage(x.url, src))
+            const altText = imgEl.getAttribute('alt')?.trim() || imgEl.getAttribute('title')?.trim() || ''
+            if (!existing) {
+              initialImages.push({
+                url: src,
+                caption: altText,
+                alt: altText,
+                placement: 'left',
+                size: 'small'
+              })
+            }
           }
-        }
-      })
+        })
+      }
     }
 
-    if (initialImages.length === 0) {
+    // Only fallback to defaults if art.images was NEVER defined (undefined / null)
+    if (art.images === undefined && initialImages.length === 0 && !initialHtml) {
       const defaultImgs = DEFAULT_ARTICLE_IMAGES[art.id] || DEFAULT_ARTICLE_IMAGES[art._id]
       if (Array.isArray(defaultImgs) && defaultImgs.length > 0) {
-        initialImages = defaultImgs.map((img) => ({ ...img }))
+        initialImages = defaultImgs.map((img) => ({
+          ...img,
+          placement: img.placement || 'left',
+          size: img.size || 'small'
+        }))
       }
     }
 
@@ -497,12 +502,18 @@ export default function AdminPage() {
       section: art.section || 'main',
       attribution: art.attribution || 'Swayamkrushi Archives',
       imageUrl: art.imageUrl || '',
-      imageAlt: (art.imageAlt && art.imageAlt.trim())
-        ? art.imageAlt
+      imageAlt: art.imageAlt !== undefined
+        ? (art.imageAlt || '')
         : (DEFAULT_ARTICLE_CAPTIONS[art.id] || DEFAULT_ARTICLE_CAPTIONS[art._id] || ''),
       images: initialImages,
       featured: !!art.featured,
-      order: art.order || 0
+      order: art.order || 0,
+      videoUrl: art.videoUrl || '',
+      videoThumbnailUrl: art.videoThumbnailUrl || art.videoPosterUrl || '',
+      videoPosterUrl: art.videoPosterUrl || art.videoThumbnailUrl || '',
+      videoPlacement: art.videoPlacement || 'top',
+      videoSize: art.videoSize || 'big',
+      mediaType: art.videoUrl ? 'video' : (art.mediaType || 'text')
     })
     setShowArticleModal(true)
   }
@@ -517,11 +528,102 @@ export default function AdminPage() {
     })
   }
 
+  const handleUpdateStoryImageProperty = (index, key, value) => {
+    setArticleForm((prev) => {
+      const nextImages = [...(prev.images || [])]
+      if (nextImages[index]) {
+        nextImages[index] = { ...nextImages[index], [key]: value }
+      }
+      return { ...prev, images: nextImages }
+    })
+  }
+
+  const handleMoveStoryImage = (index, direction) => {
+    setArticleForm((prev) => {
+      const images = [...(prev.images || [])]
+      const targetIndex = direction === 'up' ? index - 1 : index + 1
+      if (targetIndex < 0 || targetIndex >= images.length) return prev
+      const temp = images[index]
+      images[index] = images[targetIndex]
+      images[targetIndex] = temp
+      return { ...prev, images }
+    })
+  }
+
   const handleRemoveStoryImage = (index) => {
-    setArticleForm((prev) => ({
-      ...prev,
-      images: (prev.images || []).filter((_, i) => i !== index)
-    }))
+    setArticleForm((prev) => {
+      const removedImg = (prev.images || [])[index]
+      const removedUrl = typeof removedImg === 'string' ? removedImg : removedImg?.url
+      const updatedImages = (prev.images || []).filter((_, i) => i !== index)
+
+      // Scrub completely from contentHtml immediately so no ghost figure/caption remains
+      let nextHtml = prev.contentHtml || ''
+      if (nextHtml && removedUrl) {
+        try {
+          const parser = new DOMParser()
+          const doc = parser.parseFromString(nextHtml, 'text/html')
+          let changed = false
+
+          // Remove any <figure> containing this image (which removes the image and its caption)
+          const figures = Array.from(doc.querySelectorAll('figure'))
+          figures.forEach((fig) => {
+            const imgEl = fig.querySelector('img')
+            const src = imgEl?.getAttribute('src')?.trim()
+            if (src && (src === removedUrl || isSameImage(src, removedUrl))) {
+              fig.remove()
+              changed = true
+            }
+          })
+
+          // Remove standalone <img>
+          const imgs = Array.from(doc.querySelectorAll('img'))
+          imgs.forEach((imgEl) => {
+            const src = imgEl.getAttribute('src')?.trim()
+            if (src && (src === removedUrl || isSameImage(src, removedUrl))) {
+              const parent = imgEl.parentElement
+              imgEl.remove()
+              changed = true
+              if (parent && (parent.tagName === 'P' || parent.tagName === 'DIV')) {
+                if (!parent.textContent?.trim() && parent.children.length === 0) {
+                  parent.remove()
+                }
+              }
+            }
+          })
+
+          // Remove orphan figcaptions
+          Array.from(doc.querySelectorAll('figcaption')).forEach((fc) => {
+            if (!fc.closest('figure')) {
+              fc.remove()
+              changed = true
+            }
+          })
+
+          if (changed) {
+            nextHtml = doc.body.innerHTML
+          }
+        } catch (err) {
+          console.error('Error stripping removed image from contentHtml:', err)
+        }
+      }
+
+      return {
+        ...prev,
+        images: updatedImages,
+        contentHtml: nextHtml
+      }
+    })
+
+    // Permanently remove from Cloudinary if hosted there
+    const removedImg = (articleForm.images || [])[index]
+    const removedUrl = typeof removedImg === 'string' ? removedImg : removedImg?.url
+    if (removedUrl && removedUrl.includes('cloudinary.com')) {
+      deleteMediaFromCloudinary(removedUrl).catch((err) =>
+        console.error('Failed to delete removed image from Cloudinary:', err)
+      )
+    }
+
+    showNotification('Photo permanently deleted from article and Cloudinary.')
   }
 
   const handleUploadStoryImage = async (e) => {
@@ -534,10 +636,10 @@ export default function AdminPage() {
         ...prev,
         images: [
           ...(prev.images || []),
-          { url, caption: '', alt: '' }
+          { url, caption: '', alt: '', placement: 'left', size: 'small' }
         ]
       }))
-      showNotification('Story photo added! You can now write its caption in the box below it.')
+      showNotification('Story photo added! You can now write its caption and set placement/size.')
     } catch (err) {
       showNotification('Failed to upload image: ' + err.message, 'error')
     } finally {
@@ -553,7 +655,7 @@ export default function AdminPage() {
         ...prev,
         images: [
           ...(prev.images || []),
-          { url: url.trim(), caption: '', alt: '' }
+          { url: url.trim(), caption: '', alt: '', placement: 'left', size: 'small' }
         ]
       }))
     }
@@ -592,41 +694,98 @@ export default function AdminPage() {
   const handleSaveArticle = async (e) => {
     e.preventDefault()
     try {
-      // Synchronize image captions into contentHtml figures & images
+      const cleanedImages = (articleForm.images || []).map((img) => ({
+        url: typeof img === 'string' ? img.trim() : (img.url || '').trim(),
+        caption: typeof img === 'object' ? (img.caption || '').trim() : '',
+        alt: typeof img === 'object' ? (img.alt || img.caption || '').trim() : '',
+        placement: typeof img === 'object' ? (img.placement || 'left') : 'left',
+        size: typeof img === 'object' ? (img.size || 'small') : 'small'
+      })).filter((img) => img.url.length > 0)
+
       let finalContentHtml = articleForm.contentHtml || ''
-      if (finalContentHtml && Array.isArray(articleForm.images) && articleForm.images.length > 0) {
+      if (finalContentHtml) {
         const parser = new DOMParser()
         const doc = parser.parseFromString(finalContentHtml, 'text/html')
         let changed = false
 
-        articleForm.images.forEach((imgObj) => {
-          if (!imgObj.url) return
-          const targetCaption = (imgObj.caption || '').trim()
+        // 1. Purge any figures or standalone images that are NOT in cleanedImages
+        const figures = Array.from(doc.querySelectorAll('figure'))
+        figures.forEach((fig) => {
+          const imgEl = fig.querySelector('img')
+          const src = imgEl?.getAttribute('src')?.trim()
+          if (!src) {
+            fig.remove()
+            changed = true
+            return
+          }
+          const matched = cleanedImages.find((imgObj) => isSameImage(imgObj.url, src))
+          if (!matched) {
+            fig.remove()
+            changed = true
+          }
+        })
 
-          // 1. Sync <figure> tags
-          const figures = Array.from(doc.querySelectorAll('figure'))
-          figures.forEach((fig) => {
+        const standaloneImgs = Array.from(doc.querySelectorAll('img'))
+        standaloneImgs.forEach((imgEl) => {
+          if (imgEl.closest('figure')) return
+          const src = imgEl.getAttribute('src')?.trim()
+          if (!src) {
+            imgEl.remove()
+            changed = true
+            return
+          }
+          const matched = cleanedImages.find((imgObj) => isSameImage(imgObj.url, src))
+          if (!matched) {
+            const parent = imgEl.parentElement
+            imgEl.remove()
+            changed = true
+            if (parent && (parent.tagName === 'P' || parent.tagName === 'DIV')) {
+              if (!parent.textContent?.trim() && parent.children.length === 0) {
+                parent.remove()
+              }
+            }
+          }
+        })
+
+        // Remove orphan figcaptions
+        Array.from(doc.querySelectorAll('figcaption')).forEach((fc) => {
+          if (!fc.closest('figure')) {
+            fc.remove()
+            changed = true
+          }
+        })
+
+        // 2. Sync captions, placement and size classes for remaining images
+        cleanedImages.forEach((imgObj) => {
+          const targetCaption = imgObj.caption || ''
+          const alignClass = imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left'
+          const sizeClass = imgObj.size === 'big' ? 'size-big' : 'size-small'
+
+          Array.from(doc.querySelectorAll('figure')).forEach((fig) => {
             const imgEl = fig.querySelector('img')
             const src = imgEl?.getAttribute('src')?.trim()
-            if (src && (src === imgObj.url || isSameImage(src, imgObj.url))) {
+            if (src && isSameImage(src, imgObj.url)) {
+              fig.className = `article-inline-figure ${alignClass} ${sizeClass}`
               let figcap = fig.querySelector('figcaption')
-              if (!figcap) {
-                figcap = doc.createElement('figcaption')
+              if (targetCaption) {
+                if (!figcap) {
+                  figcap = doc.createElement('figcaption')
+                  fig.appendChild(figcap)
+                }
                 figcap.className = 'article-inline-caption'
-                fig.appendChild(figcap)
+                figcap.textContent = targetCaption
+              } else if (figcap) {
+                figcap.remove()
               }
-              figcap.textContent = targetCaption
               imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
               changed = true
             }
           })
 
-          // 2. Sync standalone <img> tags
-          const standaloneImgs = Array.from(doc.querySelectorAll('img'))
-          standaloneImgs.forEach((imgEl) => {
+          Array.from(doc.querySelectorAll('img')).forEach((imgEl) => {
             if (imgEl.closest('figure')) return
             const src = imgEl.getAttribute('src')?.trim()
-            if (src && (src === imgObj.url || isSameImage(src, imgObj.url))) {
+            if (src && isSameImage(src, imgObj.url)) {
               imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
               imgEl.setAttribute('title', targetCaption || imgObj.alt || '')
               changed = true
@@ -639,19 +798,22 @@ export default function AdminPage() {
         }
       }
 
-      const cleanedImages = (articleForm.images || []).map((img) => ({
-        url: typeof img === 'string' ? img.trim() : (img.url || '').trim(),
-        caption: typeof img === 'object' ? (img.caption || '') : '',
-        alt: typeof img === 'object' ? (img.alt || img.caption || '') : ''
-      })).filter((img) => img.url.length > 0)
-
+      const hasVideo = Boolean(articleForm.videoUrl && articleForm.videoUrl.trim().length > 0)
       const cleanedPayload = {
         ...articleForm,
         contentHtml: finalContentHtml,
         paragraphs: articleForm.paragraphs.filter((p) => p.trim().length > 0),
         images: cleanedImages,
-        imageAlt: articleForm.imageAlt || ''
+        imageAlt: articleForm.imageAlt || '',
+        videoUrl: articleForm.videoUrl ? articleForm.videoUrl.trim() : '',
+        videoThumbnailUrl: articleForm.videoThumbnailUrl ? articleForm.videoThumbnailUrl.trim() : '',
+        videoPosterUrl: articleForm.videoPosterUrl ? articleForm.videoPosterUrl.trim() : '',
+        videoPlacement: articleForm.videoPlacement || 'top',
+        videoSize: articleForm.videoSize || 'big',
+        mediaType: hasVideo ? 'video' : (articleForm.mediaType || 'text'),
+        featuredMediaType: hasVideo ? 'video' : (cleanedImages.length > 0 || articleForm.imageUrl ? 'image' : 'text')
       }
+
       if (editingArticle) {
         await updateArticle(editingArticle.id || editingArticle._id, cleanedPayload)
         showNotification('Article updated successfully!')
@@ -672,11 +834,36 @@ export default function AdminPage() {
   const handleDeleteArticle = async (id, title) => {
     if (!window.confirm(`Are you sure you want to delete article "${title}"?`)) return
     try {
+      const artToDelete = articles.find((a) => a.id === id || a._id === id)
       await deleteArticle(id)
       showNotification('Article deleted successfully')
       setArticles((prev) => prev.filter((a) => a.id !== id && a._id !== id))
       const st = await fetchAdminStats()
       if (st) setStats(st)
+
+      // Purge any Cloudinary assets
+      if (artToDelete) {
+        const toDeleteUrls = []
+        if (artToDelete.imageUrl) toDeleteUrls.push(artToDelete.imageUrl)
+        if (artToDelete.videoUrl) toDeleteUrls.push({ url: artToDelete.videoUrl, type: 'video' })
+        if (artToDelete.videoThumbnailUrl) toDeleteUrls.push(artToDelete.videoThumbnailUrl)
+        if (artToDelete.videoPosterUrl) toDeleteUrls.push(artToDelete.videoPosterUrl)
+        if (Array.isArray(artToDelete.images)) {
+          artToDelete.images.forEach((img) => {
+            const u = typeof img === 'string' ? img : img?.url
+            if (u) toDeleteUrls.push(u)
+          })
+        }
+        for (const item of toDeleteUrls) {
+          const u = typeof item === 'string' ? item : item.url
+          const t = typeof item === 'object' ? item.type : 'image'
+          if (u && u.includes('cloudinary.com')) {
+            deleteMediaFromCloudinary(u, t).catch((e) =>
+              console.error('Failed to delete media from Cloudinary on article deletion:', e)
+            )
+          }
+        }
+      }
     } catch (err) {
       showNotification('Failed to delete article: ' + err.message, 'error')
     }
@@ -2242,7 +2429,7 @@ export default function AdminPage() {
                         value={settings.phone1 || ''}
                         onChange={(e) => setSettings({ ...settings, phone1: e.target.value })}
                         className="admin-input"
-                        placeholder="+91 9704245454"
+                        placeholder="+91 9100106454"
                       />
                     </div>
                     <div className="admin-form-group">
@@ -2474,7 +2661,15 @@ export default function AdminPage() {
                     <img src={articleForm.imageUrl} alt="Preview" className="admin-preview-img" />
                     <button
                       type="button"
-                      onClick={() => setArticleForm({ ...articleForm, imageUrl: '' })}
+                      onClick={() => {
+                        const imgToDelete = articleForm.imageUrl
+                        setArticleForm({ ...articleForm, imageUrl: '' })
+                        if (imgToDelete && imgToDelete.includes('cloudinary.com')) {
+                          deleteMediaFromCloudinary(imgToDelete).catch((err) =>
+                            console.error('Failed to delete hero image from Cloudinary:', err)
+                          )
+                        }
+                      }}
                       className="admin-btn-remove-img"
                     >
                       Remove
@@ -2498,15 +2693,159 @@ export default function AdminPage() {
                 </span>
               </div>
 
+              {/* 🎬 VIDEO SPOTLIGHT & PLACEMENT */}
+              <div className="admin-form-group" style={{ background: '#f8f5f8', border: '1px solid #e2d2dc', borderRadius: '8px', padding: '16px', marginTop: '6px', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#4a1525' }}>
+                      🎬 Video Spotlight & Placement
+                    </h4>
+                    <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#665058' }}>
+                      Add or edit video for this article. Choose size (Small or Big) and placement (Top Hero, Left, Right, or Center).
+                    </p>
+                  </div>
+                  {articleForm.videoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const vidUrl = articleForm.videoUrl
+                        const posterUrl = articleForm.videoThumbnailUrl || articleForm.videoPosterUrl
+                        setArticleForm({ ...articleForm, videoUrl: '', videoThumbnailUrl: '', videoPosterUrl: '' })
+                        if (vidUrl && vidUrl.includes('cloudinary.com')) {
+                          deleteMediaFromCloudinary(vidUrl, 'video').catch((err) =>
+                            console.error('Failed to delete video from Cloudinary:', err)
+                          )
+                        }
+                        if (posterUrl && posterUrl.includes('cloudinary.com')) {
+                          deleteMediaFromCloudinary(posterUrl, 'image').catch((err) =>
+                            console.error('Failed to delete video poster from Cloudinary:', err)
+                          )
+                        }
+                      }}
+                      style={{ background: '#f0e4e9', border: '1px solid #d2b4c0', color: '#6e1e38', fontSize: '11px', fontWeight: 600, padding: '4px 9px', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      ✕ Remove Video
+                    </button>
+                  )}
+                </div>
+
+                <div className="admin-grid-2" style={{ marginTop: '10px' }}>
+                  <div className="admin-form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: '12px' }}>Video URL (Cloudinary mp4 or Web link)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. https://res.cloudinary.com/.../video.mp4"
+                      value={articleForm.videoUrl || ''}
+                      onChange={(e) => setArticleForm({ ...articleForm, videoUrl: e.target.value })}
+                      className="admin-input"
+                      style={{ fontSize: '12px' }}
+                    />
+                  </div>
+                  <div className="admin-form-group" style={{ margin: 0 }}>
+                    <label style={{ fontSize: '12px' }}>Video Thumbnail / Poster Image URL</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. https://res.cloudinary.com/.../poster.jpg"
+                      value={articleForm.videoThumbnailUrl || articleForm.videoPosterUrl || ''}
+                      onChange={(e) => setArticleForm({ ...articleForm, videoThumbnailUrl: e.target.value, videoPosterUrl: e.target.value })}
+                      className="admin-input"
+                      style={{ fontSize: '12px' }}
+                    />
+                  </div>
+                </div>
+
+                {articleForm.videoUrl && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px', marginTop: '12px', background: '#fff', padding: '12px 14px', borderRadius: '6px', border: '1px solid #ebd9c8' }}>
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.5px' }}>
+                        Video Size:
+                      </label>
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button
+                          type="button"
+                          onClick={() => setArticleForm({ ...articleForm, videoSize: 'small' })}
+                          style={{
+                            flex: 1,
+                            padding: '6px 10px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            border: articleForm.videoSize === 'small' ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                            background: articleForm.videoSize === 'small' ? '#6e1e38' : '#ffffff',
+                            color: articleForm.videoSize === 'small' ? '#ffffff' : '#333333',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          ◻ Small (Compact)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setArticleForm({ ...articleForm, videoSize: 'big' })}
+                          style={{
+                            flex: 1,
+                            padding: '6px 10px',
+                            fontSize: '11.5px',
+                            fontWeight: 600,
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            border: (articleForm.videoSize || 'big') === 'big' ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                            background: (articleForm.videoSize || 'big') === 'big' ? '#6e1e38' : '#ffffff',
+                            color: (articleForm.videoSize || 'big') === 'big' ? '#ffffff' : '#333333',
+                            transition: 'all 0.15s ease'
+                          }}
+                        >
+                          ◼ Big (Full Width)
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', display: 'block', marginBottom: '6px', letterSpacing: '0.5px' }}>
+                        Video Placement:
+                      </label>
+                      <div style={{ display: 'flex', gap: '4px' }}>
+                        {[
+                          { key: 'top', label: '⬆ Top' },
+                          { key: 'left', label: '⬅ Left' },
+                          { key: 'right', label: '➡ Right' },
+                          { key: 'center', label: '⬌ Center' }
+                        ].map((pos) => (
+                          <button
+                            key={pos.key}
+                            type="button"
+                            onClick={() => setArticleForm({ ...articleForm, videoPlacement: pos.key })}
+                            style={{
+                              flex: 1,
+                              padding: '5px 6px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              border: (articleForm.videoPlacement || 'top') === pos.key ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                              background: (articleForm.videoPlacement || 'top') === pos.key ? '#6e1e38' : '#ffffff',
+                              color: (articleForm.videoPlacement || 'top') === pos.key ? '#ffffff' : '#333333',
+                              transition: 'all 0.15s ease'
+                            }}
+                          >
+                            {pos.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* 🖼️ STORY PHOTOS & INDIVIDUAL IMAGE CAPTIONS */}
               <div className="admin-form-group" style={{ background: '#fdfbf7', border: '1px solid #ebd9c8', borderRadius: '8px', padding: '16px', marginTop: '6px', marginBottom: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#3d342f' }}>
-                      🖼️ Story Photos & Individual Image Captions
+                      🖼️ Story Photos & Placement / Sizing Controls
                     </h4>
                     <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#776e65' }}>
-                      Every image has its own caption box directly beneath it. You can edit any caption or add new photos below.
+                      Position photos anywhere in the article (Left, Right, Center) and set size to <strong>Small</strong> or <strong>Big</strong>. Removing a photo completely deletes it and its caption.
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -2538,40 +2877,81 @@ export default function AdminPage() {
 
                 {(!articleForm.images || articleForm.images.length === 0) ? (
                   <div style={{ textAlign: 'center', padding: '20px 12px', background: '#fff', border: '1px dashed #d7ccc8', borderRadius: '6px' }}>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#776e65' }}>No additional story photos added yet.</p>
-                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9e9087' }}>Click <strong>+ Upload Photo</strong> or <strong>+ Add Image URL</strong> above to add photos with individual captions.</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: '#776e65' }}>No story photos added yet.</p>
+                    <p style={{ margin: '4px 0 0', fontSize: '11px', color: '#9e9087' }}>Click <strong>+ Upload Photo</strong> or <strong>+ Add Image URL</strong> above to add photos with individual sizing and captions.</p>
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '14px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
                     {articleForm.images.map((imgItem, idx) => (
                       <div
                         key={idx}
                         style={{
                           background: '#ffffff',
                           border: '1px solid #e0d7ce',
-                          borderRadius: '6px',
+                          borderRadius: '8px',
                           overflow: 'hidden',
                           display: 'flex',
                           flexDirection: 'column',
-                          boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
+                          boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
                         }}
                       >
-                        {/* Photo Thumbnail */}
-                        <div style={{ position: 'relative', height: '150px', background: '#f5f0eb' }}>
+                        {/* Photo Thumbnail & Control Bar */}
+                        <div style={{ position: 'relative', height: '160px', background: '#f5f0eb' }}>
                           <img
                             src={imgItem.url}
                             alt={imgItem.caption || `Story photo ${idx + 1}`}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                             onError={(e) => { e.currentTarget.style.display = 'none' }}
                           />
-                          <div style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.65)', color: '#fff', fontSize: '11px', fontWeight: 600, padding: '2px 7px', borderRadius: '4px' }}>
-                            Photo #{idx + 1}
+                          <div style={{ position: 'absolute', top: '6px', left: '6px', display: 'flex', gap: '4px', alignItems: 'center' }}>
+                            <span style={{ background: 'rgba(0,0,0,0.72)', color: '#fff', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '4px' }}>
+                              Photo #{idx + 1}
+                            </span>
+                            <span style={{ background: (imgItem.size === 'big' ? '#6e1e38' : '#2d6a4f'), color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
+                              {imgItem.size === 'big' ? 'BIG' : 'SMALL'}
+                            </span>
                           </div>
                           <div style={{ position: 'absolute', top: '6px', right: '6px', display: 'flex', gap: '4px' }}>
                             <button
                               type="button"
+                              onClick={() => handleMoveStoryImage(idx, 'up')}
+                              disabled={idx === 0}
+                              style={{
+                                background: idx === 0 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.95)',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '4px 7px',
+                                cursor: idx === 0 ? 'not-allowed' : 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                color: idx === 0 ? '#aaa' : '#1b1418'
+                              }}
+                              title="Move this image UP in article order"
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveStoryImage(idx, 'down')}
+                              disabled={idx === articleForm.images.length - 1}
+                              style={{
+                                background: idx === articleForm.images.length - 1 ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.95)',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '4px 7px',
+                                cursor: idx === articleForm.images.length - 1 ? 'not-allowed' : 'pointer',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                color: idx === articleForm.images.length - 1 ? '#aaa' : '#1b1418'
+                              }}
+                              title="Move this image DOWN in article order"
+                            >
+                              ↓
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => handleEditStoryImageUrl(idx)}
-                              style={{ background: 'rgba(255,255,255,0.92)', border: 'none', borderRadius: '4px', padding: '4px 6px', cursor: 'pointer', fontSize: '11px' }}
+                              style={{ background: 'rgba(255,255,255,0.95)', border: 'none', borderRadius: '4px', padding: '4px 6px', cursor: 'pointer', fontSize: '11px' }}
                               title="Edit Image URL"
                             >
                               ✎
@@ -2579,42 +2959,125 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => handleRemoveStoryImage(idx)}
-                              style={{ background: 'rgba(110, 30, 56, 0.92)', border: 'none', borderRadius: '4px', padding: '4px 6px', cursor: 'pointer', color: '#fff', fontSize: '11px' }}
-                              title="Delete this photo"
+                              style={{ background: 'rgba(180, 20, 40, 0.95)', border: 'none', borderRadius: '4px', padding: '4px 7px', cursor: 'pointer', color: '#fff', fontSize: '12px', fontWeight: 700 }}
+                              title="Delete this photo and its caption from article"
                             >
                               ✕
                             </button>
                           </div>
                         </div>
 
-                        {/* Dedicated Caption Input Box DIRECTLY BELOW this photo */}
-                        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '6px', flex: 1, background: '#faf8f5', borderTop: '1px solid #ebd9c8' }}>
-                          <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 }}>
-                            Caption for Photo #{idx + 1}:
-                          </label>
-                          <textarea
-                            rows={2}
-                            value={imgItem.caption || ''}
-                            onChange={(e) => handleUpdateStoryImageCaption(idx, e.target.value)}
-                            placeholder={`Enter caption describing photo #${idx + 1}...`}
-                            className="admin-textarea"
-                            style={{
-                              fontSize: '12px',
-                              padding: '7px 9px',
-                              minHeight: '52px',
-                              resize: 'vertical',
-                              background: '#ffffff',
-                              border: '1px solid #cbbaa8',
-                              borderRadius: '4px',
-                              lineHeight: 1.35
-                            }}
-                          />
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#887b70' }}>
-                            <span title={imgItem.url} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>
+                        {/* Controls & Dedicated Caption Input */}
+                        <div style={{ padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, background: '#faf8f5', borderTop: '1px solid #ebd9c8' }}>
+                          {/* Sizing Toggle: Small vs Big */}
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                              Photo Size:
+                            </label>
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStoryImageProperty(idx, 'size', 'small')}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px 8px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  border: (imgItem.size || 'small') === 'small' ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                                  background: (imgItem.size || 'small') === 'small' ? '#6e1e38' : '#ffffff',
+                                  color: (imgItem.size || 'small') === 'small' ? '#ffffff' : '#333333',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                ◻ Small (Side)
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateStoryImageProperty(idx, 'size', 'big')}
+                                style={{
+                                  flex: 1,
+                                  padding: '5px 8px',
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  border: imgItem.size === 'big' ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                                  background: imgItem.size === 'big' ? '#6e1e38' : '#ffffff',
+                                  color: imgItem.size === 'big' ? '#ffffff' : '#333333',
+                                  transition: 'all 0.15s ease'
+                                }}
+                              >
+                                ◼ Big (Full Width)
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Placement Toggle: Left / Right / Center */}
+                          <div>
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: '4px' }}>
+                              Placement:
+                            </label>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              {[
+                                { key: 'left', label: '⬅ Left' },
+                                { key: 'right', label: '➡ Right' },
+                                { key: 'center', label: '⬌ Center' }
+                              ].map((pos) => (
+                                <button
+                                  key={pos.key}
+                                  type="button"
+                                  onClick={() => handleUpdateStoryImageProperty(idx, 'placement', pos.key)}
+                                  style={{
+                                    flex: 1,
+                                    padding: '4px 6px',
+                                    fontSize: '11px',
+                                    fontWeight: 600,
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    border: (imgItem.placement || 'left') === pos.key ? '1.5px solid #6e1e38' : '1px solid #cbbaa8',
+                                    background: (imgItem.placement || 'left') === pos.key ? '#6e1e38' : '#ffffff',
+                                    color: (imgItem.placement || 'left') === pos.key ? '#ffffff' : '#333333',
+                                    transition: 'all 0.15s ease'
+                                  }}
+                                >
+                                  {pos.label}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Dedicated Caption Input Box */}
+                          <div style={{ marginTop: '2px' }}>
+                            <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0, display: 'block', marginBottom: '3px' }}>
+                              Caption for Photo #{idx + 1}:
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={imgItem.caption || ''}
+                              onChange={(e) => handleUpdateStoryImageCaption(idx, e.target.value)}
+                              placeholder={`Enter caption describing photo #${idx + 1}...`}
+                              className="admin-textarea"
+                              style={{
+                                fontSize: '12px',
+                                padding: '7px 9px',
+                                minHeight: '52px',
+                                resize: 'vertical',
+                                background: '#ffffff',
+                                border: '1px solid #cbbaa8',
+                                borderRadius: '4px',
+                                lineHeight: 1.35
+                              }}
+                            />
+                          </div>
+
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#887b70', marginTop: '2px' }}>
+                            <span title={imgItem.url} style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '160px' }}>
                               {imgItem.url ? imgItem.url.split('/').pop() : 'No URL'}
                             </span>
-                            <a href={imgItem.url} target="_blank" rel="noreferrer" style={{ color: '#6e1e38', textDecoration: 'underline' }}>
-                              View full
+                            <a href={imgItem.url} target="_blank" rel="noreferrer" style={{ color: '#6e1e38', textDecoration: 'underline', fontWeight: 600 }}>
+                              View full ↗
                             </a>
                           </div>
                         </div>

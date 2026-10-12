@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
-import { fetchMediaBuzz } from '../services/api'
+import { fetchMediaBuzz, isIdDeleted } from '../services/api'
 import hinduClipping from '../assets/images/hindu-35-years-clipping.jpg'
 import './MediaBuzzPage.css'
 
@@ -132,11 +132,77 @@ export const MEDIA_ARTICLES = [
     tags: ['The Hindu', '35th Anniversary', 'Founder Felicitation', 'Special Education'],
     articleUrl: 'https://share.google/YhznuCLOlokk6iVY6',
     featured: true
+  },
+  {
+    id: 'eenadu-epaper-2026-10-10',
+    title: 'Eenadu E-Paper: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Eenadu Telugu Daily',
+    outletType: 'Print & Newspapers',
+    date: '10/10/2026',
+    category: 'Regional Press',
+    badge: 'EENADU E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'ఈనాడు దినపత్రిక కథనం: మేధో వైకల్యం కలిగిన వ్యక్తుల సాధికారత, విద్యాబోధన, జీవనోపాధి మరియు సంరక్షణకు విశేష కృషి చేస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Eenadu', 'Telugu E-Paper', 'Regional Press', 'Special Education'],
+    articleUrl: 'https://epaper.eenadu.net/Home/Index?date=10/10/2026&eid=239&pid=3613532',
+    featured: false
+  },
+  {
+    id: 'ninadam-telangana-2026-10-10',
+    title: 'Ninadam Telangana: స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Ninadam News',
+    outletType: 'Print & Newspapers',
+    date: '10/10/2026',
+    category: 'Regional Press',
+    badge: 'NINADAM E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'నినాదం తెలంగాణ దినపత్రిక కథనం: ప్రత్యేక అవసరాలు గల వ్యక్తుల అభ్యున్నతి, సంరక్షణ మరియు జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ విశేష సేవా కథనం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Ninadam News', 'Telugu E-Paper', 'Telangana', 'Community Care'],
+    articleUrl: 'https://epaper.ninadamnews.com/paper.php?date=2026-10-10&edition=80',
+    featured: false
+  },
+  {
+    id: 'andhra-prabha-rangareddy-2026-10-10',
+    title: 'Andhra Prabha Rangareddy Edition: స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Andhra Prabha',
+    outletType: 'Print & Newspapers',
+    date: '10/10/2026',
+    category: 'Regional Press',
+    badge: 'ANDHRA PRABHA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'ఆంధ్రప్రభ రంగారెడ్డి జిల్లా ఎడిషన్ కథనం: మేధోపరమైన సవాళ్లు ఉన్న వ్యక్తులకు విద్యాబోధన, వృత్తి శిక్షణ మరియు పునరావాస సేవలందిస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Andhra Prabha', 'Rangareddy District', 'Telugu E-Paper', 'Vocational Training'],
+    articleUrl: 'https://epaper.prabhanews.com/viewer/?date=2026-10-10&section=Telangana+Districts&edition=Rangareddy&page=2',
+    featured: false
+  },
+  {
+    id: 'andhra-jyothy-uppal-malkajgiri-2026-10-10',
+    title: 'Andhra Jyothy Uppal-Malkajgiri Edition: స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Andhra Jyothy',
+    outletType: 'Print & Newspapers',
+    date: '10/10/2026',
+    category: 'Regional Press',
+    badge: 'ANDHRA JYOTHY E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'ఆంధ్రజ్యోతి ఉప్పల్-మల్కాజ్‌గిరి ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, సంరక్షణ మరియు జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Andhra Jyothy', 'Uppal Malkajgiri', 'Telugu E-Paper', 'Special Education'],
+    articleUrl: 'https://epaper.andhrajyothy.com/Hyd_Uppal_Malkajgiri?eid=122&edate=10/10/2026&pgid=1524855&device=desktop&view=3',
+    featured: false
   }
 ]
 
 export default function MediaBuzzPage() {
-  const [articlesList, setArticlesList] = useState(MEDIA_ARTICLES)
+  const [articlesList, setArticlesList] = useState(() =>
+    MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id))
+  )
   const [lightboxImage, setLightboxImage] = useState(null)
 
   useEffect(() => {
@@ -144,21 +210,23 @@ export default function MediaBuzzPage() {
     async function loadBuzz() {
       try {
         const data = await fetchMediaBuzz()
-        if (Array.isArray(data) && data.length > 0 && data.some((a) => a.id === 'deccan-chronicle-35-years')) {
-          const mapped = data.map((a) => {
-            if (a.id === 'hindu-35-years-milestone') {
-              return { ...a, image: hinduClipping }
-            }
-            return a
-          })
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data
+            .filter((a) => !isIdDeleted('media_buzz', a.id) && !isIdDeleted('media_buzz', a._id))
+            .map((a) => {
+              if (a.id === 'hindu-35-years-milestone') {
+                return { ...a, image: hinduClipping }
+              }
+              return a
+            })
           setArticlesList(mapped)
         } else {
-          localStorage.setItem('swayamkrushi_media_buzz', JSON.stringify(MEDIA_ARTICLES))
-          setArticlesList(MEDIA_ARTICLES)
+          setArticlesList((prev) =>
+            prev.filter((a) => !isIdDeleted('media_buzz', a.id))
+          )
         }
       } catch (err) {
         console.warn('Error loading media buzz:', err)
-        setArticlesList(MEDIA_ARTICLES)
       }
     }
     loadBuzz()

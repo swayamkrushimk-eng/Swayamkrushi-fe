@@ -3,12 +3,13 @@ import rawArticles from './articles_complete.json'
 import birthdayImg from '../assets/images/birthday-courtyard.jpg'
 import grouphomeResidentsImg from '../assets/images/grouphome-residents.jpg'
 import nationalTrustImg from '../assets/images/national-trust-event.jpg'
+import { isIdDeleted } from '../services/api'
 
 export const articleImagesMap = {
   'home-of-care': birthdayImg,
   'group-homes': grouphomeResidentsImg,
   'bed-hotspot': null,
-  'story-group-homes-initiative': grouphomeResidentsImg,
+  'story-group-homes-initiative': null,
   'dare-to-dream': null,
 }
 
@@ -27,7 +28,10 @@ export function getArticleById(id) {
     'story-tailoring': 'story-sowing-seeds',
     'dare-to-dream': 'dare-to-dream',
     'daretodream': 'dare-to-dream',
+    'blood-sweat-and-tears': 'building-blocks',
+    'blood-sweat-tears': 'building-blocks',
   }
   const targetId = aliasMap[id] || id
+  if (isIdDeleted('article', targetId) || isIdDeleted('article', id)) return null
   return allArticles.find((a) => a.id === targetId || a.id === id) || null
 }

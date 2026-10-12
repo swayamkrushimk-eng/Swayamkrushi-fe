@@ -42,9 +42,9 @@ export default function InsidersPage() {
   return (
     <main className="insiders-page-wrap">
       <SEO
-        title="Insider's Views — What they have to say.... | Swayamkrushi"
+        title="Insiders' Views — What they have to say.... | Swayamkrushi"
         description="Watch inspiring video stories and interviews from special educators, speech therapists, alumni, parents, and leaders at Swayamkrushi."
-        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories, Insider's Views"
+        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories, Insiders' Views"
         canonicalUrl="https://swayamkrushi.org/#/insiders"
       />
 
@@ -71,7 +71,7 @@ export default function InsidersPage() {
             item.description.trim().length > 0
 
           return (
-            <article key={item._id || item.id} className="insider-video-card-direct">
+            <article key={item._id || item.id} className="insider-video-card-direct" data-is-video="true">
               {/* Video Player Container */}
               <div className="insider-video-player-container">
                 <VideoPlayer

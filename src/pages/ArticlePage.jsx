@@ -1,14 +1,24 @@
 import { useEffect, useState, Fragment } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { getArticleById, articleImagesMap } from '../data/allArticles'
-import { fetchArticleById } from '../services/api'
+import { fetchArticleById, isIdDeleted } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
 import VideoPlayer from '../components/VideoPlayer'
-import { resolveArticleMedia, isSameImage } from '../utils/mediaUtils'
+import { resolveArticleMedia, isSameImage, isVideoUrl } from '../utils/mediaUtils'
 import SEO from '../components/SEO'
+import ArticleAudioPlayer from '../components/ArticleAudioPlayer'
 import './ArticlePage.css'
 
 const EDITORIAL_SECTIONS = [
+  {
+    title: 'Building Blocks',
+    articles: [
+      { id: 'building-blocks', alias: 'blood-sweat-and-tears', title: 'Blood, Sweat and Tears' },
+      { id: 'home-of-care', title: 'A Home of Care, Growth and Hope' },
+      { id: 'group-homes', title: 'Group Home — A Pioneering Initiative Ahead of Time' },
+      { id: 'bed-hotspot', title: 'Swayamkrushi — The B.Ed Hotspot' },
+    ],
+  },
   {
     title: "Manjula's Musings",
     articles: [
@@ -25,6 +35,7 @@ const EDITORIAL_SECTIONS = [
       { id: 'story-nios', title: 'NIOS — Boon for Persons with Intellectual Disabilities' },
       { id: 'story-paper-bag', title: "Paper Bag Making — It's a 'Mild' Job" },
       { id: 'story-exercise', title: 'Exercise of a Different Kind' },
+      { id: 'story-therapy-body-soul-mind', title: 'Therapy for body, soul and mind' },
       { id: 'story-sowing-seeds', alias: 'story-tailoring', title: 'Sowing Seeds of Creativity' },
       { id: 'story-kitchen', title: 'Kitchen — Beehive of Activity' },
       { id: 'story-covid', title: 'The Covid Years — Opportunities to Serve' },
@@ -55,15 +66,19 @@ export default function ArticlePage({ defaultId }) {
   const { id: paramId } = useParams()
   const id = paramId || defaultId || 'story-encounter'
   const navigate = useNavigate()
-  const localArticle = getArticleById(id)
+  const localArticle = isIdDeleted('article', id) ? null : getArticleById(id)
   const [article, setArticle] = useState(localArticle)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+    if (isIdDeleted('article', id)) {
+      setArticle(null)
+      return
+    }
     const local = getArticleById(id)
     setArticle(local)
     fetchArticleById(id).then((data) => {
-      if (data && data.title) {
+      if (data && data.title && !isIdDeleted('article', id)) {
         setArticle(data)
       }
     })
@@ -86,7 +101,10 @@ export default function ArticlePage({ defaultId }) {
     ? article.paragraphs
     : [article.excerpt || '']
 
-  const localFallback = articleImagesMap[id] || articleImagesMap[article.id] || article.heroImage || null
+  const hasExplicitNoImages = (Array.isArray(article.images) && article.images.length === 0 && !article.imageUrl)
+  const localFallback = hasExplicitNoImages
+    ? null
+    : (articleImagesMap[id] || articleImagesMap[article.id] || article.heroImage || null)
   const mediaInfo = resolveArticleMedia(article, localFallback)
   const hasInlineImage = !mediaInfo.isText && !mediaInfo.isVideo && !!mediaInfo.posterUrl
 
@@ -96,38 +114,70 @@ export default function ArticlePage({ defaultId }) {
     article.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
+        // If article has a hero video, do not include the video thumbnail / poster / video url as a body story image
+        if (
+          mediaInfo.isVideo &&
+          (isSameImage(url, mediaInfo.videoThumbnailUrl) ||
+            isSameImage(url, mediaInfo.posterUrl) ||
+            isSameImage(url, mediaInfo.videoUrl))
+        ) {
+          return
+        }
+        const isBedHotspot = article.id === 'bed-hotspot' || id === 'bed-hotspot'
+        const bedHotspotMeta = isBedHotspot
+          ? [
+              {
+                title: 'M Sarada (Principal)',
+                caption: 'An overview...Principal Sarada speaks about the B.ED course'
+              },
+              {
+                title: 'PVB Sudhakar (HoD)',
+                caption: 'Direct from the Head....Sudhakar gives an intro'
+              }
+            ][allStoryImages.length % 2]
+          : null
+
         allStoryImages.push({
           url,
-          caption: (typeof img === 'object' && (img.caption || img.alt)) || '',
-          alt: (typeof img === 'object' && (img.alt || img.caption)) || ''
+          caption: bedHotspotMeta
+            ? `${bedHotspotMeta.title} — ${bedHotspotMeta.caption}`
+            : ((typeof img === 'object' && (img.caption || img.alt)) || ''),
+          alt: bedHotspotMeta
+            ? bedHotspotMeta.title
+            : ((typeof img === 'object' && (img.alt || img.caption)) || ''),
+          placement: isBedHotspot
+            ? (allStoryImages.length % 2 === 0 ? 'right' : 'left')
+            : ((typeof img === 'object' && img.placement) || 'left'),
+          size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
+          title: bedHotspotMeta?.title,
+          subtitle: bedHotspotMeta?.caption
         })
       }
     })
   }
-  if (hasInlineImage && !allStoryImages.some((x) => isSameImage(x.url, mediaInfo.posterUrl))) {
-    allStoryImages.push({
-      url: mediaInfo.posterUrl,
-      caption: article.imageAlt || '',
-      alt: article.imageAlt || article.title
-    })
-  }
-  if (article.imageUrl && !allStoryImages.some((x) => isSameImage(x.url, article.imageUrl))) {
-    allStoryImages.push({
-      url: article.imageUrl,
-      caption: article.imageAlt || '',
-      alt: article.imageAlt || article.title
-    })
-  }
-  if (localFallback && allStoryImages.length === 0) {
-    allStoryImages.push({
-      url: localFallback,
-      caption: article.imageAlt || '',
-      alt: article.imageAlt || article.title
-    })
+
+  // Only use article thumbnail/poster as fallback if NO story images exist, article is not a video or text-only, and no rich HTML content exists
+  if (allStoryImages.length === 0 && !mediaInfo.isVideo && !mediaInfo.isText && !article.contentHtml) {
+    const thumbUrl = (hasInlineImage && mediaInfo.posterUrl) || article.imageUrl || localFallback
+    const isMockOrPlaceholder =
+      thumbUrl &&
+      (thumbUrl.toLowerCase().includes('.svg') ||
+        thumbUrl.toLowerCase().includes('/mocks/') ||
+        thumbUrl.toLowerCase().includes('placeholder'))
+
+    if (thumbUrl && !isMockOrPlaceholder) {
+      allStoryImages.push({
+        url: thumbUrl,
+        caption: article.imageAlt || '',
+        alt: article.imageAlt || article.title,
+        placement: 'left',
+        size: 'small'
+      })
+    }
   }
 
-  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it
-  if (article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
+  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it (only for non-video articles)
+  if (!mediaInfo.isVideo && article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
     allStoryImages[0].caption = article.imageAlt
   }
 
@@ -145,12 +195,12 @@ export default function ArticlePage({ defaultId }) {
 
   const hasEmbeddedVideo = Boolean(mediaInfo.isVideo && mediaInfo.videoUrl)
   const initialPara = hasEmbeddedVideo
-    ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1 + (seed % 2))
+    ? (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : (totalParas <= 4 ? 1 : 1 + (seed % 2)))
     : (totalParas <= 2 ? (totalParas === 2 ? 1 : 0) : 1)
 
   const remainingParas = Math.max(0, totalParas - 1 - initialPara)
   const remainingImages = Math.max(1, allStoryImages.length - 1)
-  const dynamicStep = Math.max(3, Math.min(6, Math.floor(remainingParas / remainingImages)))
+  const dynamicStep = Math.max(2, Math.min(5, Math.floor(remainingParas / remainingImages)))
 
   const imagePlacementMap = {}
   let prevParaTarget = 0
@@ -161,18 +211,21 @@ export default function ArticlePage({ defaultId }) {
       targetPara = Math.min(totalParas - 1, initialPara)
     } else {
       const stepVariance = (seed >> (imgIdx + 1)) % 2
-      const spacing = Math.max(3, dynamicStep + stepVariance)
+      const spacing = Math.max(2, dynamicStep + stepVariance)
       targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
     }
     prevParaTarget = targetPara
 
-    const isRight = imgIdx % 2 === 0 ? startsRight : !startsRight
-    const alignClass = isRight ? 'float-right' : 'float-left'
+    const alignClass = imgObj.placement
+      ? (imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left')
+      : (imgIdx % 2 === 0 ? (startsRight ? 'float-right' : 'float-left') : (!startsRight ? 'float-right' : 'float-left'))
+    const sizeClass = imgObj.size === 'big' ? 'size-big' : 'size-small'
 
     if (!imagePlacementMap[targetPara]) imagePlacementMap[targetPara] = []
     imagePlacementMap[targetPara].push({
       ...imgObj,
-      alignClass
+      alignClass,
+      sizeClass
     })
   })
 
@@ -215,12 +268,28 @@ export default function ArticlePage({ defaultId }) {
 
       {/* Editorial Header */}
       <header className="article-editorial-header">
+        {(article.id === 'story-champions' || article.quote) && (
+          <div className="article-quote-box-above-title">
+            <p className="article-quote-box-text">
+              {article.quote ||
+                'Every life at Swayamkrushi is a story of courage, growth, and achievement. Here are just a few of the journeys that inspire us every day.'}
+            </p>
+          </div>
+        )}
         <h1 className="article-headline">{article.title}</h1>
       </header>
 
+      {/* Cartesia AI Voice Narration Listen Bar */}
+      <ArticleAudioPlayer article={article} />
+
       {/* Featured Hero Video (Only if story is a video) */}
       {!mediaInfo.isText && mediaInfo.isVideo && mediaInfo.videoUrl && (
-        <figure className="article-hero-figure article-hero-video-figure">
+        <figure
+          className={`article-hero-figure article-hero-video-figure ${
+            article.videoPlacement ? `float-${article.videoPlacement}` : 'float-center'
+          } ${article.videoSize === 'small' ? 'size-small' : 'size-big'}`}
+          data-is-video="true"
+        >
           <div className="article-video-player-container">
             <VideoPlayer
               src={mediaInfo.deliveryVideoUrl || mediaInfo.videoUrl}
@@ -243,7 +312,7 @@ export default function ArticlePage({ defaultId }) {
             htmlContent={article.contentHtml}
             articleTitle={article.title}
             articleId={article.id || id}
-            inlineMedia={hasInlineImage ? mediaInfo : null}
+            inlineMedia={mediaInfo}
             localFallback={localFallback}
             imageAlt={article.imageAlt}
             hasVideo={hasEmbeddedVideo}
@@ -256,27 +325,53 @@ export default function ArticlePage({ defaultId }) {
             return (
               <Fragment key={idx}>
                 {imgsForThisPara.map((imgObj, subIdx) => {
+                  const isVid = isVideoUrl(imgObj.url)
+                  const isBedHotspot = article.id === 'bed-hotspot' || id === 'bed-hotspot'
+                  const alignClass = isBedHotspot
+                    ? (subIdx % 2 === 0 ? 'float-right' : 'float-left')
+                    : imgObj.alignClass
+                  const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || 'size-small')
+
                   return (
                     <figure
                       key={`para-img-${idx}-${subIdx}`}
-                      className={`article-inline-figure ${imgObj.alignClass}`}
+                      className={`article-inline-figure ${alignClass} ${sizeClass} ${isVid ? 'article-inline-video-figure' : ''}`}
                     >
-                      <img
-                        src={imgObj.url}
-                        alt={imgObj.caption || article.title}
-                        className="article-inline-img"
-                        onError={(e) => {
-                          if (localFallback && e.target.src !== localFallback && !localFallback.toLowerCase().includes('.svg')) {
-                            e.target.src = localFallback
-                          } else {
-                            const fig = e.target.closest('figure')
-                            if (fig) fig.style.display = 'none'
-                          }
-                        }}
-                      />
+                      {isVid ? (
+                        <div className="article-video-player-container">
+                          <VideoPlayer
+                            src={imgObj.url}
+                            poster={imgObj.poster || undefined}
+                            autoPlay={false}
+                            title={imgObj.title || imgObj.caption || article.title}
+                            subtitle={imgObj.subtitle}
+                            category={imgObj.title || "Story Clip"}
+                          />
+                        </div>
+                      ) : (
+                        <img
+                          src={imgObj.url}
+                          alt={imgObj.caption || article.title}
+                          className="article-inline-img"
+                          onError={(e) => {
+                            if (localFallback && e.target.src !== localFallback && !localFallback.toLowerCase().includes('.svg')) {
+                              e.target.src = localFallback
+                            } else {
+                              const fig = e.target.closest('figure')
+                              if (fig) fig.style.display = 'none'
+                            }
+                          }}
+                        />
+                      )}
                       {imgObj.caption ? (
                         <figcaption className="article-inline-caption">
-                          {imgObj.caption}
+                          {imgObj.title && imgObj.subtitle ? (
+                            <>
+                              <strong>{imgObj.title}</strong> &mdash; <span>{imgObj.subtitle}</span>
+                            </>
+                          ) : (
+                            imgObj.caption
+                          )}
                         </figcaption>
                       ) : null}
                     </figure>
@@ -313,7 +408,9 @@ export default function ArticlePage({ defaultId }) {
                 <span className="bottom-section-count">{sec.articles.length} stories</span>
               </div>
               <ul className="bottom-section-list">
-                {sec.articles.map((item) => {
+                {sec.articles
+                  .filter((item) => !isIdDeleted('article', item.id) && !isIdDeleted('article', item.alias))
+                  .map((item) => {
                   const isCurrent = id === item.id || (item.alias && id === item.alias)
                   return (
                     <li key={item.id} className={`bottom-section-item ${isCurrent ? 'is-current' : ''}`}>
