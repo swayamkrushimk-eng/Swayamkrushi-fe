@@ -23,6 +23,10 @@ export function getVideoThumbnailUrl(videoUrl) {
         const prefix = prefixMatch[1]
         const remainder = pathname.substring(prefix.length)
         let cleanPath = remainder
+        let customTransform = ''
+        if (trimmed.includes('c_crop') || cleanPath.includes('vcuwit1kzoa5rvnc2zee')) {
+          customTransform = 'c_crop,ar_16:9,g_center/'
+        }
         // Strip any old delivery transformations before /v\d+/ or before file path
         const versionMatch = cleanPath.match(/(v\d+\/.+)$/)
         if (versionMatch) {
@@ -35,7 +39,7 @@ export function getVideoThumbnailUrl(videoUrl) {
           cleanPath += '.jpg'
         }
 
-        urlObj.pathname = prefix + cleanPath
+        urlObj.pathname = prefix + customTransform + cleanPath
         urlObj.protocol = 'https:'
         return urlObj.toString()
       }
@@ -76,6 +80,10 @@ export function getPlayableVideoUrl(videoUrl) {
         const prefix = prefixMatch[1]
         const remainder = pathname.substring(prefix.length)
         let cleanPath = remainder
+        let customTransform = ''
+        if (trimmed.includes('c_crop') || cleanPath.includes('vcuwit1kzoa5rvnc2zee')) {
+          customTransform = 'c_crop,ar_16:9,g_center/'
+        }
         // Strip any existing transformations (e.g. f_auto,q_auto,vc_h264 or previous f_mp4)
         const versionMatch = cleanPath.match(/(v\d+\/.+)$/)
         if (versionMatch) {
@@ -88,7 +96,7 @@ export function getPlayableVideoUrl(videoUrl) {
           cleanPath += '.mp4'
         }
 
-        urlObj.pathname = `${prefix}f_mp4,q_auto,vc_h264/${cleanPath}`
+        urlObj.pathname = `${prefix}${customTransform}f_mp4,q_auto,vc_h264/${cleanPath}`
         urlObj.protocol = 'https:'
         return urlObj.toString()
       }
@@ -235,16 +243,47 @@ export function resolveArticleMedia(article, fallbackImage = null) {
   }
 }
 
-/**
- * Checks if two image URLs point to the same file (supports Cloudinary public IDs and standard URLs)
- */
 export function isSameImage(url1, url2) {
   if (!url1 || !url2) return false
   const u1 = url1.trim().toLowerCase()
   const u2 = url2.trim().toLowerCase()
   if (u1 === u2) return true
+
+  // Compare Cloudinary versioned public IDs
   const matchA = u1.match(/\/v\d+\/([^.?#]+)/)
   const matchB = u2.match(/\/v\d+\/([^.?#]+)/)
   if (matchA && matchB && matchA[1] === matchB[1]) return true
+
+  // Strip query parameters, hashes, and transformations
+  const cleanA = u1.split('?')[0].split('#')[0]
+  const cleanB = u2.split('?')[0].split('#')[0]
+  if (cleanA === cleanB) return true
+
+  // Compare trailing image public ID / filename
+  const fileA = cleanA.split('/').pop().split('.')[0]
+  const fileB = cleanB.split('/').pop().split('.')[0]
+  if (fileA && fileB && fileA.length > 5 && fileA === fileB) return true
+
   return false
+}
+
+/**
+ * Checks whether a URL or data string points to a video resource
+ * @param {string} url - URL or data URI
+ * @returns {boolean}
+ */
+export function isVideoUrl(url) {
+  if (!url || typeof url !== 'string') return false
+  const trimmed = url.trim().toLowerCase()
+  if (!trimmed) return false
+  return (
+    trimmed.endsWith('.mp4') ||
+    trimmed.endsWith('.webm') ||
+    trimmed.endsWith('.ogg') ||
+    trimmed.endsWith('.mov') ||
+    trimmed.endsWith('.m4v') ||
+    trimmed.endsWith('.mkv') ||
+    trimmed.includes('/video/upload/') ||
+    trimmed.startsWith('data:video/')
+  )
 }

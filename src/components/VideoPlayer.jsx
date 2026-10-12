@@ -16,8 +16,8 @@ export default function VideoPlayer({
   durationText = '2:30',
   autoPlay = false,
   showTitleOverlay = false,
-  aspectRatio = '21/9',
-  objectFit = 'cover',
+  aspectRatio = '16/9',
+  objectFit = 'contain',
   className = '',
   style = {},
   onEnded,
@@ -44,6 +44,7 @@ export default function VideoPlayer({
   const [hoverPos, setHoverPos] = useState(0)
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
+  const [intrinsicAspect, setIntrinsicAspect] = useState(null)
 
   // Format time (seconds -> mm:ss)
   const formatTime = (timeInSec) => {
@@ -73,6 +74,11 @@ export default function VideoPlayer({
     setIsPlaying(false)
     setHasError(false)
     setErrorMessage('')
+    setIntrinsicAspect(null)
+
+    if (videoRef.current && videoRef.current.videoWidth && videoRef.current.videoHeight) {
+      setIntrinsicAspect(`${videoRef.current.videoWidth} / ${videoRef.current.videoHeight}`)
+    }
 
     if (autoPlay && videoRef.current) {
       videoRef.current
@@ -282,11 +288,18 @@ export default function VideoPlayer({
 
   const progressPercent = duration > 0 ? (currentTime / duration) * 100 : 0
 
+  const isPortraitMode =
+    aspectRatio === '9/16' ||
+    aspectRatio === '9 / 16' ||
+    aspectRatio === 'portrait'
+
   const containerAspect =
-    !isFullscreen && aspectRatio
-      ? aspectRatio.includes(':')
-        ? aspectRatio.replace(':', ' / ')
-        : aspectRatio
+    !isFullscreen
+      ? (isPortraitMode
+          ? (intrinsicAspect || '9 / 16')
+          : (aspectRatio && aspectRatio !== '21/9' && aspectRatio !== 'auto' && !aspectRatio.startsWith('9')
+              ? (aspectRatio.includes(':') ? aspectRatio.replace(':', ' / ') : aspectRatio)
+              : '16 / 9'))
       : undefined
 
   return (
@@ -309,15 +322,20 @@ export default function VideoPlayer({
           playsInline
           preload="metadata"
           crossOrigin="anonymous"
-          style={{ objectFit: objectFit || 'cover' }}
+          style={{ objectFit: objectFit || 'contain' }}
           onTimeUpdate={() => {
             if (videoRef.current && !isSeeking) {
               setCurrentTime(videoRef.current.currentTime)
             }
           }}
           onLoadedMetadata={() => {
-            if (videoRef.current && videoRef.current.duration) {
-              setDuration(videoRef.current.duration)
+            if (videoRef.current) {
+              if (videoRef.current.duration) {
+                setDuration(videoRef.current.duration)
+              }
+              if (videoRef.current.videoWidth && videoRef.current.videoHeight) {
+                setIntrinsicAspect(`${videoRef.current.videoWidth} / ${videoRef.current.videoHeight}`)
+              }
               setHasError(false)
             }
           }}

@@ -80,10 +80,12 @@ export default function Masthead() {
           </div>
         </div>
 
-        <Link to="/donation" className="hero-side-badge" title="Join Us - Support Swayamkrushi" aria-label="Join Us - Support Swayamkrushi">
+        <Link to="/donation" className="hero-side-badge no-preview" title="Join Us - Support Swayamkrushi" aria-label="Join Us - Support Swayamkrushi" data-no-preview="true">
           <img
             src={heroImages.badge}
             alt="Join us at Swayamkrushi"
+            className="no-preview"
+            data-no-preview="true"
             onError={(e) => { e.target.src = joinUsBadge }}
           />
         </Link>

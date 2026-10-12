@@ -36,12 +36,49 @@ export default function Navbar() {
     })
   }, [])
 
+  const closeAllMenus = () => {
+    setMobileMenuOpen(false)
+    setOpenDropdown(null)
+    if (document.activeElement && typeof document.activeElement.blur === 'function') {
+      document.activeElement.blur()
+    }
+  }
+
+  // Lock body scroll when mobile drawer is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileMenuOpen])
+
+  // Automatically close any open menus and blur focus on route or hash changes
+  useEffect(() => {
+    closeAllMenus()
+  }, [location.pathname, location.hash])
+
+  // Clear open dropdown state when transitioning to desktop screen sizes
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 992) {
+        setMobileMenuOpen(false)
+        setOpenDropdown(null)
+      }
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const toggleDropdown = (name) => {
     setOpenDropdown(openDropdown === name ? null : name)
   }
 
   const handleNavAnchor = (targetId) => {
-    setMobileMenuOpen(false)
+    closeAllMenus()
     if (location.pathname !== '/') {
       navigate('/')
       setTimeout(() => {
@@ -54,13 +91,29 @@ export default function Navbar() {
     }
   }
 
+  const isHome = location.pathname === '/' || location.pathname === ''
+
   return (
-    <nav className="sitebar" aria-label="Main Navigation">
+    <nav className={`sitebar ${isHome ? 'sitebar-home' : 'sitebar-inner-page'}`} aria-label="Main Navigation">
       <div className="sitebar-inner">
+        {!isHome && (
+          <Link
+            to="/"
+            className="mobile-brand"
+            onClick={() => {
+              closeAllMenus()
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            }}
+          >
+            Swayamkrushi
+          </Link>
+        )}
+
         <button
+          type="button"
           className="mobile-toggle"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Toggle menu"
+          aria-label="Toggle navigation menu"
           aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? '✕' : '☰'}
@@ -72,7 +125,7 @@ export default function Navbar() {
               to="/"
               className="nav-home-icon-link"
               onClick={() => {
-                setMobileMenuOpen(false)
+                closeAllMenus()
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }}
               title="Home"
@@ -87,10 +140,12 @@ export default function Navbar() {
                 strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                aria-hidden="true"
               >
                 <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                 <polyline points="9 22 9 12 15 12 15 22" />
               </svg>
+              <span className="nav-home-text">Home</span>
             </Link>
           </li>
           <li className={`has-sub ${openDropdown === 'about' ? 'is-open' : ''}`}>
@@ -110,22 +165,60 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <Link to="/article/dare-to-dream" onClick={() => setMobileMenuOpen(false)}>Dare to Dream</Link>
+                <Link to="/article/dare-to-dream" onClick={closeAllMenus}>Dare to Dream</Link>
               </li>
               <li>
-                <Link to="/committee" onClick={() => setMobileMenuOpen(false)}>Who's Who</Link>
+                <Link to="/committee" onClick={closeAllMenus}>Who's Who</Link>
               </li>
               <li>
-                <Link to="/insiders" onClick={() => setMobileMenuOpen(false)}>Insider's views</Link>
+                <Link to="/insiders" onClick={closeAllMenus}>Insiders' views</Link>
               </li>
               <li>
-                <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>Annual reports</a>
+                <Link to="/annual-reports" onClick={closeAllMenus}>Annual reports</Link>
               </li>
               <li>
-                <Link to="/faq" onClick={() => setMobileMenuOpen(false)}>FAQ</Link>
+                <Link to="/faq" onClick={closeAllMenus}>FAQ</Link>
               </li>
               <li>
-                <Link to="/contact" onClick={() => setMobileMenuOpen(false)}>Contact</Link>
+                <Link to="/contact" onClick={closeAllMenus}>Contact</Link>
+              </li>
+            </ul>
+          </li>
+          <li className={`has-sub ${openDropdown === 'building-blocks' ? 'is-open' : ''}`}>
+            <a
+              href="#building-blocks"
+              onClick={(e) => {
+                if (window.innerWidth <= 992) {
+                  e.preventDefault()
+                  toggleDropdown('building-blocks')
+                } else {
+                  e.preventDefault()
+                  handleNavAnchor('building-blocks')
+                }
+              }}
+            >
+              Building Blocks
+            </a>
+            <ul className="submenu">
+              <li>
+                <Link to="/article/building-blocks" onClick={closeAllMenus}>
+                  Blood, Sweat and Tears
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/home-of-care" onClick={closeAllMenus}>
+                  A Home of Care, Growth and Hope
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/group-homes" onClick={closeAllMenus}>
+                  Group Home — A Pioneering Initiative Ahead of Time
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/bed-hotspot" onClick={closeAllMenus}>
+                  Swayamkrushi — The B.Ed Hotspot
+                </Link>
               </li>
             </ul>
           </li>
@@ -146,17 +239,17 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <Link to="/article/story-encounter" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-encounter" onClick={closeAllMenus}>
                   Chance Encounter That Changed My Life
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-group-homes-initiative" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-group-homes-initiative" onClick={closeAllMenus}>
                   Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-womens-empowerment" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-womens-empowerment" onClick={closeAllMenus}>
                   Women’s empowerment - A byproduct of Swayamkrushi
                 </Link>
               </li>
@@ -179,37 +272,47 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <Link to="/article/story-fifteen-years" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-fifteen-years" onClick={closeAllMenus}>
                   15 Years for One Word, and Then the Exhilaration!
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-art-equaliser" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-art-equaliser" onClick={closeAllMenus}>
                   Art — The Great Equaliser
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-nios" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-nios" onClick={closeAllMenus}>
                   NIOS — Boon for Persons with Intellectual Disabilities
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-paper-bag" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-paper-bag" onClick={closeAllMenus}>
                   Paper Bag Making — It's a 'Mild' Job
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-exercise" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-exercise" onClick={closeAllMenus}>
                   Exercise of a Different Kind
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-sowing-seeds" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-therapy-body-soul-mind" onClick={closeAllMenus}>
+                  Therapy for body, soul and mind
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-sowing-seeds" onClick={closeAllMenus}>
                   Sowing Seeds of Creativity
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-covid" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-kitchen" onClick={closeAllMenus}>
+                  Kitchen — Beehive of Activity
+                </Link>
+              </li>
+              <li>
+                <Link to="/article/story-covid" onClick={closeAllMenus}>
                   The Covid Years — Opportunities to Serve
                 </Link>
               </li>
@@ -235,7 +338,7 @@ export default function Navbar() {
                 <li key={article.id}>
                   <Link
                     to={`/article/${article.id}`}
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={closeAllMenus}
                   >
                     {article.title}
                   </Link>
@@ -260,37 +363,46 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
-                <Link to="/article/story-hard-work" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-hard-work" onClick={closeAllMenus}>
                   Hard Work Never Goes Unrewarded!
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-luck-hardwork" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-luck-hardwork" onClick={closeAllMenus}>
                   Luck, Hard Work and Guardian Angel Spell Success
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-recipe-success" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-recipe-success" onClick={closeAllMenus}>
                   Recipe for Success
                 </Link>
               </li>
               <li>
-                <Link to="/article/story-champions" onClick={() => setMobileMenuOpen(false)}>
+                <Link to="/article/story-champions" onClick={closeAllMenus}>
                   Champions All the Way
                 </Link>
               </li>
             </ul>
           </li>
           <li>
-            <Link to="/accolades" onClick={() => setMobileMenuOpen(false)}>Accolades</Link>
+            <Link to="/accolades" onClick={closeAllMenus}>Accolades</Link>
           </li>
           <li>
-            <Link to="/media-buzz" onClick={() => setMobileMenuOpen(false)}>Media buzz</Link>
+            <Link to="/media-buzz" onClick={closeAllMenus}>Media buzz</Link>
           </li>
           <li>
-            <Link to="/events" onClick={() => setMobileMenuOpen(false)}>Events</Link>
+            <Link to="/events" onClick={closeAllMenus}>Events</Link>
           </li>
         </ul>
+
+        {/* Backdrop for side drawer on mobile */}
+        {mobileMenuOpen && (
+          <div
+            className="sitebar-backdrop"
+            onClick={closeAllMenus}
+            aria-hidden="true"
+          />
+        )}
       </div>
     </nav>
   )

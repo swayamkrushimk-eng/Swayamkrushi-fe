@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { leftSideArticles, rightSideArticles } from '../data/articlesData'
 import { allArticles } from '../data/allArticles'
-import { fetchArticles } from '../services/api'
+import { fetchArticles, isIdDeleted } from '../services/api'
 import ArticleCard from './ArticleCard'
 
 export default function FunFactsRail() {
@@ -13,11 +13,20 @@ export default function FunFactsRail() {
         setApiArticles(data)
       }
     })
+
+    const onUpdate = (e) => {
+      if (e.detail?.data && Array.isArray(e.detail.data)) {
+        setApiArticles(e.detail.data)
+      }
+    }
+    window.addEventListener('swayamkrushi_articles_updated', onUpdate)
+    return () => window.removeEventListener('swayamkrushi_articles_updated', onUpdate)
   }, [])
 
   const findArticle = (id, fallbackIds = []) => {
     const ids = [id, ...fallbackIds]
     for (const testId of ids) {
+      if (isIdDeleted('article', testId)) continue
       const fromApi = apiArticles.find((a) => a.id === testId)
       if (fromApi) return fromApi
       const fromLeft = leftSideArticles.find((a) => a.id === testId)

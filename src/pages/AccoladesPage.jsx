@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { featuredAccolade as defaultFeatured, timelineAccolades as defaultTimeline, certificateGallery as defaultGallery } from '../data/accoladesData'
-import { fetchAccolades } from '../services/api'
+import { fetchAccolades, isIdDeleted } from '../services/api'
 import SEO from '../components/SEO'
 import './AccoladesPage.css'
 
 export default function AccoladesPage() {
-  const [featured, setFeatured] = useState(defaultFeatured)
-  const [timeline, setTimeline] = useState(defaultTimeline)
-  const [certificates, setCertificates] = useState(defaultGallery)
+  const [featured, setFeatured] = useState(null)
+  const [timeline, setTimeline] = useState([])
+  const [certificates, setCertificates] = useState([])
+  const [loading, setLoading] = useState(true)
   const [expandedItems, setExpandedItems] = useState({})
   const [lightboxImage, setLightboxImage] = useState(null)
 
@@ -16,28 +17,49 @@ export default function AccoladesPage() {
     window.scrollTo(0, 0)
     fetchAccolades().then((data) => {
       if (data) {
-        if (data.featured) {
-          setFeatured((prev) => ({
-            ...prev,
+        if (data.featured && !isIdDeleted('accolade', data.featured.id)) {
+          setFeatured({
             ...data.featured,
-            images: prev.images
-          }))
+            images: data.featured.images || defaultFeatured.images
+          })
+        } else if (isIdDeleted('accolade', data.featured?.id)) {
+          setFeatured(null)
+        } else {
+          // Fallback to local if server has no featured
+          if (!isIdDeleted('accolade', defaultFeatured.id)) {
+            setFeatured(defaultFeatured)
+          }
         }
         if (data.timeline && data.timeline.length > 0) {
-          setTimeline(data.timeline.map((item, idx) => ({
+          const cleanedTimeline = data.timeline.filter((item) => !isIdDeleted('accolade', item.id) && !isIdDeleted('accolade', item._id))
+          setTimeline(cleanedTimeline.map((item, idx) => ({
             ...(defaultTimeline[idx] || {}),
             ...item,
             image: item.imageUrl ? { src: item.imageUrl, label: item.imageLabel || item.title } : (defaultTimeline[idx]?.image)
           })))
+        } else {
+          // Fallback to local if server has no timeline
+          setTimeline(defaultTimeline.filter((item) => !isIdDeleted('accolade', item.id)))
         }
         if (data.certificates && data.certificates.length > 0) {
-          setCertificates(data.certificates.map((item, idx) => ({
+          const cleanedCerts = data.certificates.filter((item) => !isIdDeleted('cert', item.id) && !isIdDeleted('cert', item._id))
+          setCertificates(cleanedCerts.map((item, idx) => ({
             ...(defaultGallery[idx] || {}),
             ...item,
             src: item.imageUrl || defaultGallery[idx]?.src
           })))
+        } else {
+          // Fallback to local if server has no certificates
+          setCertificates(defaultGallery.filter((item) => !isIdDeleted('cert', item.id)))
         }
+      } else {
+        // Server returned null — use local fallback
+        if (!isIdDeleted('accolade', defaultFeatured.id)) setFeatured(defaultFeatured)
+        setTimeline(defaultTimeline.filter((item) => !isIdDeleted('accolade', item.id)))
+        setCertificates(defaultGallery.filter((item) => !isIdDeleted('cert', item.id)))
       }
+    }).finally(() => {
+      setLoading(false)
     })
   }, [])
 
@@ -88,11 +110,18 @@ export default function AccoladesPage() {
         </p>
       </header>
 
-      {/* 2. Featured Recognition: 2002 National Award */}
+      {loading ? (
+        <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6f6a6c' }}>
+          <p style={{ fontStyle: 'italic', fontSize: '15px' }}>Loading accolades and recognitions...</p>
+        </div>
+      ) : (
+        <>
+          {/* 2. Featured Recognition */}
+          {featured && featured.title && (
       <section className="accolades-featured-section" aria-label="Featured Recognition">
         <div className="featured-card">
           <div className="featured-content-col">
-            <div className="featured-year-pill">{featured.year} · {featured.badge}</div>
+            {featured.badge && <div className="featured-year-pill">{featured.badge}</div>}
             <h2 className="featured-title">{featured.title}</h2>
             <p className="featured-presenter">{featured.presenter}</p>
             <p className="featured-byline">{featured.presentedBy}</p>
@@ -113,21 +142,23 @@ export default function AccoladesPage() {
           </div>
 
           <div className="featured-media-col">
-            <div
-              className="featured-main-img-wrap"
-              onClick={() => openLightbox({ src: featured.images[0].src, title: featured.title, caption: featured.images[0].label })}
-              title="Click to view full certificate"
-            >
-              <img
-                src={featured.images[0].src}
-                alt={featured.images[0].label}
-                className="featured-img"
-              />
-              <span className="img-zoom-hint">View Certificate</span>
-            </div>
+            {featured.images && featured.images[0] && (
+              <div
+                className="featured-main-img-wrap"
+                onClick={() => openLightbox({ src: featured.images[0].src, title: featured.title, caption: featured.images[0].label })}
+                title="Click to view full certificate"
+              >
+                <img
+                  src={featured.images[0].src}
+                  alt={featured.images[0].label}
+                  className="featured-img"
+                />
+                <span className="img-zoom-hint">View Certificate</span>
+              </div>
+            )}
 
             <div className="featured-thumbs-row">
-              {featured.images.map((img, idx) => (
+              {(featured.images || []).map((img, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -143,11 +174,7 @@ export default function AccoladesPage() {
           </div>
         </div>
       </section>
-
-      {/* Divider */}
-      <div className="accolades-section-divider">
-        <span>CHRONOLOGICAL RECOGNITION TIMELINE</span>
-      </div>
+      )}
 
       {/* 3. Alternating Editorial Timeline Rows */}
       <section className="accolades-timeline-section" aria-label="Awards Timeline">
@@ -161,10 +188,11 @@ export default function AccoladesPage() {
               className={`timeline-row ${isEven ? 'row-text-left' : 'row-text-right'}`}
             >
               <div className="timeline-text-col">
-                <div className="timeline-year-badge">
-                  <span className="timeline-year">{award.year}</span>
-                  {award.badge && <span className="timeline-tag">{award.badge}</span>}
-                </div>
+                {award.badge && (
+                  <div className="timeline-year-badge">
+                    <span className="timeline-tag">{award.badge}</span>
+                  </div>
+                )}
 
                 <h3 className="timeline-title">{award.title}</h3>
                 <p className="timeline-presenter">{award.presenter}</p>
@@ -234,7 +262,6 @@ export default function AccoladesPage() {
                 <span className="gallery-zoom-badge">View Document</span>
               </div>
               <div className="gallery-meta">
-                <span className="gallery-year">{item.year}</span>
                 <h4 className="gallery-item-title">{item.title}</h4>
                 <p className="gallery-item-caption">{item.caption}</p>
               </div>
@@ -242,6 +269,8 @@ export default function AccoladesPage() {
           ))}
         </div>
       </section>
+      </>
+      )}
 
       {/* Lightbox Modal */}
       {lightboxImage && (

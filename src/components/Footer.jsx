@@ -48,10 +48,6 @@ export default function Footer() {
     }
   }
 
-  const handleScrollTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   return (
     <>
       {/* ─── COMPREHENSIVE BROADSHEET FOOTER (CONTACT & INFO) ──────── */}
@@ -145,7 +141,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link to="/insiders">
-                  Insider's Views
+                  Insiders' Views
                 </Link>
               </li>
               <li>
@@ -169,6 +165,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/annual-reports">
+                  Annual Reports
+                </Link>
+              </li>
+              <li>
                 <Link to="/faq">
                   Frequently Asked Questions
                 </Link>
@@ -181,21 +182,8 @@ export default function Footer() {
         {/* ─── COLOPHON BOTTOM BAR ─────────────────────────────────── */}
         <div className="footer-bottom-bar">
           <div className="footer-bottom-inner">
-            <div className="footer-copyright">
-              © 2026 Swayamkrushi · Reg. No. 3608/1991 · All Rights Reserved
-            </div>
-            <div className="footer-bottom-nav">
-              <a href="#about" onClick={(e) => { e.preventDefault(); handleNavAnchor('about'); }}>About</a>
-              <span>·</span>
-              <Link to="/donation">Donation</Link>
-              <span>·</span>
-              <Link to="/insiders">Insider's views</Link>
-              <span>·</span>
-              <Link to="/contact">Contact</Link>
-              <span>·</span>
-              <button onClick={handleScrollTop} className="footer-top-btn" title="Back to top">
-                Top ↑
-              </button>
+            <div className="footer-developer-credit">
+              Developed by <span className="dev-company-name">The Skyweb IT Solutions Pvt. Ltd.</span>
             </div>
           </div>
         </div>

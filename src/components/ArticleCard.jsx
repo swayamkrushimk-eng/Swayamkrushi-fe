@@ -18,7 +18,8 @@ export default function ArticleCard(props) {
     featuredMediaType,
     videoUrl,
     videoThumbnailUrl,
-    videoPosterUrl
+    videoPosterUrl,
+    quote
   } = props
 
   const isThumbnailSettingEnabled =
@@ -75,6 +76,8 @@ export default function ArticleCard(props) {
       to={`/article/${id}`}
       className={`rail-item ${mediaInfo.isVideo ? 'rail-item-video-card' : ''}`}
       id={id}
+      data-is-video={mediaInfo.isVideo ? 'true' : undefined}
+      data-media-type={mediaInfo.isVideo ? 'video' : 'image'}
     >
       {shouldRenderThumbnail && (
         <div className="rail-thumb-container">
@@ -84,7 +87,8 @@ export default function ArticleCard(props) {
               alt={imageAlt || title}
               onError={handleError}
               loading="lazy"
-              className="rail-thumb-img"
+              className={`rail-thumb-img ${mediaInfo.isVideo ? 'no-preview video-thumb' : ''}`}
+              data-no-preview={mediaInfo.isVideo ? 'true' : undefined}
             />
           ) : (
             <div className="rail-video-placeholder-thumb" />
@@ -98,6 +102,16 @@ export default function ArticleCard(props) {
               </svg>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Article Highlight Quote / Kicker Box */}
+      {(quote || id === 'story-champions') && (
+        <div className="article-card-quote-box">
+          <p>
+            {quote ||
+              'Every life at Swayamkrushi is a story of courage, growth, and achievement. Here are just a few of the journeys that inspire us every day.'}
+          </p>
         </div>
       )}
 

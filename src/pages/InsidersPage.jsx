@@ -26,7 +26,8 @@ const INITIAL_INSIDERS = [
 ]
 
 export default function InsidersPage() {
-  const [insiders, setInsiders] = useState(INITIAL_INSIDERS)
+  const [insiders, setInsiders] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Fetch dynamic videos from backend API (matches live Admin portal items)
   useEffect(() => {
@@ -34,17 +35,23 @@ export default function InsidersPage() {
       .then((data) => {
         if (data && Array.isArray(data) && data.length > 0) {
           setInsiders(data)
+        } else {
+          // Fallback to local only if server returns nothing
+          setInsiders(INITIAL_INSIDERS)
         }
       })
-      .catch(() => {})
+      .catch(() => {
+        setInsiders(INITIAL_INSIDERS)
+      })
+      .finally(() => setLoading(false))
   }, [])
 
   return (
     <main className="insiders-page-wrap">
       <SEO
-        title="Insider's Views — What they have to say.... | Swayamkrushi"
+        title="Insiders' Views — What they have to say.... | Swayamkrushi"
         description="Watch inspiring video stories and interviews from special educators, speech therapists, alumni, parents, and leaders at Swayamkrushi."
-        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories, Insider's Views"
+        keywords="Swayamkrushi videos, special educator interviews, disability success stories, group home testimonials, Hyderabad NGO stories, Insiders' Views"
         canonicalUrl="https://swayamkrushi.org/#/insiders"
       />
 
@@ -54,15 +61,23 @@ export default function InsidersPage() {
       </header>
 
       {/* Video Grid - Render only active posted stories */}
-      <section className="insiders-video-grid-2x2" aria-label="Video Testimonials Grid">
-        {insiders.map((item) => {
+      <section
+        className="insiders-video-grid-2x2"
+        aria-label="Video Testimonials Grid"
+        style={loading ? { minHeight: '60vh' } : undefined}
+      >
+        {loading ? (
+          <div style={{ gridColumn: '1 / -1', minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6f6a6c' }}>
+            <p style={{ fontStyle: 'italic', fontSize: '15px' }}>Loading videos...</p>
+          </div>
+        ) : insiders.map((item) => {
           const hasQuote =
             item.quote &&
             typeof item.quote === 'string' &&
-            item.quote.replace(/["'“”\s]/g, '').trim().length > 0
+            item.quote.replace(/["'""\s]/g, '').trim().length > 0
 
           const cleanQuote = hasQuote
-            ? item.quote.replace(/^["'“”\s]+|["'“”\s]+$/g, '').trim()
+            ? item.quote.replace(/^["'""\s]+|["'""\s]+$/g, '').trim()
             : ''
 
           const hasDesc =
@@ -71,7 +86,7 @@ export default function InsidersPage() {
             item.description.trim().length > 0
 
           return (
-            <article key={item._id || item.id} className="insider-video-card-direct">
+            <article key={item._id || item.id} className="insider-video-card-direct" data-is-video="true">
               {/* Video Player Container */}
               <div className="insider-video-player-container">
                 <VideoPlayer
@@ -80,7 +95,7 @@ export default function InsidersPage() {
                   title={item.name}
                   subtitle={item.role}
                   aspectRatio="16/9"
-                  objectFit="cover"
+                  objectFit="contain"
                 />
               </div>
 
@@ -91,7 +106,7 @@ export default function InsidersPage() {
 
                 {hasQuote && (
                   <blockquote className="insider-card-quote">
-                    “{cleanQuote}”
+                    "{cleanQuote}"
                   </blockquote>
                 )}
 

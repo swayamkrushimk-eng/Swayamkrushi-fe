@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
-import { fetchCommitteeMembers } from '../services/api'
+import { fetchCommitteeMembers, isIdDeleted } from '../services/api'
 import manjulaPortrait from '../assets/images/manjula-portrait.jpeg'
 import chennaSaratbabuPortrait from '../assets/images/chenna-saratbabu-portrait.jpg'
 import bhanojiRaoPortrait from '../assets/images/bhanoji-rao-portrait.jpg'
@@ -171,7 +171,8 @@ export const COMMITTEE_MEMBERS = [
 ]
 
 export default function CommitteePage() {
-  const [membersList, setMembersList] = useState(COMMITTEE_MEMBERS)
+  const [membersList, setMembersList] = useState([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -180,29 +181,39 @@ export default function CommitteePage() {
         const data = await fetchCommitteeMembers()
         if (Array.isArray(data) && data.length > 0) {
           // Merge portrait image references if string matches static imports
-          const mapped = data.map((m) => {
-            const hasCustomUploadedUrl = m.image && (m.image.startsWith('data:') || m.image.startsWith('http') || m.image.startsWith('/uploads'))
-            if (hasCustomUploadedUrl) return m
+          const mapped = data
+            .filter((m) => !isIdDeleted('committee', m.id) && !isIdDeleted('committee', m._id))
+            .map((m) => {
+              const hasCustomUploadedUrl = m.image && (m.image.startsWith('data:') || m.image.startsWith('http') || m.image.startsWith('/uploads'))
+              if (hasCustomUploadedUrl) return m
 
-            if (m.id === 'manjulaa-kalyaan') return { ...m, image: manjulaPortrait }
-            if (m.id === 'chenna-saratbabu') return { ...m, image: chennaSaratbabuPortrait }
-            if (m.id === 'bhanoji-rao') return { ...m, image: bhanojiRaoPortrait }
-            if (m.id === 't-suresh') return { ...m, image: tSureshPortrait }
-            if (m.id === 'ram-prasad-talluri') return { ...m, image: ramPrasadPortrait }
-            if (m.id === 'satyanarayana-murthy') return { ...m, image: satyanarayanaMurthyPortrait }
-            if (m.id === 'malleswari-bandaru') return { ...m, image: malleswariBandaruPortrait }
-            if (m.id === 's-jayram') return { ...m, image: sJayramPortrait }
-            if (m.id === 'b-suresh-kumar') return { ...m, image: bSureshKumarPortrait }
-            if (m.id === 'k-jayalakshmi') return { ...m, image: kJayalakshmiPortrait }
-            return m
-          })
+              if (m.id === 'manjulaa-kalyaan') return { ...m, image: manjulaPortrait }
+              if (m.id === 'chenna-saratbabu') return { ...m, image: chennaSaratbabuPortrait }
+              if (m.id === 'bhanoji-rao') return { ...m, image: bhanojiRaoPortrait }
+              if (m.id === 't-suresh') return { ...m, image: tSureshPortrait }
+              if (m.id === 'ram-prasad-talluri') return { ...m, image: ramPrasadPortrait }
+              if (m.id === 'satyanarayana-murthy') return { ...m, image: satyanarayanaMurthyPortrait }
+              if (m.id === 'malleswari-bandaru') return { ...m, image: malleswariBandaruPortrait }
+              if (m.id === 's-jayram') return { ...m, image: sJayramPortrait }
+              if (m.id === 'b-suresh-kumar') return { ...m, image: bSureshKumarPortrait }
+              if (m.id === 'k-jayalakshmi') return { ...m, image: kJayalakshmiPortrait }
+              return m
+            })
           setMembersList(mapped)
         } else {
-          // Seed localStorage so admin immediately has the members
-          localStorage.setItem('swayamkrushi_committee_members', JSON.stringify(COMMITTEE_MEMBERS))
+          // Fallback to local only if server returns nothing
+          setMembersList(
+            COMMITTEE_MEMBERS.filter((m) => !isIdDeleted('committee', m.id))
+          )
         }
       } catch (err) {
         console.warn('Error loading committee members:', err)
+        // Fallback to local on error
+        setMembersList(
+          COMMITTEE_MEMBERS.filter((m) => !isIdDeleted('committee', m.id))
+        )
+      } finally {
+        setLoading(false)
       }
     }
     loadMembers()
@@ -222,8 +233,12 @@ export default function CommitteePage() {
         </header>
 
         {/* Profile Card Grid */}
-        <div className="committee-grid">
-          {membersList.map((member) => {
+        <div className="committee-grid" style={loading ? { minHeight: '60vh' } : undefined}>
+          {loading ? (
+            <div style={{ gridColumn: '1 / -1', minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6f6a6c' }}>
+              <p style={{ fontStyle: 'italic', fontSize: '15px' }}>Loading committee members...</p>
+            </div>
+          ) : membersList.map((member) => {
             const roleText = (member.role && member.role.trim()) || (member.designation && member.designation.trim()) || 'Committee Member'
             return (
               <article

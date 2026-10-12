@@ -112,6 +112,71 @@
 
 .article-hero-video-figure {
   margin: 20px 0 24px;
+  width: 100%;
+}
+
+.article-hero-video-figure.size-small {
+  max-width: 540px !important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.article-hero-video-figure.size-small.float-left {
+  float: left !important;
+  max-width: 48% !important;
+  margin: 10px 28px 20px 0 !important;
+}
+
+.article-hero-video-figure.size-small.float-right {
+  float: right !important;
+  max-width: 48% !important;
+  margin: 10px 0 20px 28px !important;
+}
+
+.article-hero-video-figure.size-big {
+  width: 100% !important;
+  max-width: 100% !important;
+  float: none !important;
+  clear: both !important;
+  margin: 20px 0 26px !important;
+}
+
+/* Portrait Video (e.g. Dairy for a Purpose): Keep it small and elegant */
+.article-hero-video-figure.is-portrait-video {
+  width: 290px !important;
+  max-width: 290px !important;
+}
+
+.article-hero-video-figure.is-portrait-video.float-left {
+  float: left !important;
+  margin: 8px 26px 18px 0 !important;
+  clear: left !important;
+}
+
+.article-hero-video-figure.is-portrait-video.float-right {
+  float: right !important;
+  margin: 8px 0 18px 26px !important;
+  clear: right !important;
+}
+
+.article-hero-video-figure.is-portrait-video.float-center {
+  float: none !important;
+  clear: both !important;
+  margin: 16px auto 22px !important;
+}
+
+/* When hero video is floated on the right (portrait), ensure subsequent inline figures clear it to prevent text pinching */
+.article-hero-video-figure.is-portrait-video.float-right ~ .article-editorial-body .article-inline-figure {
+  clear: both !important;
+}
+
+@media (max-width: 680px) {
+  .article-hero-video-figure.is-portrait-video {
+    width: 250px !important;
+    max-width: 250px !important;
+    float: none !important;
+    margin: 14px auto 20px !important;
+  }
 }
 
 .article-video-player-container {
@@ -119,13 +184,14 @@
   overflow: hidden;
   box-shadow: 0 6px 24px rgba(45, 22, 30, 0.12);
   border: 1px solid rgba(45, 22, 30, 0.15);
-  background: #000000;
+  background: transparent;
 }
 
 .article-hero-img {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  object-position: center top;
   border: 0;
   border-radius: 2px;
   background: #ece8e6;
@@ -158,35 +224,73 @@
 .article-editorial-body p {
   margin: 0 0 16px;
   font-weight: 400;
+  text-wrap: pretty;
 }
 
 /* Inline Floated Editorial Media (Inside Article Body with text flowing beside it) */
 .article-inline-figure {
   display: flex !important;
   flex-direction: column !important;
-  width: 380px !important;
-  max-width: 48% !important;
   background: transparent !important;
   border: none !important;
   padding: 0 !important;
   box-shadow: none !important;
   box-sizing: border-box !important;
-  clear: both !important;
+}
+
+/* Size Small: Side column measure (~340px, text wraps gracefully beside) */
+.article-inline-figure.size-small,
+.article-inline-figure:not(.size-big) {
+  width: 350px !important;
+  max-width: 44% !important;
 }
 
 /* Explicit float-right */
-.article-inline-figure.float-right,
-.article-inline-figure:not(.float-left) {
+.article-inline-figure.float-right {
   float: right !important;
-  clear: both !important;
+  clear: right !important;
   margin: 10px 0 22px 28px !important;
 }
 
 /* Explicit float-left */
 .article-inline-figure.float-left {
   float: left !important;
-  clear: both !important;
+  clear: left !important;
   margin: 10px 28px 22px 0 !important;
+}
+
+/* Default float if unspecified and not size-big */
+.article-inline-figure:not(.float-left):not(.float-center):not(.size-big) {
+  float: right !important;
+  clear: right !important;
+  margin: 10px 0 22px 28px !important;
+}
+
+/* Explicit center / Full-Width */
+.article-inline-figure.float-center {
+  float: none !important;
+  clear: both !important;
+  margin: 26px auto !important;
+  text-align: center;
+}
+
+/* Size Big: Expansive full-width measure (100% width, clear both, text flows above and below) */
+.article-inline-figure.size-big {
+  width: 100% !important;
+  max-width: 100% !important;
+  float: none !important;
+  clear: both !important;
+  margin: 28px 0 24px 0 !important;
+  display: flex !important;
+}
+
+.article-inline-figure.size-big img,
+.article-inline-figure.size-big .article-inline-img {
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 520px !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
 }
 
 .article-inline-figure + .article-inline-figure {
@@ -390,6 +494,47 @@
   color: var(--burgundy, #6e1e38);
 }
 
+.bottom-section-quote-item {
+  list-style: none;
+  padding: 2px 0 4px;
+}
+
+.bottom-section-quote {
+  margin: 6px 0 6px;
+  padding: 10px 12px;
+  background: rgba(110, 30, 56, 0.04);
+  border-left: 2.5px solid var(--burgundy, #6e1e38);
+  border-radius: 4px;
+}
+
+.bottom-section-quote-text {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 12.5px;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--burgundy, #6e1e38);
+  margin: 0;
+}
+
+.article-quote-box-above-title {
+  background: rgba(110, 30, 56, 0.04);
+  border: 1px solid rgba(110, 30, 56, 0.15);
+  border-left: 3.5px solid var(--burgundy, #6e1e38);
+  border-radius: 5px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  max-width: 720px;
+}
+
+.article-quote-box-text {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 15.5px;
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--burgundy, #6e1e38);
+  margin: 0;
+}
+
 @media (max-width: 768px) {
   .bottom-sections-grid {
     grid-template-columns: 1fr;
@@ -437,6 +582,7 @@
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
+  object-position: center top;
   border: 0;
   margin-bottom: 10px;
   background: #ece8e6;
@@ -502,37 +648,6 @@
   text-decoration: underline;
 }
 
-@media (max-width: 680px) {
-  .article-page-wrap {
-    padding: 12px 14px 40px;
-  }
-  .article-meta-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .article-actions-group {
-    width: 100%;
-    justify-content: flex-start;
-  }
-  .article-inline-figure,
-  .article-inline-figure.float-right,
-  .article-inline-figure.float-left,
-  .article-rich-content > img,
-  .article-rich-content p > img,
-  .article-rich-chunk > img {
-    float: none !important;
-    clear: both !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 16px 0 !important;
-    padding: 0;
-    background: transparent;
-    border: none;
-    box-shadow: none;
-  }
-}
-
 /* Rich Content Body (Images, Videos, Embeds from Tiptap Editor) */
 .article-rich-content {
   font-size: 16.5px;
@@ -550,15 +665,75 @@
 .article-embedded-video-card {
   margin: 26px 0 30px;
   width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(110, 30, 56, 0.15);
-  background: #11090d;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
+  background: transparent;
 }
 
 .article-embedded-video-card .pro-player-container {
-  box-shadow: none;
-  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+}
+
+/* Compact / Small Floated Video Cards (One Right, One Left) */
+.article-editorial-body .article-embedded-video-card.size-small,
+.article-rich-content .article-embedded-video-card.size-small,
+.article-inline-figure.article-inline-video-figure.size-small {
+  width: 360px !important;
+  max-width: 48% !important;
+  border-radius: 8px !important;
+  box-sizing: border-box !important;
+}
+
+.article-editorial-body .article-embedded-video-card.size-small.float-right,
+.article-rich-content .article-embedded-video-card.size-small.float-right,
+.article-inline-figure.article-inline-video-figure.float-right {
+  float: right !important;
+  clear: right !important;
+  margin: 10px 0 24px 28px !important;
+}
+
+.article-editorial-body .article-embedded-video-card.size-small.float-left,
+.article-rich-content .article-embedded-video-card.size-small.float-left,
+.article-inline-figure.article-inline-video-figure.float-left {
+  float: left !important;
+  clear: left !important;
+  margin: 10px 28px 24px 0 !important;
+}
+
+.article-embedded-video-card.size-small .pro-player-container,
+.article-inline-figure.article-inline-video-figure .article-video-player-container {
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.article-embedded-video-caption {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: 13.5px;
+  line-height: 1.45;
+  color: #000000;
+  margin-top: 8px;
+  padding: 0;
+  text-align: left;
+}
+
+.article-embedded-video-caption strong {
+  font-weight: 700;
+  color: #000000;
+  letter-spacing: 0.02em;
+}
+
+.article-embedded-video-caption span {
+  font-style: italic;
+  color: #000000;
+}
+
+.article-inline-figure.article-inline-video-figure .article-video-player-container video {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: cover !important;
+  display: block !important;
 }
 
 .article-rich-content > img,
@@ -616,4 +791,53 @@
 
 .article-rich-content li {
   margin-bottom: 8px;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 680px) {
+  .article-page-wrap {
+    padding: 12px 14px 40px;
+  }
+  .article-headline {
+    font-size: clamp(23px, 6.2vw, 29px);
+    line-height: 1.2;
+  }
+  .article-meta-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 10px 0;
+  }
+  .article-actions-group {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 14px;
+  }
+  .article-inline-figure,
+  .article-inline-figure.float-right,
+  .article-inline-figure.float-left,
+  .article-inline-figure.float-center,
+  .article-hero-video-figure,
+  .article-hero-video-figure.size-small,
+  .article-hero-video-figure.float-left,
+  .article-hero-video-figure.float-right,
+  .article-embedded-video-card.size-small,
+  .article-inline-figure.article-inline-video-figure.size-small,
+  .article-rich-content > img,
+  .article-rich-content p > img,
+  .article-rich-chunk > img {
+    float: none !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 16px 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+  .article-editorial-body {
+    font-size: 15.5px;
+    line-height: 1.65;
+  }
 }

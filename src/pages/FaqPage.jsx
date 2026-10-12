@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { fetchFaqs, fetchSettings } from '../services/api'
+import { fetchFaqs, fetchSettings, isIdDeleted } from '../services/api'
 import SEO from '../components/SEO'
 import './FaqPage.css'
 
@@ -44,7 +44,7 @@ export const defaultFaqItems = [
 ]
 
 export default function FaqPage() {
-  const [items, setItems] = useState(defaultFaqItems)
+  const [items, setItems] = useState(() => defaultFaqItems.filter((i) => !isIdDeleted('faq', i.id)))
   const [openItems, setOpenItems] = useState({
     'faq-enrollment': true,
     'faq-age-groups': true,
@@ -64,17 +64,27 @@ export default function FaqPage() {
     window.scrollTo(0, 0)
     fetchFaqs().then((data) => {
       if (data && Array.isArray(data) && data.length > 0) {
-        setItems(data)
+        const cleaned = data.filter((d) => !isIdDeleted('faq', d.id) && !isIdDeleted('faq', d._id))
+        setItems(cleaned)
         const initialOpens = {}
-        data.forEach((d) => {
+        cleaned.forEach((d) => {
           initialOpens[d.id || d._id] = true
         })
         setOpenItems(initialOpens)
+      } else {
+        setItems((prev) => prev.filter((d) => !isIdDeleted('faq', d.id)))
       }
     })
 
     fetchSettings().then((data) => {
-      if (data) setSiteSettings(data)
+      if (data) {
+        setSiteSettings({
+          ...data,
+          phone1: (!data.phone1 || data.phone1.includes('XXXXXXXXXX') || data.phone1.includes('9704245454'))
+            ? '+91 9100106454'
+            : data.phone1
+        })
+      }
     })
   }, [])
 
@@ -98,15 +108,6 @@ export default function FaqPage() {
   }
 
   const areAllOpen = items.every((item) => openItems[item.id])
-
-  const handleContactAnchor = (e) => {
-    e.preventDefault()
-    navigate('/')
-    setTimeout(() => {
-      const el = document.getElementById('contact')
-      if (el) el.scrollIntoView({ behavior: 'smooth' })
-    }, 120)
-  }
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -201,22 +202,13 @@ export default function FaqPage() {
         </div>
 
         <div className="faq-contact-actions">
-          <a
-            href="#contact"
-            onClick={handleContactAnchor}
-            className="faq-contact-btn"
-          >
-            Contact Us Today →
-          </a>
           <div className="faq-contact-details">
             <span>
               <strong>Phone:</strong>{' '}
-              {siteSettings.phone1 && (
-                <a href={`tel:${siteSettings.phone1.replace(/\s+/g, '')}`}>
-                  {siteSettings.phone1}
-                </a>
-              )}
-              {siteSettings.phone2 && (
+              <a href={`tel:${((siteSettings.phone1 && !siteSettings.phone1.includes('XXXXXXXXXX') && !siteSettings.phone1.includes('9704245454')) ? siteSettings.phone1 : '+91 9100106454').replace(/\s+/g, '')}`}>
+                {(siteSettings.phone1 && !siteSettings.phone1.includes('XXXXXXXXXX') && !siteSettings.phone1.includes('9704245454')) ? siteSettings.phone1 : '+91 9100106454'}
+              </a>
+              {siteSettings.phone2 && !siteSettings.phone2.includes('XXXXXXXXXX') && (
                 <>
                   {' '}·{' '}
                   <a href={`tel:${siteSettings.phone2.replace(/\s+/g, '')}`}>

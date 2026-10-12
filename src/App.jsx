@@ -13,6 +13,8 @@ import CommitteePage from './pages/CommitteePage'
 import MediaBuzzPage from './pages/MediaBuzzPage'
 import EventsPage from './pages/EventsPage'
 import DonationPage from './pages/DonationPage'
+import AnnualReportsPage from './pages/AnnualReportsPage'
+import ImagePreviewModal from './components/ImagePreviewModal'
 import { trackPageView } from './services/api'
 
 function PageTracker() {
@@ -29,34 +31,42 @@ function App() {
   return (
     <HashRouter>
       <PageTracker />
-      <Navbar />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/article/:id" element={<ArticlePage />} />
-        <Route path="/accolades" element={<AccoladesPage />} />
-        <Route path="/faq" element={<FaqPage />} />
-        <Route path="/insiders" element={<InsidersPage />} />
-        <Route path="/insideros" element={<InsidersPage />} />
-        <Route path="/committee" element={<CommitteePage />} />
-        <Route path="/who-is-who" element={<CommitteePage />} />
-        <Route path="/managing-committee" element={<CommitteePage />} />
-        <Route path="/about/committee" element={<CommitteePage />} />
-        <Route path="/media-buzz" element={<MediaBuzzPage />} />
-        <Route path="/mediabuzz" element={<MediaBuzzPage />} />
-        <Route path="/media" element={<MediaBuzzPage />} />
-        <Route path="/addons" element={<AddonsPage />} />
-        <Route path="/add-ons" element={<AddonsPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/activities-galore" element={<HomePage />} />
-        <Route path="/activities" element={<HomePage />} />
-        <Route path="/events" element={<EventsPage />} />
-        <Route path="/event" element={<EventsPage />} />
-        <Route path="/donation" element={<DonationPage />} />
-        <Route path="/donations" element={<DonationPage />} />
-        <Route path="/donate" element={<DonationPage />} />
-        <Route path="/give" element={<DonationPage />} />
-      </Routes>
-      <Footer />
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar />
+        <div style={{ flex: 1, minHeight: 'calc(100vh - 140px)' }}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/article/:id" element={<ArticlePage />} />
+            <Route path="/accolades" element={<AccoladesPage />} />
+            <Route path="/faq" element={<FaqPage />} />
+            <Route path="/insiders" element={<InsidersPage />} />
+            <Route path="/insideros" element={<InsidersPage />} />
+            <Route path="/committee" element={<CommitteePage />} />
+            <Route path="/who-is-who" element={<CommitteePage />} />
+            <Route path="/managing-committee" element={<CommitteePage />} />
+            <Route path="/about/committee" element={<CommitteePage />} />
+            <Route path="/media-buzz" element={<MediaBuzzPage />} />
+            <Route path="/mediabuzz" element={<MediaBuzzPage />} />
+            <Route path="/media" element={<MediaBuzzPage />} />
+            <Route path="/addons" element={<AddonsPage />} />
+            <Route path="/add-ons" element={<AddonsPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/activities-galore" element={<HomePage />} />
+            <Route path="/activities" element={<HomePage />} />
+            <Route path="/annual-reports" element={<AnnualReportsPage />} />
+            <Route path="/annual-report" element={<AnnualReportsPage />} />
+            <Route path="/about/annual-reports" element={<AnnualReportsPage />} />
+            <Route path="/events" element={<EventsPage />} />
+            <Route path="/event" element={<EventsPage />} />
+            <Route path="/donation" element={<DonationPage />} />
+            <Route path="/donations" element={<DonationPage />} />
+            <Route path="/donate" element={<DonationPage />} />
+            <Route path="/give" element={<DonationPage />} />
+          </Routes>
+        </div>
+        <Footer />
+        <ImagePreviewModal />
+      </div>
     </HashRouter>
   )
 }
