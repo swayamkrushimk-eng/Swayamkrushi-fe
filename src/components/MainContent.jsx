@@ -11,6 +11,7 @@ import {
 } from '../data/articlesData'
 import { fetchArticles, isIdDeleted } from '../services/api'
 import VideoPlayer from './VideoPlayer'
+import ArticleAudioPlayer from './ArticleAudioPlayer'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import buildingBlocksSvg from '../assets/images/mocks/building-blocks.svg'
 
@@ -60,7 +61,10 @@ export default function MainContent() {
       {/* 1. Top Feature: A Game of Building Blocks */}
       {buildingBlocks && (
         <section id="building-blocks">
-        <h2>{buildingBlocks.title}</h2>
+        <div className="story-title-with-mic">
+          <h2>{buildingBlocks.title}</h2>
+          <ArticleAudioPlayer article={buildingBlocks} compact />
+        </div>
         <p className="lede">
           {buildingBlocks.paragraphs[0]}
         </p>
@@ -114,7 +118,10 @@ export default function MainContent() {
         <section id="about" className="center-about">
           {homeOfCare && (
             <div className="center-story">
-              <h2>{homeOfCare.title}</h2>
+              <div className="story-title-with-mic">
+                <h2>{homeOfCare.title}</h2>
+                <ArticleAudioPlayer article={homeOfCare} compact />
+              </div>
               <p className="lede">
                 {homeOfCare.excerpt}
               </p>
@@ -172,7 +179,10 @@ export default function MainContent() {
           {/* 3. Second Feature: Group Homes */}
           {groupHomes && (
             <div className="center-story">
-              <h2 className="story-head">{groupHomes.title}</h2>
+              <div className="story-title-with-mic">
+                <h2 className="story-head">{groupHomes.title}</h2>
+                <ArticleAudioPlayer article={groupHomes} compact />
+              </div>
               {!groupHomesMedia.isText && (
                 <figure
                   className={groupHomesMedia.isVideo ? 'main-story-video-container' : ''}
@@ -224,7 +234,10 @@ export default function MainContent() {
           {/* 4. Third Feature: The B.Ed Hotspot */}
           {bedHotspot && (
             <div className="center-story center-last-story">
-              <h2 className="story-head">{bedHotspot.title}</h2>
+              <div className="story-title-with-mic">
+                <h2 className="story-head">{bedHotspot.title}</h2>
+                <ArticleAudioPlayer article={bedHotspot} compact />
+              </div>
               {!bedHotspotMedia.isText && (
                 <figure
                   className={bedHotspotMedia.isVideo ? 'main-story-video-container' : ''}

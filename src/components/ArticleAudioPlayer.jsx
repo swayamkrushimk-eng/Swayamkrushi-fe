@@ -3,9 +3,29 @@ import {
   generateCartesiaSpeech,
   buildArticleNarrationText,
 } from '../services/cartesiaTts'
+import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './ArticleAudioPlayer.css'
 
-export default function ArticleAudioPlayer({ article }) {
+function MicIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+      <path d="M5 10v2a7 7 0 0 0 14 0v-2"></path>
+      <line x1="12" y1="19" x2="12" y2="22"></line>
+      <line x1="8" y1="22" x2="16" y2="22"></line>
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <rect x="6" y="6" width="12" height="12" rx="1.5"></rect>
+    </svg>
+  )
+}
+
+export default function ArticleAudioPlayer({ article, compact = false }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [audioUrl, setAudioUrl] = useState(null)
@@ -17,11 +37,9 @@ export default function ArticleAudioPlayer({ article }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const audioRef = useRef(null)
+  const ownerId = `tts:${article?.id || 'current-article'}`
 
-  // Calculate approximate listen time based on word count (~140 wpm)
   const text = buildArticleNarrationText(article)
-  const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0
-  const estimatedMinutes = Math.max(1, Math.ceil(wordCount / 140))
 
   // Reset audio when article changes
   useEffect(() => {
@@ -48,9 +66,31 @@ export default function ArticleAudioPlayer({ article }) {
     }
   }, [])
 
+  useEffect(() => {
+    return subscribeExclusiveMedia(ownerId, () => {
+      if (audioRef.current) {
+        audioRef.current.pause()
+      }
+      setIsPlaying(false)
+    })
+  }, [ownerId])
+
+  const stopNarration = () => {
+    if (audioRef.current) {
+      audioRef.current.pause()
+      audioRef.current.currentTime = 0
+    }
+    setIsPlaying(false)
+    setIsLoading(false)
+    if (!compact) setIsExpanded(false)
+    setCurrentTime(0)
+  }
+
   const handleStartListening = async () => {
+    claimExclusiveMedia(ownerId)
+    if (compact && isPlaying) return
     setError(null)
-    setIsExpanded(true)
+    if (!compact) setIsExpanded(true)
 
     const attachAndPlay = async (url) => {
       const audio = new Audio(url)
@@ -76,6 +116,7 @@ export default function ArticleAudioPlayer({ article }) {
       }
 
       audioRef.current = audio
+      claimExclusiveMedia(ownerId)
       await audio.play()
       setIsPlaying(true)
     }
@@ -138,6 +179,7 @@ export default function ArticleAudioPlayer({ article }) {
       audioRef.current.pause()
       setIsPlaying(false)
     } else {
+      claimExclusiveMedia(ownerId)
       audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error)
     }
   }
@@ -174,13 +216,7 @@ export default function ArticleAudioPlayer({ article }) {
   }
 
   const handleClose = () => {
-    if (audioRef.current) {
-      audioRef.current.pause()
-      audioRef.current.currentTime = 0
-    }
-    setIsPlaying(false)
-    setIsExpanded(false)
-    setCurrentTime(0)
+    stopNarration()
   }
 
   const formatTime = (secs) => {
@@ -188,6 +224,34 @@ export default function ArticleAudioPlayer({ article }) {
     const m = Math.floor(secs / 60)
     const s = Math.floor(secs % 60)
     return `${m}:${s < 10 ? '0' : ''}${s}`
+  }
+
+  if (compact) {
+    return (
+      <div className="article-audio-compact" aria-label="Article voice narration">
+        <button
+          type="button"
+          className={`audio-compact-mic-btn${isLoading ? ' is-loading' : ''}${isPlaying ? ' is-playing' : ''}`}
+          onClick={handleStartListening}
+          disabled={isLoading}
+          title={error || (isPlaying ? 'Listening' : 'Listen to this article')}
+          aria-label={isPlaying ? 'Listening to this article' : 'Listen to this article'}
+        >
+          <MicIcon />
+        </button>
+        {isPlaying && (
+          <button
+            type="button"
+            className="audio-compact-stop-btn"
+            onClick={stopNarration}
+            title="Stop narration"
+            aria-label="Stop narration"
+          >
+            <StopIcon />
+          </button>
+        )}
+      </div>
+    )
   }
 
   return (

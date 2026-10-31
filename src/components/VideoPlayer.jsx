@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
+import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './VideoPlayer.css'
 
 export { getPlayableVideoUrl, getVideoThumbnailUrl }
@@ -29,6 +30,7 @@ export default function VideoPlayer({
   const hideControlsTimerRef = useRef(null)
   const playableVideoUrl = getPlayableVideoUrl(src)
   const resolvedPoster = poster || getVideoThumbnailUrl(src) || undefined
+  const ownerId = `video:${playableVideoUrl || src || title || 'player'}`
 
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
@@ -92,6 +94,15 @@ export default function VideoPlayer({
     }
   }, [src])
 
+  useEffect(() => {
+    return subscribeExclusiveMedia(ownerId, () => {
+      if (videoRef.current && !videoRef.current.paused) {
+        videoRef.current.pause()
+      }
+      setIsPlaying(false)
+    })
+  }, [ownerId])
+
   // Fullscreen change listener
   useEffect(() => {
     const handleFsChange = () => {
@@ -134,6 +145,7 @@ export default function VideoPlayer({
     const nextState = typeof forceState === 'boolean' ? forceState : !isPlaying
 
     if (nextState) {
+      claimExclusiveMedia(ownerId)
       setHasError(false)
       setErrorMessage('')
       const playPromise = videoRef.current.play()
@@ -322,6 +334,7 @@ export default function VideoPlayer({
           playsInline
           preload="metadata"
           crossOrigin="anonymous"
+          data-media-owner={ownerId}
           style={{ objectFit: objectFit || 'contain' }}
           onTimeUpdate={() => {
             if (videoRef.current && !isSeeking) {
@@ -343,6 +356,7 @@ export default function VideoPlayer({
             setHasError(false)
           }}
           onPlaying={() => {
+            claimExclusiveMedia(ownerId)
             setIsPlaying(true)
             setHasError(false)
           }}

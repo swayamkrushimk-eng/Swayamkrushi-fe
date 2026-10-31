@@ -4,6 +4,77 @@
   width: 100%;
 }
 
+.article-audio-compact {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin: 2px 0 0;
+}
+
+.audio-compact-mic-btn,
+.audio-compact-stop-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  color: #6e1e38;
+  border: 1px solid transparent;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.audio-compact-mic-btn:hover,
+.audio-compact-stop-btn:hover {
+  background: #fbf0f4;
+  color: #872445;
+  border-color: #ebd0d9;
+}
+
+.audio-compact-mic-btn.is-playing {
+  background: #fbf0f4;
+  border-color: #ebd0d9;
+}
+
+.audio-compact-mic-btn.is-loading {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.audio-compact-stop-btn {
+  border-radius: 6px;
+}
+
+.story-title-with-mic {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 100%;
+}
+
+.story-title-with-mic h2,
+.story-title-with-mic .story-head {
+  flex: 1;
+  min-width: 0;
+}
+
+.body-col .story-title-with-mic:has(.story-head) {
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid var(--hair);
+}
+
+.body-col .story-title-with-mic .story-head {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  border-top: none !important;
+}
+
 /* Standalone Speaker Icon Row (No bar, no background, no border) */
 .audio-speaker-only-wrap {
   display: flex;

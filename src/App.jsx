@@ -16,6 +16,7 @@ import DonationPage from './pages/DonationPage'
 import AnnualReportsPage from './pages/AnnualReportsPage'
 import ImagePreviewModal from './components/ImagePreviewModal'
 import { trackPageView } from './services/api'
+import './utils/mediaCoordinator'
 
 function PageTracker() {
   const location = useLocation()

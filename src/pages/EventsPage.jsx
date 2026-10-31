@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
 import { fetchEventImages } from '../services/api'
 import { isVideoUrl, getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
+import { claimExclusiveMedia } from '../utils/mediaCoordinator'
 import './EventsPage.css'
 
 function mediaSrc(item) {
@@ -146,6 +147,8 @@ export default function EventsPage() {
                 controls
                 autoPlay
                 playsInline
+                data-media-owner="events-lightbox-video"
+                onPlay={() => claimExclusiveMedia('events-lightbox-video')}
               />
             ) : (
               <img
