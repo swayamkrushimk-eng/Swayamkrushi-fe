@@ -89,6 +89,7 @@ export default function EventsPage() {
         albums.map((album, albumIdx) => (
           <section className="events-album" key={album._id || album.id || albumIdx}>
             <h2 className="events-album-title">{album.title}</h2>
+            {album.caption && <p className="events-album-caption">{album.caption}</p>}
             <div className="events-gallery-grid">
               {album.media.map((item, idx) => {
                 const src = mediaSrc(item)
