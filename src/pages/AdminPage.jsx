@@ -352,7 +352,11 @@ export default function AdminPage() {
 
       // Media Buzz
       if (Array.isArray(mediaData) && mediaData.length > 0) {
-        setMediaBuzzItems(mediaData)
+        const validMedia = mediaData.filter((a) => a.title && a.title.trim() && !isIdDeleted('media_buzz', a.id) && !isIdDeleted('media_buzz', a._id))
+        const existingIds = new Set(validMedia.map((a) => a.id))
+        const missingDefaults = DEFAULT_MEDIA_ARTICLES.filter((a) => !existingIds.has(a.id) && !isIdDeleted('media_buzz', a.id))
+        const combined = [...validMedia, ...missingDefaults].sort((a, b) => (a.order || 0) - (b.order || 0))
+        setMediaBuzzItems(combined)
       } else {
         const fallbackMedia = DEFAULT_MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id))
         setMediaBuzzItems(fallbackMedia)

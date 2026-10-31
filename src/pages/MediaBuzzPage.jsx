@@ -210,15 +210,18 @@ export default function MediaBuzzPage() {
       try {
         const data = await fetchMediaBuzz()
         if (Array.isArray(data) && data.length > 0) {
-          const mapped = data
-            .filter((a) => !isIdDeleted('media_buzz', a.id) && !isIdDeleted('media_buzz', a._id))
+          const validData = data.filter((a) => a.title && a.title.trim() && !isIdDeleted('media_buzz', a.id) && !isIdDeleted('media_buzz', a._id))
+          const existingIds = new Set(validData.map((a) => a.id))
+          const missingDefaults = MEDIA_ARTICLES.filter((a) => !existingIds.has(a.id) && !isIdDeleted('media_buzz', a.id))
+          const combined = [...validData, ...missingDefaults]
             .map((a) => {
               if (a.id === 'hindu-35-years-milestone') {
                 return { ...a, image: hinduClipping }
               }
               return a
             })
-          setArticlesList(mapped)
+            .sort((a, b) => (a.order || 0) - (b.order || 0))
+          setArticlesList(combined)
         } else {
           // Fallback to local only if server returns nothing
           setArticlesList(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
