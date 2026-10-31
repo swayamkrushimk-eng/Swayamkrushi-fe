@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import {
   generateCartesiaSpeech,
-  prefetchCartesiaSpeech,
   buildArticleNarrationText,
 } from '../services/cartesiaTts'
 import './ArticleAudioPlayer.css'
@@ -23,25 +22,6 @@ export default function ArticleAudioPlayer({ article }) {
   const text = buildArticleNarrationText(article)
   const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0
   const estimatedMinutes = Math.max(1, Math.ceil(wordCount / 140))
-
-  // Instant background prefetch when article mounts so clicking "Listen" is blazing fast!
-  useEffect(() => {
-    let isCancelled = false
-    const prefetchTimer = setTimeout(() => {
-      if (!isCancelled && text && article?.id) {
-        prefetchCartesiaSpeech({ text, articleId: article.id }).then((url) => {
-          if (!isCancelled && url) {
-            setAudioUrl(url)
-          }
-        })
-      }
-    }, 250)
-
-    return () => {
-      isCancelled = true
-      clearTimeout(prefetchTimer)
-    }
-  }, [article?.id, text])
 
   // Reset audio when article changes
   useEffect(() => {
@@ -72,30 +52,7 @@ export default function ArticleAudioPlayer({ article }) {
     setError(null)
     setIsExpanded(true)
 
-    // If audio is already loaded and ready in memory
-    if (audioRef.current && audioUrl) {
-      if (isPlaying) {
-        audioRef.current.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch((err) => console.error('Audio play error:', err))
-      }
-      return
-    }
-
-    // Synthesize audio with fast parallel chunking
-    setIsLoading(true)
-    try {
-      const { audioUrl: url } = await generateCartesiaSpeech({
-        text,
-        articleId: article?.id || 'current-article',
-      })
-
-      setAudioUrl(url)
-
+    const attachAndPlay = async (url) => {
       const audio = new Audio(url)
       audio.playbackRate = playbackRate
 
@@ -119,11 +76,52 @@ export default function ArticleAudioPlayer({ article }) {
       }
 
       audioRef.current = audio
-
       await audio.play()
       setIsPlaying(true)
+    }
+
+    // If audio is already loaded and ready in memory
+    if (audioRef.current && audioUrl) {
+      if (isPlaying) {
+        audioRef.current.pause()
+        setIsPlaying(false)
+      } else {
+        audioRef.current
+          .play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => {
+            console.error('Audio play error:', err)
+            setError('Playback failed. Please try again.')
+          })
+      }
+      return
+    }
+
+    if (audioUrl) {
+      setIsLoading(true)
+      try {
+        await attachAndPlay(audioUrl)
+      } catch (err) {
+        console.error('Audio play error:', err)
+        setError('Playback failed. Please try again.')
+        setIsPlaying(false)
+      } finally {
+        setIsLoading(false)
+      }
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const { audioUrl: url } = await generateCartesiaSpeech({
+        text,
+        articleId: article?.id || 'current-article',
+      })
+
+      setAudioUrl(url)
+      await attachAndPlay(url)
     } catch (err) {
-      console.error('Cartesia TTS error:', err)
+      console.error('Voice narration error:', err)
       setError(err.message || 'Failed to generate voice narration.')
       setIsPlaying(false)
     } finally {

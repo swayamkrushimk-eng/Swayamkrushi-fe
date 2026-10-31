@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.swayamkrushi.org/api'
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.swayamkrushi.org/api'
 
 // ─── VISITOR ANALYTICS TRACKING ──────────────────────────────────────────
 export async function trackPageView(page = window.location.pathname) {
