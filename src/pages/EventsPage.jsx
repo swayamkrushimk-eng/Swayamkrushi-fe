@@ -1,24 +1,32 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { fetchEventImages } from '../services/api'
+import { isVideoUrl, getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
 import './EventsPage.css'
 
+function mediaSrc(item) {
+  return item?.imageUrl || item?.url || item?.image || item?.src || item?.videoUrl || ''
+}
+
+function itemIsVideo(item) {
+  return item?.mediaType === 'video' || isVideoUrl(mediaSrc(item))
+}
+
 export default function EventsPage() {
-  const [eventImages, setEventImages] = useState([])
+  const [galleryItems, setGalleryItems] = useState([])
   const [loading, setLoading] = useState(true)
-  const [lightboxImage, setLightboxImage] = useState(null)
+  const [lightboxItem, setLightboxItem] = useState(null)
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     fetchEventImages()
       .then((data) => {
         if (Array.isArray(data)) {
-          setEventImages(data.filter((item) => item.imageUrl || item.url || item.image || item.src))
+          setGalleryItems(data.filter((item) => mediaSrc(item)))
         }
       })
       .catch((err) => {
-        console.warn('Error loading event images:', err)
+        console.warn('Error loading event gallery:', err)
       })
       .finally(() => {
         setLoading(false)
@@ -27,7 +35,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') setLightboxImage(null)
+      if (e.key === 'Escape') setLightboxItem(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -37,18 +45,11 @@ export default function EventsPage() {
     <main className="events-page-wrap">
       <SEO
         title="Events Gallery | Swayamkrushi"
-        description="Photos from celebrations, campus days, and special events at Swayamkrushi."
+        description="Photos and videos from celebrations, campus days, and special events at Swayamkrushi."
         canonicalUrl="https://swayamkrushi.org/#/events"
       />
 
-      <nav className="events-breadcrumb" aria-label="Breadcrumb">
-        <Link to="/" className="breadcrumb-link">Home</Link>
-        <span className="breadcrumb-sep">/</span>
-        <span className="breadcrumb-current">Events Gallery</span>
-      </nav>
-
       <header className="events-header">
-        <p className="events-kicker">Campus life</p>
         <h1 className="events-title">Events Gallery</h1>
         <p className="events-subtitle">
           Moments from celebrations, visits, and everyday life at Swayamkrushi.
@@ -59,26 +60,38 @@ export default function EventsPage() {
         <div className="events-loading">
           <p>Loading gallery…</p>
         </div>
-      ) : eventImages.length === 0 ? (
+      ) : galleryItems.length === 0 ? (
         <div className="events-empty-state">
           <div className="events-empty-icon">📷</div>
-          <p>No event photos yet. New images added from the admin gallery will appear here.</p>
+          <p>No photos or videos yet. New media added from the admin gallery will appear here.</p>
         </div>
       ) : (
         <div className="events-gallery-grid">
-          {eventImages.map((item, idx) => {
-            const imgUrl = item.imageUrl || item.url || item.image || item.src
-            const title = item.title || item.caption || `Event photo ${idx + 1}`
+          {galleryItems.map((item, idx) => {
+            const src = mediaSrc(item)
+            const isVideo = itemIsVideo(item)
+            const title = item.title || item.caption || (isVideo ? `Event video ${idx + 1}` : `Event photo ${idx + 1}`)
             const caption = item.caption && item.caption !== title ? item.caption : ''
+            const poster = item.videoThumbnailUrl || getVideoThumbnailUrl(src) || ''
+            const playable = isVideo ? getPlayableVideoUrl(src) : src
 
             return (
               <button
                 type="button"
                 key={item._id || item.id || idx}
                 className="events-gallery-item"
-                onClick={() => setLightboxImage({ src: imgUrl, title, caption })}
+                onClick={() => setLightboxItem({ src: playable, poster, title, caption, isVideo })}
               >
-                <img src={imgUrl} alt={title} loading="lazy" />
+                {isVideo ? (
+                  poster ? (
+                    <img src={poster} alt={title} loading="lazy" />
+                  ) : (
+                    <video src={playable} muted playsInline preload="metadata" />
+                  )
+                ) : (
+                  <img src={src} alt={title} loading="lazy" />
+                )}
+                {isVideo && <span className="events-play-badge" aria-hidden="true">▶</span>}
                 {(item.title || caption) && (
                   <span className="events-gallery-caption">
                     <strong>{item.title || title}</strong>
@@ -91,26 +104,37 @@ export default function EventsPage() {
         </div>
       )}
 
-      {lightboxImage && (
-        <div className="events-lightbox-overlay" onClick={() => setLightboxImage(null)}>
+      {lightboxItem && (
+        <div className="events-lightbox-overlay" onClick={() => setLightboxItem(null)}>
           <div className="events-lightbox-dialog" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className="events-lightbox-close"
-              onClick={() => setLightboxImage(null)}
-              aria-label="Close image viewer"
+              onClick={() => setLightboxItem(null)}
+              aria-label="Close gallery viewer"
             >
               ✕
             </button>
-            <img
-              src={lightboxImage.src}
-              alt={lightboxImage.title}
-              className="events-lightbox-img"
-            />
-            {(lightboxImage.title || lightboxImage.caption) && (
+            {lightboxItem.isVideo ? (
+              <video
+                src={lightboxItem.src}
+                poster={lightboxItem.poster || undefined}
+                className="events-lightbox-video"
+                controls
+                autoPlay
+                playsInline
+              />
+            ) : (
+              <img
+                src={lightboxItem.src}
+                alt={lightboxItem.title}
+                className="events-lightbox-img"
+              />
+            )}
+            {(lightboxItem.title || lightboxItem.caption) && (
               <p className="events-lightbox-caption">
-                {lightboxImage.title}
-                {lightboxImage.caption ? ` — ${lightboxImage.caption}` : ''}
+                {lightboxItem.title}
+                {lightboxItem.caption ? ` — ${lightboxItem.caption}` : ''}
               </p>
             )}
           </div>
