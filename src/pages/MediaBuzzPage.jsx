@@ -2,7 +2,68 @@ import { useState, useEffect } from 'react'
 import SEO from '../components/SEO'
 import { fetchMediaBuzz, isIdDeleted } from '../services/api'
 import hinduClipping from '../assets/images/hindu-35-years-clipping.jpg'
+import eenaduClipping from '../assets/images/eenadu-2026-10-10-clipping.jpg'
+import andhraPrabhaClipping from '../assets/images/andhra-prabha-2026-10-10-clipping.jpg'
+import andhraJyothyClipping from '../assets/images/andhra-jyothy-2026-10-10-clipping.jpg'
 import './MediaBuzzPage.css'
+
+const CLIPPING_IMAGE_BY_ID = {
+  'hindu-35-years-milestone': hinduClipping,
+  'eenadu-epaper-2026-10-10': eenaduClipping,
+  'andhra-prabha-rangareddy-2026-10-10': andhraPrabhaClipping,
+  'andhra-jyothy-uppal-malkajgiri-2026-10-10': andhraJyothyClipping
+}
+
+function withClippingDefaults(article) {
+  const fallbackImage = CLIPPING_IMAGE_BY_ID[article.id]
+  const image = article.image || fallbackImage || ''
+  const isClipping = !!article.isClipping || !!fallbackImage
+  return {
+    ...article,
+    image: image || null,
+    isClipping
+  }
+}
+
+/** Split each record into: image-only clipping card(s) + normal link card(s). */
+function toDisplayCards(articles) {
+  const cards = []
+
+  articles.forEach((raw) => {
+    const article = withClippingDefaults(raw)
+    const hasClippingImage = !!(article.isClipping && article.image)
+    const hasLinkContent =
+      !!(article.articleUrl && article.articleUrl.trim()) ||
+      !!(article.title && article.title.trim() && article.excerpt && article.excerpt.trim())
+
+    if (hasClippingImage) {
+      cards.push({
+        ...article,
+        _cardKey: `${article.id || article._id}-image`,
+        _cardType: 'image'
+      })
+    }
+
+    // Normal link / text card — never carry the newspaper scan thumbnail
+    if (hasLinkContent && (!hasClippingImage || article.articleUrl)) {
+      cards.push({
+        ...article,
+        image: hasClippingImage ? null : article.image,
+        isClipping: false,
+        _cardKey: `${article.id || article._id}-link`,
+        _cardType: 'link'
+      })
+    } else if (!hasClippingImage) {
+      cards.push({
+        ...article,
+        _cardKey: `${article.id || article._id}-link`,
+        _cardType: 'link'
+      })
+    }
+  })
+
+  return cards
+}
 
 export const MEDIA_ARTICLES = [
   {
@@ -139,12 +200,12 @@ export const MEDIA_ARTICLES = [
     outlet: 'Eenadu Telugu Daily',
     outletType: 'Print & Newspapers',
     date: '10/10/2026',
-    category: 'Regional Press',
-    badge: 'EENADU E-PAPER',
-    image: null,
-    isClipping: false,
+    category: 'Telugu Clipping',
+    badge: 'EENADU TELUGU DAILY',
+    image: eenaduClipping,
+    isClipping: true,
     excerpt: 'ఈనాడు దినపత్రిక కథనం: మేధో వైకల్యం కలిగిన వ్యక్తుల సాధికారత, విద్యాబోధన, జీవనోపాధి మరియు సంరక్షణకు విశేష కృషి చేస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
-    readTime: 'Telugu E-Paper',
+    readTime: 'Telugu Clipping',
     tags: ['Eenadu', 'Telugu E-Paper', 'Regional Press', 'Special Education'],
     articleUrl: 'https://epaper.eenadu.net/Home/Index?date=10/10/2026&eid=239&pid=3613532',
     featured: false
@@ -171,12 +232,12 @@ export const MEDIA_ARTICLES = [
     outlet: 'Andhra Prabha',
     outletType: 'Print & Newspapers',
     date: '10/10/2026',
-    category: 'Regional Press',
-    badge: 'ANDHRA PRABHA E-PAPER',
-    image: null,
-    isClipping: false,
+    category: 'Telugu Clipping',
+    badge: 'ANDHRA PRABHA',
+    image: andhraPrabhaClipping,
+    isClipping: true,
     excerpt: 'ఆంధ్రప్రభ రంగారెడ్డి జిల్లా ఎడిషన్ కథనం: మేధోపరమైన సవాళ్లు ఉన్న వ్యక్తులకు విద్యాబోధన, వృత్తి శిక్షణ మరియు పునరావాస సేవలందిస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
-    readTime: 'Telugu E-Paper',
+    readTime: 'Telugu Clipping',
     tags: ['Andhra Prabha', 'Rangareddy District', 'Telugu E-Paper', 'Vocational Training'],
     articleUrl: 'https://epaper.prabhanews.com/viewer/?date=2026-10-10&section=Telangana+Districts&edition=Rangareddy&page=2',
     featured: false
@@ -187,12 +248,12 @@ export const MEDIA_ARTICLES = [
     outlet: 'Andhra Jyothy',
     outletType: 'Print & Newspapers',
     date: '10/10/2026',
-    category: 'Regional Press',
-    badge: 'ANDHRA JYOTHY E-PAPER',
-    image: null,
-    isClipping: false,
+    category: 'Telugu Clipping',
+    badge: 'ANDHRA JYOTHY',
+    image: andhraJyothyClipping,
+    isClipping: true,
     excerpt: 'ఆంధ్రజ్యోతి ఉప్పల్-మల్కాజ్‌గిరి ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, సంరక్షణ మరియు జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ.',
-    readTime: 'Telugu E-Paper',
+    readTime: 'Telugu Clipping',
     tags: ['Andhra Jyothy', 'Uppal Malkajgiri', 'Telugu E-Paper', 'Special Education'],
     articleUrl: 'https://epaper.andhrajyothy.com/Hyd_Uppal_Malkajgiri?eid=122&edate=10/10/2026&pgid=1524855&device=desktop&view=3',
     featured: false
@@ -214,22 +275,21 @@ export default function MediaBuzzPage() {
           const existingIds = new Set(validData.map((a) => a.id))
           const missingDefaults = MEDIA_ARTICLES.filter((a) => !existingIds.has(a.id) && !isIdDeleted('media_buzz', a.id))
           const combined = [...validData, ...missingDefaults]
-            .map((a) => {
-              if (a.id === 'hindu-35-years-milestone') {
-                return { ...a, image: hinduClipping }
-              }
-              return a
-            })
+            .map(withClippingDefaults)
             .sort((a, b) => (a.order || 0) - (b.order || 0))
-          setArticlesList(combined)
+          setArticlesList(toDisplayCards(combined))
         } else {
           // Fallback to local only if server returns nothing
-          setArticlesList(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
+          setArticlesList(
+            toDisplayCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
+          )
         }
       } catch (err) {
         console.warn('Error loading media buzz:', err)
         // Fallback to local on error
-        setArticlesList(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
+        setArticlesList(
+          toDisplayCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
+        )
       } finally {
         setLoading(false)
       }
@@ -269,14 +329,18 @@ export default function MediaBuzzPage() {
               <p style={{ fontStyle: 'italic', fontSize: '15px' }}>Loading media coverage...</p>
             </div>
           ) : articlesList.map((article) => {
-            const isImageOnly = article.imageOnly || (article.id === 'hindu-35-years-milestone' && article.image)
-
-            if (isImageOnly) {
+            if (article._cardType === 'image') {
               return (
                 <article
-                  key={article.id}
+                  key={article._cardKey}
                   className="buzz-article-card image-only-card"
-                  onClick={() => setLightboxImage({ src: article.image, title: article.title || article.outlet })}
+                  onClick={() =>
+                    setLightboxImage({
+                      src: article.image,
+                      title: article.title || article.outlet,
+                      outlet: article.outlet
+                    })
+                  }
                 >
                   <div className="buzz-card-media is-clipping-card full-card-image">
                     <img src={article.image} alt={article.title || article.outlet} className="buzz-card-img" />
@@ -287,22 +351,13 @@ export default function MediaBuzzPage() {
               )
             }
 
+            // Normal link / press card — no newspaper scan thumbnail mixed in
             return (
-              <article key={article.id} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
+              <article key={article._cardKey} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
                 {article.image && (
-                  <div
-                    className={`buzz-card-media ${article.isClipping ? 'is-clipping-card' : ''}`}
-                    onClick={() => {
-                      if (article.isClipping) {
-                        setLightboxImage({ src: article.image, title: article.title })
-                      }
-                    }}
-                  >
+                  <div className="buzz-card-media">
                     <img src={article.image} alt={article.title} className="buzz-card-img" />
                     <span className="buzz-outlet-badge">{article.outlet}</span>
-                    {article.isClipping && (
-                      <span className="clipping-zoom-hint">🔍 Zoom</span>
-                    )}
                   </div>
                 )}
                 <div className="buzz-card-body">
@@ -359,7 +414,7 @@ export default function MediaBuzzPage() {
             />
             <div className="buzz-lightbox-caption">
               <h3>{lightboxImage.title}</h3>
-              <p>The Hindu Newspaper Bureau · Hyderabad Special Report</p>
+              <p>{lightboxImage.outlet || 'Press Clipping'} · Newspaper Scan</p>
             </div>
           </div>
         </div>
