@@ -126,6 +126,21 @@ export const getOptimizedVideoUrl = getPlayableVideoUrl
  * @param {string|null} fallbackImage - Local asset fallback image
  * @returns {object} - Normalized media descriptor
  */
+export function sanitizeImageUrl(url, fallback = null) {
+  if (!url || typeof url !== 'string') return fallback || ''
+  const trimmed = url.trim()
+  if (!trimmed) return fallback || ''
+  if (
+    trimmed.startsWith('/src/') ||
+    trimmed.startsWith('src/') ||
+    trimmed.includes('/assets/images/birthday-courtyard.jpg') ||
+    trimmed === 'birthday-courtyard.jpg'
+  ) {
+    return 'https://res.cloudinary.com/ll9equhn/image/upload/v1791266115/swayamkrushi/articles/birthday-courtyard.jpg'
+  }
+  return trimmed
+}
+
 export function resolveArticleMedia(article, fallbackImage = null) {
   if (!article) {
     return {
@@ -186,18 +201,18 @@ export function resolveArticleMedia(article, fallbackImage = null) {
   if (type === 'video' && hasValidVideo) {
     const customPoster =
       article.videoPosterUrl && typeof article.videoPosterUrl === 'string' && article.videoPosterUrl.trim().length > 5
-        ? article.videoPosterUrl.trim()
+        ? sanitizeImageUrl(article.videoPosterUrl)
         : null
 
     const generatedThumb = getVideoThumbnailUrl(rawVideoUrl)
     const storedThumb =
       article.videoThumbnailUrl && typeof article.videoThumbnailUrl === 'string' && article.videoThumbnailUrl.trim().length > 5
-        ? article.videoThumbnailUrl.trim()
+        ? sanitizeImageUrl(article.videoThumbnailUrl)
         : null
 
     const fallbackArticleImg =
       article.imageUrl && typeof article.imageUrl === 'string' && article.imageUrl.trim().length > 5
-        ? article.imageUrl.trim()
+        ? sanitizeImageUrl(article.imageUrl, fallbackImage)
         : null
 
     // Priority: custom poster -> stored/generated thumbnail -> article image -> fallback
@@ -221,11 +236,13 @@ export function resolveArticleMedia(article, fallbackImage = null) {
   }
 
   // 3. Image type
-  const rawImageUrl =
+  const rawCandidate =
     article.imageUrl ||
     (typeof article.featuredMediaUrl === 'string' && !article.featuredMediaUrl.match(/\.(mp4|webm|mov|m4v)$/i) ? article.featuredMediaUrl : '') ||
     (typeof article.mediaUrl === 'string' && !article.mediaUrl.match(/\.(mp4|webm|mov|m4v)$/i) ? article.mediaUrl : '') ||
     fallbackImage
+
+  const rawImageUrl = sanitizeImageUrl(rawCandidate, fallbackImage)
 
   return {
     featuredMediaType: 'image',

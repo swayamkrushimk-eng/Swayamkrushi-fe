@@ -89,8 +89,8 @@ export default function ArticleContentRenderer({
       // Sync captions and classes for intentional in-place <figure> elements from storyImages
       if (hasExplicitFigures && Array.isArray(storyImages)) {
         cleanFigureElements.forEach((fig) => {
-          const imgEl = fig.querySelector('img')
-          const src = imgEl?.getAttribute('src')?.trim()
+          const mediaEl = fig.querySelector('img, video')
+          const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
           if (!src) return
 
           // If storyImages array is defined, strictly purge any figure that was removed from storyImages!
@@ -108,7 +108,12 @@ export default function ArticleContentRenderer({
                 fig.appendChild(figcaption)
               }
               figcaption.textContent = matched.caption
-              imgEl.setAttribute('alt', matched.caption)
+              if (mediaEl.tagName.toLowerCase() === 'video') {
+                mediaEl.setAttribute('data-caption', matched.caption)
+                mediaEl.setAttribute('title', matched.caption)
+              } else {
+                mediaEl.setAttribute('alt', matched.caption)
+              }
             } else {
               const figcaption = fig.querySelector('figcaption')
               if (figcaption) figcaption.remove()
@@ -116,13 +121,14 @@ export default function ArticleContentRenderer({
 
             const align = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
             const sz = matched.size === 'big' ? 'size-big' : 'size-small'
-            fig.className = `article-inline-figure ${align} ${sz}`
+            const isVid = mediaEl.tagName.toLowerCase() === 'video' || isVideoUrl(src)
+            fig.className = `article-inline-figure ${align} ${sz} ${isVid ? 'article-inline-video-figure' : ''}`
           }
         })
       }
 
       const figureSources = cleanFigureElements
-        .map((fig) => fig.querySelector('img')?.getAttribute('src')?.trim())
+        .map((fig) => (fig.querySelector('img, video')?.getAttribute('src') || fig.querySelector('video source')?.getAttribute('src') || '').trim())
         .filter(Boolean)
 
       // Gather remaining images that need paragraph distribution

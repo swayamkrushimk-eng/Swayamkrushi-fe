@@ -35,6 +35,7 @@ import {
   deleteMediaBuzz,
   fetchEventImages,
   createEventImage,
+  updateEventImage,
   deleteEventImage,
   isIdDeleted
 } from '../services/api'
@@ -244,8 +245,10 @@ export default function AdminPage() {
     order: 0
   })
 
+  const [editingEvent, setEditingEvent] = useState(null)
   const [eventForm, setEventForm] = useState({
     title: '',
+    caption: '',
     media: [],
     order: 0
   })
@@ -1160,9 +1163,26 @@ export default function AdminPage() {
   }
 
   // ─── EVENT IMAGES ACTIONS ────────────────────────────────────────────────
+  const openEditEventModal = (img) => {
+    setEditingEvent(img)
+    const media = Array.isArray(img.media) && img.media.length
+      ? img.media
+      : img.imageUrl
+        ? [{ url: img.imageUrl, mediaType: img.mediaType, videoThumbnailUrl: img.videoThumbnailUrl }]
+        : []
+    setEventForm({
+      title: img.title || '',
+      caption: img.caption || '',
+      media,
+      order: img.order || 0
+    })
+    setShowEventModal(true)
+  }
+
   const handleSaveEventImage = async (e) => {
     e.preventDefault()
     const title = (eventForm.title || '').trim()
+    const caption = (eventForm.caption || '').trim()
     const media = eventForm.media || []
     if (!title) {
       showNotification('Please enter an event title', 'error')
@@ -1173,14 +1193,21 @@ export default function AdminPage() {
       return
     }
     try {
-      await createEventImage({ title, media, order: eventForm.order || 0 })
-      showNotification('Event added to the gallery')
+      const payload = { title, caption, media, order: eventForm.order || 0 }
+      if (editingEvent?._id || editingEvent?.id) {
+        await updateEventImage(editingEvent._id || editingEvent.id, payload)
+        showNotification('Event updated successfully!')
+      } else {
+        await createEventImage(payload)
+        showNotification('Event added to the gallery!')
+      }
       setShowEventModal(false)
-      setEventForm({ title: '', media: [], order: 0 })
+      setEditingEvent(null)
+      setEventForm({ title: '', caption: '', media: [], order: 0 })
       const data = await fetchEventImages()
       setEventImages(data)
     } catch (err) {
-      showNotification('Failed to add event: ' + err.message, 'error')
+      showNotification('Failed to save event: ' + err.message, 'error')
     }
   }
 
@@ -2227,8 +2254,10 @@ export default function AdminPage() {
                 </div>
                 <button
                   onClick={() => {
+                    setEditingEvent(null)
                     setEventForm({
                       title: '',
+                      caption: '',
                       media: [],
                       order: eventImages.length + 1
                     })
@@ -2267,9 +2296,20 @@ export default function AdminPage() {
                         </div>
                         <div className="admin-media-info">
                           <h4 className="admin-media-title">{img.title || 'Untitled event'}</h4>
+                          {img.caption && (
+                            <p style={{ fontSize: '13px', color: '#555', fontStyle: 'italic', margin: '3px 0 6px' }}>
+                              {img.caption}
+                            </p>
+                          )}
                           <p className="admin-media-caption">{media.length} {media.length === 1 ? 'file' : 'files'}</p>
                         </div>
                         <div className="admin-media-actions">
+                          <button
+                            onClick={() => openEditEventModal(img)}
+                            className="admin-btn-action admin-btn-edit"
+                          >
+                            ✏️ Edit
+                          </button>
                           <button
                             onClick={() => handleDeleteEventImage(img._id || img.id, img.title)}
                             className="admin-btn-action admin-btn-delete"
@@ -3422,8 +3462,14 @@ export default function AdminPage() {
         <div className="admin-modal-overlay">
           <div className="admin-modal">
             <div className="admin-modal-header">
-              <h2>Add Event</h2>
-              <button onClick={() => setShowEventModal(false)} className="admin-modal-close">
+              <h2>{editingEvent ? 'Edit Event Gallery' : 'Add Event'}</h2>
+              <button
+                onClick={() => {
+                  setShowEventModal(false)
+                  setEditingEvent(null)
+                }}
+                className="admin-modal-close"
+              >
                 ✕
               </button>
             </div>
@@ -3438,6 +3484,18 @@ export default function AdminPage() {
                   onChange={(e) => setEventForm({ ...eventForm, title: e.target.value })}
                   placeholder="e.g. Annual Day 2026 Celebration"
                   className="admin-input"
+                />
+              </div>
+
+              <div className="admin-form-group">
+                <label>Event Caption <span style={{ fontWeight: 400, color: '#888' }}>(optional — shown under all photos in this event)</span></label>
+                <textarea
+                  rows={2}
+                  value={eventForm.caption || ''}
+                  onChange={(e) => setEventForm({ ...eventForm, caption: e.target.value })}
+                  placeholder="e.g. Annual Day celebrations at Swayamkrushi campus, March 2025"
+                  className="admin-textarea"
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 
@@ -3482,7 +3540,10 @@ export default function AdminPage() {
               <div className="admin-modal-actions">
                 <button
                   type="button"
-                  onClick={() => setShowEventModal(false)}
+                  onClick={() => {
+                    setShowEventModal(false)
+                    setEditingEvent(null)
+                  }}
                   className="admin-btn admin-btn-secondary"
                 >
                   Cancel
@@ -3492,7 +3553,7 @@ export default function AdminPage() {
                   disabled={uploadingImage || !eventForm.title.trim() || !(eventForm.media || []).length}
                   className="admin-btn admin-btn-primary"
                 >
-                  Save Event
+                  {editingEvent ? 'Update Event' : 'Save Event'}
                 </button>
               </div>
             </form>

@@ -102,11 +102,13 @@ export default function EventsPage() {
                     type="button"
                     key={item._id || src || idx}
                     className="events-gallery-item"
+                    title={album.caption ? `${album.title} — ${album.caption}` : album.title}
                     onClick={() =>
                       setLightboxItem({
                         src: playable,
                         poster,
                         title: album.title,
+                        caption: album.caption || '',
                         isVideo
                       })
                     }
@@ -158,8 +160,15 @@ export default function EventsPage() {
                 className="events-lightbox-img"
               />
             )}
-            {!lightboxItem.isVideo && lightboxItem.title && (
-              <p className="events-lightbox-caption">{lightboxItem.title}</p>
+            {lightboxItem.title && (
+              <h3 className="events-lightbox-title" style={{ fontSize: '16px', fontWeight: 700, margin: '10px 0 3px', color: '#fff', textAlign: 'center' }}>
+                {lightboxItem.title}
+              </h3>
+            )}
+            {lightboxItem.caption && (
+              <p className="events-lightbox-caption" style={{ fontSize: '14px', color: '#ddd', margin: '0 0 10px', textAlign: 'center', lineHeight: '1.4' }}>
+                {lightboxItem.caption}
+              </p>
             )}
           </div>
         </div>
