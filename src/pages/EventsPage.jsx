@@ -5,15 +5,39 @@ import { isVideoUrl, getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/
 import './EventsPage.css'
 
 function mediaSrc(item) {
-  return item?.imageUrl || item?.url || item?.image || item?.src || item?.videoUrl || ''
+  return item?.url || item?.imageUrl || item?.image || item?.src || item?.videoUrl || ''
 }
 
 function itemIsVideo(item) {
   return item?.mediaType === 'video' || isVideoUrl(mediaSrc(item))
 }
 
+function toAlbums(data) {
+  if (!Array.isArray(data)) return []
+  return data
+    .map((item) => {
+      const media = Array.isArray(item.media) && item.media.length
+        ? item.media.filter((file) => mediaSrc(file))
+        : mediaSrc(item)
+          ? [
+              {
+                url: mediaSrc(item),
+                mediaType: item.mediaType === 'video' || isVideoUrl(mediaSrc(item)) ? 'video' : 'image',
+                videoThumbnailUrl: item.videoThumbnailUrl || ''
+              }
+            ]
+          : []
+      return {
+        ...item,
+        title: item.title || 'Event',
+        media
+      }
+    })
+    .filter((album) => album.media.length)
+}
+
 export default function EventsPage() {
-  const [galleryItems, setGalleryItems] = useState([])
+  const [albums, setAlbums] = useState([])
   const [loading, setLoading] = useState(true)
   const [lightboxItem, setLightboxItem] = useState(null)
 
@@ -21,9 +45,7 @@ export default function EventsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
     fetchEventImages()
       .then((data) => {
-        if (Array.isArray(data)) {
-          setGalleryItems(data.filter((item) => mediaSrc(item)))
-        }
+        setAlbums(toAlbums(data))
       })
       .catch((err) => {
         console.warn('Error loading event gallery:', err)
@@ -60,48 +82,52 @@ export default function EventsPage() {
         <div className="events-loading">
           <p>Loading gallery…</p>
         </div>
-      ) : galleryItems.length === 0 ? (
+      ) : albums.length === 0 ? (
         <div className="events-empty-state">
           <div className="events-empty-icon">📷</div>
-          <p>No photos or videos yet. New media added from the admin gallery will appear here.</p>
+          <p>No events yet. New albums added from the admin gallery will appear here.</p>
         </div>
       ) : (
-        <div className="events-gallery-grid">
-          {galleryItems.map((item, idx) => {
-            const src = mediaSrc(item)
-            const isVideo = itemIsVideo(item)
-            const title = item.title || item.caption || (isVideo ? `Event video ${idx + 1}` : `Event photo ${idx + 1}`)
-            const caption = item.caption && item.caption !== title ? item.caption : ''
-            const poster = item.videoThumbnailUrl || getVideoThumbnailUrl(src) || ''
-            const playable = isVideo ? getPlayableVideoUrl(src) : src
+        albums.map((album, albumIdx) => (
+          <section className="events-album" key={album._id || album.id || albumIdx}>
+            <h2 className="events-album-title">{album.title}</h2>
+            <div className="events-gallery-grid">
+              {album.media.map((item, idx) => {
+                const src = mediaSrc(item)
+                const isVideo = itemIsVideo(item)
+                const poster = item.videoThumbnailUrl || getVideoThumbnailUrl(src) || ''
+                const playable = isVideo ? getPlayableVideoUrl(src) : src
 
-            return (
-              <button
-                type="button"
-                key={item._id || item.id || idx}
-                className="events-gallery-item"
-                onClick={() => setLightboxItem({ src: playable, poster, title, caption, isVideo })}
-              >
-                {isVideo ? (
-                  poster ? (
-                    <img src={poster} alt={title} loading="lazy" />
-                  ) : (
-                    <video src={playable} muted playsInline preload="metadata" />
-                  )
-                ) : (
-                  <img src={src} alt={title} loading="lazy" />
-                )}
-                {isVideo && <span className="events-play-badge" aria-hidden="true">▶</span>}
-                {(item.title || caption) && (
-                  <span className="events-gallery-caption">
-                    <strong>{item.title || title}</strong>
-                    {caption ? <em>{caption}</em> : null}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
+                return (
+                  <button
+                    type="button"
+                    key={item._id || src || idx}
+                    className="events-gallery-item"
+                    onClick={() =>
+                      setLightboxItem({
+                        src: playable,
+                        poster,
+                        title: album.title,
+                        isVideo
+                      })
+                    }
+                  >
+                    {isVideo ? (
+                      poster ? (
+                        <img src={poster} alt={album.title} loading="lazy" />
+                      ) : (
+                        <video src={playable} muted playsInline preload="metadata" />
+                      )
+                    ) : (
+                      <img src={src} alt={album.title} loading="lazy" />
+                    )}
+                    {isVideo && <span className="events-play-badge" aria-hidden="true">▶</span>}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+        ))
       )}
 
       {lightboxItem && (
@@ -131,11 +157,8 @@ export default function EventsPage() {
                 className="events-lightbox-img"
               />
             )}
-            {(lightboxItem.title || lightboxItem.caption) && (
-              <p className="events-lightbox-caption">
-                {lightboxItem.title}
-                {lightboxItem.caption ? ` — ${lightboxItem.caption}` : ''}
-              </p>
+            {lightboxItem.title && (
+              <p className="events-lightbox-caption">{lightboxItem.title}</p>
             )}
           </div>
         </div>

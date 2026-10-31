@@ -761,6 +761,33 @@ export async function createEventImage(payload) {
   return newEvt
 }
 
+export async function updateEventImage(id, payload) {
+  if (!id) throw new Error('Event id is required')
+  const idStr = String(id).trim()
+  try {
+    const res = await fetch(`${API_BASE_URL}/events/${idStr}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    if (res.ok) {
+      const saved = await res.json()
+      const list = JSON.parse(localStorage.getItem(EVENT_IMAGES_KEY) || '[]')
+      const next = list.map((item) =>
+        String(item._id) === idStr || String(item.id) === idStr ? saved : item
+      )
+      localStorage.setItem(EVENT_IMAGES_KEY, JSON.stringify(next))
+      return saved
+    }
+  } catch {}
+  const list = JSON.parse(localStorage.getItem(EVENT_IMAGES_KEY) || '[]')
+  const next = list.map((item) =>
+    String(item._id) === idStr || String(item.id) === idStr ? { ...item, ...payload } : item
+  )
+  localStorage.setItem(EVENT_IMAGES_KEY, JSON.stringify(next))
+  return next.find((item) => String(item._id) === idStr || String(item.id) === idStr) || payload
+}
+
 export async function deleteEventImage(id) {
   if (!id) return { success: false }
   const idStr = String(id).trim()
