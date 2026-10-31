@@ -86,44 +86,39 @@ export default function ArticleContentRenderer({
       const cleanFigureElements = Array.from(doc.body.querySelectorAll('figure'))
       const hasExplicitFigures = cleanFigureElements.length > 0
 
-      // Sync captions and classes for intentional in-place <figure> elements from storyImages
-      if (hasExplicitFigures && Array.isArray(storyImages)) {
+      // Sync captions/classes for in-place figures from storyImages (do NOT purge HTML media)
+      if (hasExplicitFigures && Array.isArray(storyImages) && storyImages.length > 0) {
         cleanFigureElements.forEach((fig) => {
           const mediaEl = fig.querySelector('img, video')
           const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
           if (!src) return
 
-          // If storyImages array is defined, strictly purge any figure that was removed from storyImages!
-          if (storyImages.length > 0) {
-            const matched = storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
-            if (!matched) {
-              fig.remove()
-              return
-            }
-            if (matched.caption) {
-              let figcaption = fig.querySelector('figcaption')
-              if (!figcaption) {
-                figcaption = doc.createElement('figcaption')
-                figcaption.className = 'article-inline-caption'
-                fig.appendChild(figcaption)
-              }
-              figcaption.textContent = matched.caption
-              if (mediaEl.tagName.toLowerCase() === 'video') {
-                mediaEl.setAttribute('data-caption', matched.caption)
-                mediaEl.setAttribute('title', matched.caption)
-              } else {
-                mediaEl.setAttribute('alt', matched.caption)
-              }
-            } else {
-              const figcaption = fig.querySelector('figcaption')
-              if (figcaption) figcaption.remove()
-            }
+          const matched = storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
+          if (!matched) return
 
-            const align = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
-            const sz = matched.size === 'big' ? 'size-big' : 'size-small'
-            const isVid = mediaEl.tagName.toLowerCase() === 'video' || isVideoUrl(src)
-            fig.className = `article-inline-figure ${align} ${sz} ${isVid ? 'article-inline-video-figure' : ''}`
+          if (matched.caption) {
+            let figcaption = fig.querySelector('figcaption')
+            if (!figcaption) {
+              figcaption = doc.createElement('figcaption')
+              figcaption.className = 'article-inline-caption'
+              fig.appendChild(figcaption)
+            }
+            figcaption.textContent = matched.caption
+            if (mediaEl.tagName.toLowerCase() === 'video') {
+              mediaEl.setAttribute('data-caption', matched.caption)
+              mediaEl.setAttribute('title', matched.caption)
+            } else {
+              mediaEl.setAttribute('alt', matched.caption)
+            }
+          } else {
+            const figcaption = fig.querySelector('figcaption')
+            if (figcaption) figcaption.remove()
           }
+
+          const align = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
+          const sz = matched.size === 'big' ? 'size-big' : 'size-small'
+          const isVid = mediaEl.tagName.toLowerCase() === 'video' || isVideoUrl(src)
+          fig.className = `article-inline-figure ${align} ${sz} ${isVid ? 'article-inline-video-figure' : ''}`
         })
       }
 
@@ -241,50 +236,41 @@ export default function ArticleContentRenderer({
       const allImages = []
 
       if (extractedImages.length > 0) {
-        // If images were uploaded inside the article HTML, use ONLY those images
         allImages.push(...extractedImages)
+      }
 
-        // Sync custom captions/alt from storyImages without appending new/duplicate images
-        if (Array.isArray(storyImages) && storyImages.length > 0) {
-          storyImages.forEach((si) => {
-            const siUrl = typeof si === 'string' ? si : si.url
-            if (!siUrl) return
-            const existing = allImages.find((img) => isSameImage(img.src, siUrl))
-            if (existing) {
-              if (typeof si === 'object' && si.caption !== undefined) {
-                existing.caption = si.caption || ''
-              }
-              if (typeof si === 'object' && si.alt !== undefined) {
-                existing.alt = si.alt || ''
-              }
-              if (typeof si === 'object' && si.placement) {
-                existing.placement = si.placement
-              }
-            }
-          })
-        }
-      } else if (!hasExplicitFigures && !hasEmbeddedVideo) {
-        // Only if HTML has NO images and NO explicit figures, check storyImages / fallback
-        if (Array.isArray(storyImages) && storyImages.length > 0) {
-          storyImages.forEach((si) => {
-            const siUrl = typeof si === 'string' ? si : si.url
-            if (!siUrl || isVideoPosterOrThumb(siUrl)) return
-            const siCap = typeof si === 'object' && si.caption !== undefined ? (si.caption || '') : (typeof si === 'object' ? (si.alt || '') : (imageAlt || ''))
-            const siAlt = typeof si === 'object' && si.alt !== undefined ? (si.alt || '') : (siCap || articleTitle || '')
+      // Always merge storyImages so newly uploaded photos/videos show even when
+      // contentHtml is missing figures or the article has a hero video.
+      if (Array.isArray(storyImages) && storyImages.length > 0) {
+        storyImages.forEach((si) => {
+          const siUrl = typeof si === 'string' ? si : si.url
+          if (!siUrl || isVideoPosterOrThumb(siUrl)) return
+          const existing = allImages.find((img) => isSameImage(img.src, siUrl))
+          const siCap = typeof si === 'object' && si.caption !== undefined ? (si.caption || '') : (typeof si === 'object' ? (si.alt || '') : (imageAlt || ''))
+          const siAlt = typeof si === 'object' && si.alt !== undefined ? (si.alt || '') : (siCap || articleTitle || '')
+          const siType = typeof si === 'object' && si.type ? si.type : (isVideoUrl(siUrl) ? 'video' : 'image')
 
-            if (!allImages.some((img) => isSameImage(img.src, siUrl))) {
-              allImages.push({
-                src: siUrl,
-                caption: siCap,
-                alt: siAlt
-              })
-            }
-          })
-        }
+          if (existing) {
+            if (typeof si === 'object' && si.caption !== undefined) existing.caption = si.caption || ''
+            if (typeof si === 'object' && si.alt !== undefined) existing.alt = si.alt || ''
+            if (typeof si === 'object' && si.placement) existing.placement = si.placement
+            if (typeof si === 'object' && si.size) existing.size = si.size
+            existing.type = siType
+          } else if (!hasExplicitFigures || !figureSources.some((fSrc) => isSameImage(fSrc, siUrl))) {
+            allImages.push({
+              src: siUrl,
+              caption: siCap,
+              alt: siAlt,
+              placement: typeof si === 'object' ? si.placement : undefined,
+              size: typeof si === 'object' ? si.size : undefined,
+              type: siType
+            })
+          }
+        })
+      }
 
-        // Fallback to coverUrl if no images in storyImages
+      if (!hasExplicitFigures && allImages.length === 0 && !hasEmbeddedVideo) {
         if (
-          allImages.length === 0 &&
           !inlineMedia?.isText &&
           coverUrl &&
           !isCoverAlreadyExtracted &&
@@ -298,7 +284,6 @@ export default function ArticleContentRenderer({
           })
         }
 
-        // Fallback to local asset ONLY if no storyImages was explicitly specified (i.e. storyImages was not provided or null)
         const isExplicitlyNoStoryImages = Array.isArray(storyImages) && storyImages.length === 0
         if (
           allImages.length === 0 &&
@@ -691,12 +676,6 @@ export default function ArticleContentRenderer({
 
           const src = img?.getAttribute('src')?.trim()
           if (!src) return null
-
-          // If storyImages is an array and has items, drop figure if removed from storyImages
-          if (Array.isArray(storyImages) && storyImages.length > 0) {
-            const isPresent = storyImages.some((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
-            if (!isPresent) return null
-          }
 
           let caption =
             figcaption?.textContent?.trim() ||

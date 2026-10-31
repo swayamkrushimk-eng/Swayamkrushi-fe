@@ -327,26 +327,24 @@ export async function fetchArticleById(id) {
   const altId = aliasMap[id]
   if (altId && isIdDeleted('article', altId)) return null
 
-  // 1. Check detail-specific localStorage override
-  try {
-    const localDetail =
-      localStorage.getItem(`swayamkrushi_article_detail_${id}`) ||
-      (altId ? localStorage.getItem(`swayamkrushi_article_detail_${altId}`) : null)
-    if (localDetail) {
-      const parsed = JSON.parse(localDetail)
-      if (parsed && parsed.title) {
-        fetch(`${API_BASE_URL}/articles/${id}`).catch(() => {})
-        return parsed
+  const cacheArticleDetail = (data) => {
+    if (!data) return
+    try {
+      if (data.id) localStorage.setItem(`swayamkrushi_article_detail_${data.id}`, JSON.stringify(data))
+      if (data._id) localStorage.setItem(`swayamkrushi_article_detail_${data._id}`, JSON.stringify(data))
+      if (id && id !== data.id && id !== data._id) {
+        localStorage.setItem(`swayamkrushi_article_detail_${id}`, JSON.stringify(data))
       }
-    }
-  } catch {}
+    } catch {}
+  }
 
-  // 2. Fetch fresh from network
+  // Always prefer a fresh network fetch so admin media edits show on the site
   try {
     const res = await fetch(`${API_BASE_URL}/articles/${id}`)
     if (res.ok) {
       const data = await res.json()
       if (data && !isIdDeleted('article', data.id) && !isIdDeleted('article', data._id)) {
+        cacheArticleDetail(data)
         return data
       }
     }
@@ -355,13 +353,24 @@ export async function fetchArticleById(id) {
       if (resAlt.ok) {
         const dataAlt = await resAlt.json()
         if (dataAlt && !isIdDeleted('article', dataAlt.id) && !isIdDeleted('article', dataAlt._id)) {
+          cacheArticleDetail(dataAlt)
           return dataAlt
         }
       }
     }
   } catch {}
 
-  // 3. Fallback to cache if network failed
+  // Fallback to detail cache only if network failed
+  try {
+    const localDetail =
+      localStorage.getItem(`swayamkrushi_article_detail_${id}`) ||
+      (altId ? localStorage.getItem(`swayamkrushi_article_detail_${altId}`) : null)
+    if (localDetail) {
+      const parsed = JSON.parse(localDetail)
+      if (parsed && parsed.title) return parsed
+    }
+  } catch {}
+
   for (const k of Object.keys(_memoryArticlesCache)) {
     const list = _memoryArticlesCache[k]
     if (Array.isArray(list)) {

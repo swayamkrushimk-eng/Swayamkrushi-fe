@@ -170,6 +170,7 @@ export default function ArticlePage({ defaultId }) {
             ? (allStoryImages.length % 2 === 0 ? 'right' : 'left')
             : ((typeof img === 'object' && img.placement) || 'left'),
           size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
+          type: typeof img === 'object' && img.type ? img.type : (isVideoUrl(url) ? 'video' : 'image'),
           title: bedHotspotMeta?.title,
           subtitle: bedHotspotMeta?.caption
         })

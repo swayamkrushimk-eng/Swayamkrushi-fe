@@ -417,7 +417,7 @@ export default function AdminPage() {
     }
 
     let initialImages = []
-    if (Array.isArray(art.images)) {
+    if (Array.isArray(art.images) && art.images.length > 0) {
       initialImages = art.images.map((img) => ({
         url: typeof img === 'string' ? img : (img.url || ''),
         caption: typeof img === 'object' ? (img.caption || img.alt || '') : '',
@@ -427,63 +427,64 @@ export default function AdminPage() {
       })).filter((img) => img.url && img.url.length > 0)
     }
 
-    // Inspect contentHtml to enrich placement / size / captions, or ONLY populate if art.images was NOT defined
+    // Always recover media from contentHtml so re-edit shows uploads even if images[] was empty
     if (initialHtml) {
       const parser = new DOMParser()
       const doc = parser.parseFromString(initialHtml, 'text/html')
       
       const figures = Array.from(doc.querySelectorAll('figure'))
       figures.forEach((fig) => {
-        const imgEl = fig.querySelector('img')
+        const mediaEl = fig.querySelector('img, video')
         const figcap = fig.querySelector('figcaption')
-        const src = imgEl?.getAttribute('src')?.trim()
+        const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
         if (src) {
           const existing = initialImages.find((x) => isSameImage(x.url, src))
-          const captionText = figcap?.textContent?.trim() || imgEl?.getAttribute('alt')?.trim() || ''
+          const captionText = figcap?.textContent?.trim() || mediaEl?.getAttribute('alt')?.trim() || mediaEl?.getAttribute('data-caption')?.trim() || ''
           const figurePlacement = fig.classList.contains('float-right')
             ? 'right'
             : fig.classList.contains('float-center')
             ? 'center'
             : 'left'
           const figureSize = fig.classList.contains('size-big') ? 'big' : 'small'
+          const isVid = mediaEl?.tagName?.toLowerCase() === 'video' || isVideoUrl(src)
 
           if (existing) {
             if (!existing.caption && captionText) existing.caption = captionText
             if (!existing.placement || existing.placement === 'left') existing.placement = figurePlacement
             if (!existing.size) existing.size = figureSize
-          } else if (!Array.isArray(art.images)) {
-            // ONLY if art.images was NOT already an array, add it from legacy HTML
+          } else {
             initialImages.push({
               url: src,
               caption: captionText,
-              alt: imgEl?.getAttribute('alt')?.trim() || captionText,
+              alt: mediaEl?.getAttribute('alt')?.trim() || captionText,
               placement: figurePlacement,
-              size: figureSize
+              size: figureSize,
+              type: isVid ? 'video' : 'image'
             })
           }
         }
       })
 
-      if (!Array.isArray(art.images)) {
-        const standaloneImgs = Array.from(doc.querySelectorAll('img'))
-        standaloneImgs.forEach((imgEl) => {
-          if (imgEl.closest('figure')) return
-          const src = imgEl.getAttribute('src')?.trim()
-          if (src) {
-            const existing = initialImages.find((x) => isSameImage(x.url, src))
-            const altText = imgEl.getAttribute('alt')?.trim() || imgEl.getAttribute('title')?.trim() || ''
-            if (!existing) {
-              initialImages.push({
-                url: src,
-                caption: altText,
-                alt: altText,
-                placement: 'left',
-                size: 'small'
-              })
-            }
+      const standaloneMedia = Array.from(doc.querySelectorAll('img, video'))
+      standaloneMedia.forEach((el) => {
+        if (el.closest('figure')) return
+        const src = (el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '').trim()
+        if (src) {
+          const existing = initialImages.find((x) => isSameImage(x.url, src))
+          const altText = el.getAttribute('alt')?.trim() || el.getAttribute('data-caption')?.trim() || el.getAttribute('title')?.trim() || ''
+          if (!existing) {
+            const isVid = el.tagName.toLowerCase() === 'video' || isVideoUrl(src)
+            initialImages.push({
+              url: src,
+              caption: altText,
+              alt: altText,
+              placement: 'left',
+              size: 'small',
+              type: isVid ? 'video' : 'image'
+            })
           }
-        })
-      }
+        }
+      })
     }
 
     // Only fallback to defaults if art.images was NEVER defined (undefined / null)
@@ -709,51 +710,51 @@ export default function AdminPage() {
       })).filter((img) => img.url.length > 0)
 
       let finalContentHtml = articleForm.contentHtml || ''
-      if (finalContentHtml) {
+      if (finalContentHtml || cleanedImages.length > 0) {
         const parser = new DOMParser()
-        const doc = parser.parseFromString(finalContentHtml, 'text/html')
-        let changed = false
+        const doc = parser.parseFromString(finalContentHtml || '<p></p>', 'text/html')
+        let changed = Boolean(!finalContentHtml && cleanedImages.length > 0)
 
-        // 1. Purge any figures or standalone images that are NOT in cleanedImages
-        const figures = Array.from(doc.querySelectorAll('figure'))
-        figures.forEach((fig) => {
-          const imgEl = fig.querySelector('img')
-          const src = imgEl?.getAttribute('src')?.trim()
-          if (!src) {
-            fig.remove()
-            changed = true
-            return
+        // Collect media already in HTML into cleanedImages
+        Array.from(doc.querySelectorAll('img, video')).forEach((el) => {
+          const src = (el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '').trim()
+          if (src && !cleanedImages.some((m) => isSameImage(m.url, src))) {
+            const isVid = el.tagName.toLowerCase() === 'video' || isVideoUrl(src)
+            const cap = el.getAttribute('data-caption') || el.getAttribute('alt') || el.getAttribute('title') || ''
+            cleanedImages.push({
+              url: src,
+              caption: cap,
+              alt: cap,
+              placement: 'left',
+              size: 'small',
+              type: isVid ? 'video' : 'image'
+            })
           }
-          const matched = cleanedImages.find((imgObj) => isSameImage(imgObj.url, src))
-          if (!matched) {
+        })
+
+        // Purge figures/media removed from the story media list
+        Array.from(doc.querySelectorAll('figure')).forEach((fig) => {
+          const mediaEl = fig.querySelector('img, video')
+          const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
+          if (!src || !cleanedImages.some((imgObj) => isSameImage(imgObj.url, src))) {
             fig.remove()
             changed = true
           }
         })
 
-        const standaloneImgs = Array.from(doc.querySelectorAll('img'))
-        standaloneImgs.forEach((imgEl) => {
-          if (imgEl.closest('figure')) return
-          const src = imgEl.getAttribute('src')?.trim()
-          if (!src) {
-            imgEl.remove()
-            changed = true
-            return
-          }
-          const matched = cleanedImages.find((imgObj) => isSameImage(imgObj.url, src))
-          if (!matched) {
-            const parent = imgEl.parentElement
-            imgEl.remove()
+        Array.from(doc.querySelectorAll('img, video')).forEach((el) => {
+          if (el.closest('figure')) return
+          const src = (el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '').trim()
+          if (!src || !cleanedImages.some((imgObj) => isSameImage(imgObj.url, src))) {
+            const parent = el.parentElement
+            el.remove()
             changed = true
             if (parent && (parent.tagName === 'P' || parent.tagName === 'DIV')) {
-              if (!parent.textContent?.trim() && parent.children.length === 0) {
-                parent.remove()
-              }
+              if (!parent.textContent?.trim() && parent.children.length === 0) parent.remove()
             }
           }
         })
 
-        // Remove orphan figcaptions
         Array.from(doc.querySelectorAll('figcaption')).forEach((fc) => {
           if (!fc.closest('figure')) {
             fc.remove()
@@ -761,17 +762,59 @@ export default function AdminPage() {
           }
         })
 
-        // 2. Sync captions, placement and size classes for remaining images
+        // Append any story media not yet present in HTML
+        cleanedImages.forEach((imgObj) => {
+          if (!imgObj.url) return
+          const alreadyInHtml = Array.from(doc.querySelectorAll('img, video')).some((el) => {
+            const s = (el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '').trim()
+            return isSameImage(s, imgObj.url)
+          })
+          if (alreadyInHtml) return
+
+          const alignClass = imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left'
+          const sizeClass = imgObj.size === 'big' ? 'size-big' : 'size-small'
+          const isVid = imgObj.type === 'video' || isVideoUrl(imgObj.url)
+          const fig = doc.createElement('figure')
+          fig.className = `article-inline-figure ${alignClass} ${sizeClass}${isVid ? ' article-inline-video-figure' : ''}`
+
+          if (isVid) {
+            const vid = doc.createElement('video')
+            vid.setAttribute('src', imgObj.url)
+            vid.setAttribute('controls', 'true')
+            vid.setAttribute('playsinline', 'true')
+            if (imgObj.caption) {
+              vid.setAttribute('data-caption', imgObj.caption)
+              vid.setAttribute('title', imgObj.caption)
+            }
+            fig.appendChild(vid)
+          } else {
+            const img = doc.createElement('img')
+            img.setAttribute('src', imgObj.url)
+            img.setAttribute('alt', imgObj.caption || imgObj.alt || '')
+            fig.appendChild(img)
+          }
+          if (imgObj.caption) {
+            const figcap = doc.createElement('figcaption')
+            figcap.className = 'article-inline-caption'
+            figcap.textContent = imgObj.caption
+            fig.appendChild(figcap)
+          }
+          doc.body.appendChild(fig)
+          changed = true
+        })
+
+        // Sync captions/placement for remaining figures
         cleanedImages.forEach((imgObj) => {
           const targetCaption = imgObj.caption || ''
           const alignClass = imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left'
           const sizeClass = imgObj.size === 'big' ? 'size-big' : 'size-small'
+          const isVid = imgObj.type === 'video' || isVideoUrl(imgObj.url)
 
           Array.from(doc.querySelectorAll('figure')).forEach((fig) => {
-            const imgEl = fig.querySelector('img')
-            const src = imgEl?.getAttribute('src')?.trim()
+            const mediaEl = fig.querySelector('img, video')
+            const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
             if (src && isSameImage(src, imgObj.url)) {
-              fig.className = `article-inline-figure ${alignClass} ${sizeClass}`
+              fig.className = `article-inline-figure ${alignClass} ${sizeClass}${isVid ? ' article-inline-video-figure' : ''}`
               let figcap = fig.querySelector('figcaption')
               if (targetCaption) {
                 if (!figcap) {
@@ -783,17 +826,17 @@ export default function AdminPage() {
               } else if (figcap) {
                 figcap.remove()
               }
-              imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
-              changed = true
-            }
-          })
-
-          Array.from(doc.querySelectorAll('img')).forEach((imgEl) => {
-            if (imgEl.closest('figure')) return
-            const src = imgEl.getAttribute('src')?.trim()
-            if (src && isSameImage(src, imgObj.url)) {
-              imgEl.setAttribute('alt', targetCaption || imgObj.alt || '')
-              imgEl.setAttribute('title', targetCaption || imgObj.alt || '')
+              if (mediaEl.tagName.toLowerCase() === 'video') {
+                if (targetCaption) {
+                  mediaEl.setAttribute('data-caption', targetCaption)
+                  mediaEl.setAttribute('title', targetCaption)
+                } else {
+                  mediaEl.removeAttribute('data-caption')
+                  mediaEl.removeAttribute('title')
+                }
+              } else {
+                mediaEl.setAttribute('alt', targetCaption || imgObj.alt || '')
+              }
               changed = true
             }
           })
