@@ -67,15 +67,12 @@ export default function EventsPage() {
     <main className="events-page-wrap">
       <SEO
         title="Events Gallery | Swayamkrushi"
-        description="The gallery offers a panoramic peep into the activities of Swayamkrushi, with videos and pictures from national days and festivals."
+        description="Photos and videos from events and celebrations at Swayamkrushi."
         canonicalUrl="https://swayamkrushi.org/#/events"
       />
 
       <header className="events-header">
         <h1 className="events-title">Events Gallery</h1>
-        <p className="events-subtitle">
-          The gallery offers a panoramic peep into the activities of Swayamkrushi with staff, teachers and the residents participating enthusiastically in various events. Various important national days and festivals including Sankranthi, Republic Day, Ganesh Chathurti, Independence Day, Christmas, among others, are celebrated with gusto and gaiety. Enjoy the videos and pictures.
-        </p>
       </header>
 
       {loading ? (
