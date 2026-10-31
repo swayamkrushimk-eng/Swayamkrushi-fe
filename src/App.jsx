@@ -58,6 +58,9 @@ function App() {
             <Route path="/about/annual-reports" element={<AnnualReportsPage />} />
             <Route path="/events" element={<EventsPage />} />
             <Route path="/event" element={<EventsPage />} />
+            <Route path="/events-gallery" element={<EventsPage />} />
+            <Route path="/event-gallery" element={<EventsPage />} />
+            <Route path="/gallery" element={<EventsPage />} />
             <Route path="/donation" element={<DonationPage />} />
             <Route path="/donations" element={<DonationPage />} />
             <Route path="/donate" element={<DonationPage />} />

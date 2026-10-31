@@ -14,6 +14,13 @@ import VideoPlayer from './VideoPlayer'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import buildingBlocksSvg from '../assets/images/mocks/building-blocks.svg'
 
+function firstSentence(text) {
+  if (!text) return ''
+  const t = String(text).trim()
+  const match = t.match(/^.+?\.(?=\s|$)/)
+  return match ? match[0] : t
+}
+
 export default function MainContent() {
   const [mainArts, setMainArts] = useState({})
 
@@ -104,9 +111,9 @@ export default function MainContent() {
 
       {/* 2. Main Article & Secondary Features */}
       {(homeOfCare || groupHomes || bedHotspot) && (
-        <section id="about">
+        <section id="about" className="center-about">
           {homeOfCare && (
-            <>
+            <div className="center-story">
               <h2>{homeOfCare.title}</h2>
               <p className="lede">
                 {homeOfCare.excerpt}
@@ -152,18 +159,19 @@ export default function MainContent() {
 
               <p className="lede">{homeOfCare.paragraphs[0]}</p>
               <p>{homeOfCare.paragraphs[1]}</p>
+              {homeOfCare.paragraphs[2] && <p>{firstSentence(homeOfCare.paragraphs[2])}</p>}
 
               <p className="main-read-more-wrap">
                 <Link to="/article/home-of-care" className="main-read-more-btn">
                   Read full story &rarr;
                 </Link>
               </p>
-            </>
+            </div>
           )}
 
           {/* 3. Second Feature: Group Homes */}
           {groupHomes && (
-            <>
+            <div className="center-story">
               <h2 className="story-head">{groupHomes.title}</h2>
               {!groupHomesMedia.isText && (
                 <figure
@@ -203,18 +211,19 @@ export default function MainContent() {
 
               <p className="lede">{groupHomes.paragraphs[0]}</p>
               <p>{groupHomes.paragraphs[1]}</p>
+              {groupHomes.paragraphs[2] && <p>{firstSentence(groupHomes.paragraphs[2])}</p>}
 
               <p className="main-read-more-wrap">
                 <Link to="/article/group-homes" className="main-read-more-btn">
                   Read full story &rarr;
                 </Link>
               </p>
-            </>
+            </div>
           )}
 
           {/* 4. Third Feature: The B.Ed Hotspot */}
           {bedHotspot && (
-            <>
+            <div className="center-story center-last-story">
               <h2 className="story-head">{bedHotspot.title}</h2>
               {!bedHotspotMedia.isText && (
                 <figure
@@ -260,7 +269,7 @@ export default function MainContent() {
                   Read full story &rarr;
                 </Link>
               </p>
-            </>
+            </div>
           )}
         </section>
       )}

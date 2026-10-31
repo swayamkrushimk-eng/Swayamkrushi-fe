@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import { fetchEventImages } from '../services/api'
 import './EventsPage.css'
@@ -13,7 +14,7 @@ export default function EventsPage() {
     fetchEventImages()
       .then((data) => {
         if (Array.isArray(data)) {
-          setEventImages(data)
+          setEventImages(data.filter((item) => item.imageUrl || item.url || item.image || item.src))
         }
       })
       .catch((err) => {
@@ -24,54 +25,72 @@ export default function EventsPage() {
       })
   }, [])
 
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.key === 'Escape') setLightboxImage(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
     <main className="events-page-wrap">
       <SEO
-        title="Events | Swayamkrushi"
-        description="Event photo gallery and celebrations at Swayamkrushi."
+        title="Events Gallery | Swayamkrushi"
+        description="Photos from celebrations, campus days, and special events at Swayamkrushi."
         canonicalUrl="https://swayamkrushi.org/#/events"
       />
 
-      {/* Editorial Header */}
+      <nav className="events-breadcrumb" aria-label="Breadcrumb">
+        <Link to="/" className="breadcrumb-link">Home</Link>
+        <span className="breadcrumb-sep">/</span>
+        <span className="breadcrumb-current">Events Gallery</span>
+      </nav>
+
       <header className="events-header">
-        <h1 className="events-title">Events</h1>
+        <p className="events-kicker">Campus life</p>
+        <h1 className="events-title">Events Gallery</h1>
+        <p className="events-subtitle">
+          Moments from celebrations, visits, and everyday life at Swayamkrushi.
+        </p>
       </header>
 
-      {/* Image Gallery */}
       {loading ? (
         <div className="events-loading">
-          <p>Loading events...</p>
+          <p>Loading gallery…</p>
         </div>
       ) : eventImages.length === 0 ? (
         <div className="events-empty-state">
           <div className="events-empty-icon">📷</div>
-          <p>No event images uploaded yet.</p>
+          <p>No event photos yet. New images added from the admin gallery will appear here.</p>
         </div>
       ) : (
         <div className="events-gallery-grid">
           {eventImages.map((item, idx) => {
             const imgUrl = item.imageUrl || item.url || item.image || item.src
-            if (!imgUrl) return null
-            const title = item.title || item.caption || `Event Photo ${idx + 1}`
+            const title = item.title || item.caption || `Event photo ${idx + 1}`
+            const caption = item.caption && item.caption !== title ? item.caption : ''
 
             return (
-              <div
+              <button
+                type="button"
                 key={item._id || item.id || idx}
                 className="events-gallery-item"
-                onClick={() => setLightboxImage({ src: imgUrl, title })}
+                onClick={() => setLightboxImage({ src: imgUrl, title, caption })}
               >
-                <img
-                  src={imgUrl}
-                  alt={title}
-                  loading="lazy"
-                />
-              </div>
+                <img src={imgUrl} alt={title} loading="lazy" />
+                {(item.title || caption) && (
+                  <span className="events-gallery-caption">
+                    <strong>{item.title || title}</strong>
+                    {caption ? <em>{caption}</em> : null}
+                  </span>
+                )}
+              </button>
             )
           })}
         </div>
       )}
 
-      {/* Lightbox Modal */}
       {lightboxImage && (
         <div className="events-lightbox-overlay" onClick={() => setLightboxImage(null)}>
           <div className="events-lightbox-dialog" onClick={(e) => e.stopPropagation()}>
@@ -88,6 +107,12 @@ export default function EventsPage() {
               alt={lightboxImage.title}
               className="events-lightbox-img"
             />
+            {(lightboxImage.title || lightboxImage.caption) && (
+              <p className="events-lightbox-caption">
+                {lightboxImage.title}
+                {lightboxImage.caption ? ` — ${lightboxImage.caption}` : ''}
+              </p>
+            )}
           </div>
         </div>
       )}

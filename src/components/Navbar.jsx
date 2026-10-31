@@ -17,8 +17,10 @@ export default function Navbar() {
         a.id !== 'story-encounter' &&
         a.id !== 'story-group-homes-initiative' &&
         a.id !== 'story-womens-empowerment' &&
+        a.id !== 'story-durga' &&
         a.id !== 'story-direct-speak' &&
         a.id !== 'story-recipe-success' &&
+        a.id !== 'story-phani' &&
         a.id !== 'story-luck-hardwork' &&
         !a.title?.toLowerCase().includes('kitchen') &&
         !a.title?.toLowerCase().includes('chance encounter') &&
@@ -249,6 +251,11 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
+                <Link to="/article/story-durga" onClick={closeAllMenus}>
+                  Durga – My Alter Ego
+                </Link>
+              </li>
+              <li>
                 <Link to="/article/story-womens-empowerment" onClick={closeAllMenus}>
                   Women’s empowerment - A byproduct of Swayamkrushi
                 </Link>
@@ -378,6 +385,11 @@ export default function Navbar() {
                 </Link>
               </li>
               <li>
+                <Link to="/article/story-phani" onClick={closeAllMenus}>
+                  Phani — The Man for All Seasons
+                </Link>
+              </li>
+              <li>
                 <Link to="/article/story-champions" onClick={closeAllMenus}>
                   Champions All the Way
                 </Link>
@@ -391,7 +403,7 @@ export default function Navbar() {
             <Link to="/media-buzz" onClick={closeAllMenus}>Media buzz</Link>
           </li>
           <li>
-            <Link to="/events" onClick={closeAllMenus}>Events</Link>
+            <Link to="/events" onClick={closeAllMenus}>Events Gallery</Link>
           </li>
         </ul>
 

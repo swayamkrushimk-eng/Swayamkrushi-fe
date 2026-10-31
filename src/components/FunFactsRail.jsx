@@ -51,11 +51,12 @@ export default function FunFactsRail() {
     .map((item) => findArticle(item.id, item.fallbacks))
     .filter(Boolean)
 
-  // 2. Winning hearts articles (4 items in exact requested order)
+  // 2. Winning hearts articles (exact requested order)
   const winningHeartsConfig = [
     { id: 'story-hard-work' },
     { id: 'story-luck-hardwork' },
     { id: 'story-recipe-success' },
+    { id: 'story-phani' },
     { id: 'story-champions' }
   ]
   const winningHeartsArticles = winningHeartsConfig

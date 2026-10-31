@@ -42,7 +42,7 @@ let _memorySettings = null
 const _memoryArticlesCache = {}
 
 // ─── CLIENT CACHE VERSION & INVALIDATION ────────────────────────────────
-const CURRENT_CACHE_VERSION = 'v6_20261012_covid_reposition'
+const CURRENT_CACHE_VERSION = 'v8_20261031_durga'
 try {
   const storedVersion = localStorage.getItem('swayamkrushi_cache_version')
   if (storedVersion !== CURRENT_CACHE_VERSION) {

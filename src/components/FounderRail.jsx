@@ -38,10 +38,11 @@ export default function FounderRail() {
     return null
   }
 
-  // 1. Manjula's Musings (3 articles)
+  // 1. Manjula's Musings
   const musingIds = [
     'story-encounter',
     'story-group-homes-initiative',
+    'story-durga',
     'story-womens-empowerment'
   ]
   const musingArticles = musingIds

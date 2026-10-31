@@ -24,6 +24,7 @@ const EDITORIAL_SECTIONS = [
     articles: [
       { id: 'story-encounter', title: 'Chance Encounter That Changed My Life' },
       { id: 'story-group-homes-initiative', title: 'Group Homes – Pioneering initiative that catapulted Swayamkrushi into higher orbit' },
+      { id: 'story-durga', title: 'Durga – My Alter Ego' },
       { id: 'story-womens-empowerment', title: 'Women’s empowerment - A byproduct of Swayamkrushi' },
     ],
   },
@@ -57,6 +58,7 @@ const EDITORIAL_SECTIONS = [
       { id: 'story-hard-work', title: 'Hard Work Never Goes Unrewarded!' },
       { id: 'story-luck-hardwork', title: 'Luck, Hard Work and Guardian Angel Spell Success' },
       { id: 'story-recipe-success', title: 'Recipe for Success' },
+      { id: 'story-phani', title: 'Phani — The Man for All Seasons' },
       { id: 'story-champions', title: 'Champions All the Way — Special Olympics' },
     ],
   },
