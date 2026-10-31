@@ -154,7 +154,7 @@ export default function EventsPage() {
                 className="events-lightbox-img"
               />
             )}
-            {lightboxItem.title && (
+            {!lightboxItem.isVideo && lightboxItem.title && (
               <p className="events-lightbox-caption">{lightboxItem.title}</p>
             )}
           </div>
