@@ -709,6 +709,7 @@ export default function AdminPage() {
         size: typeof img === 'object' ? (img.size || 'small') : 'small'
       })).filter((img) => img.url.length > 0)
 
+      const rawVideo = articleForm.videoUrl ? articleForm.videoUrl.trim() : ''
       let finalContentHtml = articleForm.contentHtml || ''
       if (finalContentHtml || cleanedImages.length > 0) {
         const parser = new DOMParser()
@@ -762,9 +763,23 @@ export default function AdminPage() {
           }
         })
 
+        // Strip featured hero video from body HTML to avoid double render on the article page
+        if (rawVideo) {
+          Array.from(doc.querySelectorAll('video')).forEach((vidEl) => {
+            const src = (vidEl.getAttribute('src') || vidEl.querySelector('source')?.getAttribute('src') || '').trim()
+            if (!src || !isSameImage(src, rawVideo)) return
+            const fig = vidEl.closest('figure')
+            if (fig) fig.remove()
+            else vidEl.remove()
+            changed = true
+          })
+        }
+
         // Append any story media not yet present in HTML
         cleanedImages.forEach((imgObj) => {
           if (!imgObj.url) return
+          // Featured hero video is rendered separately — do not also inject into body HTML
+          if (rawVideo && isSameImage(imgObj.url, rawVideo)) return
           const alreadyInHtml = Array.from(doc.querySelectorAll('img, video')).some((el) => {
             const s = (el.getAttribute('src') || el.querySelector('source')?.getAttribute('src') || '').trim()
             return isSameImage(s, imgObj.url)

@@ -16,7 +16,15 @@ const CLIPPING_IMAGE_BY_ID = {
 
 function withClippingDefaults(article) {
   const fallbackImage = CLIPPING_IMAGE_BY_ID[article.id]
-  const image = article.image || fallbackImage || ''
+  const dbImage = typeof article.image === 'string' ? article.image.trim() : (article.image || '')
+  // Prefer the bundled newspaper scan when available. DB entries sometimes store a broken
+  // Cloudinary URL (or a video URL) after a failed/mis-typed upload.
+  const looksUnusable =
+    !dbImage ||
+    /\.(mp4|webm|mov|m4v|mkv)(\?|$)/i.test(dbImage) ||
+    dbImage.includes('/video/upload/') ||
+    dbImage.includes('placeholder')
+  const image = (!looksUnusable ? dbImage : '') || fallbackImage || ''
   const isClipping = !!article.isClipping || !!fallbackImage
   return {
     ...article,
@@ -343,7 +351,17 @@ export default function MediaBuzzPage() {
                   }
                 >
                   <div className="buzz-card-media is-clipping-card full-card-image">
-                    <img src={article.image} alt={article.title || article.outlet} className="buzz-card-img" />
+                    <img
+                      src={article.image}
+                      alt={article.title || article.outlet}
+                      className="buzz-card-img"
+                      onError={(e) => {
+                        const fb = CLIPPING_IMAGE_BY_ID[article.id]
+                        if (fb && e.currentTarget.src !== fb) {
+                          e.currentTarget.src = fb
+                        }
+                      }}
+                    />
                     <span className="buzz-outlet-badge">{article.outlet}</span>
                     <span className="clipping-zoom-hint">🔍 Zoom</span>
                   </div>

@@ -44,6 +44,41 @@ export default function ArticleContentRenderer({
 
       const hasEmbeddedVideo = hasVideo || Boolean(inlineMedia?.isVideo) || Boolean(doc.body.querySelector('video, iframe'))
 
+      // Track every video URL we actually render so the same clip never appears twice
+      // (hero video + storyImages + contentHtml <video> was causing duplicates on upload).
+      const renderedVideoUrls = []
+      const isAlreadyRenderedVideo = (url) =>
+        Boolean(url) && renderedVideoUrls.some((u) => isSameImage(u, url))
+      const markVideoRendered = (url) => {
+        if (url && !isAlreadyRenderedVideo(url)) renderedVideoUrls.push(url)
+      }
+
+      const isHeroVideoUrl = (url) => {
+        if (!url || !inlineMedia?.isVideo) return false
+        return (
+          isSameImage(url, inlineMedia.videoUrl) ||
+          isSameImage(url, inlineMedia.deliveryVideoUrl) ||
+          isSameImage(url, inlineMedia.playableVideoUrl)
+        )
+      }
+
+      // All <video> sources already present in the article body HTML
+      const htmlVideoSources = Array.from(doc.body.querySelectorAll('video'))
+        .map((vid) => (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim())
+        .filter(Boolean)
+
+      // If ArticlePage already shows a featured hero video, remove matching embeds from the body
+      // so the same upload is not fetched/rendered a second time.
+      if (inlineMedia?.isVideo && (inlineMedia.videoUrl || inlineMedia.deliveryVideoUrl)) {
+        Array.from(doc.body.querySelectorAll('video')).forEach((vid) => {
+          const src = (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim()
+          if (!src || !isHeroVideoUrl(src)) return
+          const fig = vid.closest('figure')
+          if (fig) fig.remove()
+          else vid.remove()
+        })
+      }
+
       // Filter helper for video thumbnails/posters
       const isVideoPosterOrThumb = (url) => {
         if (!hasEmbeddedVideo || !url) return false
@@ -52,6 +87,7 @@ export default function ArticleContentRenderer({
           if (isSameImage(url, inlineMedia.videoThumbnailUrl)) return true
           if (isSameImage(url, inlineMedia.videoUrl)) return true
           if (isSameImage(url, inlineMedia.deliveryVideoUrl)) return true
+          if (isSameImage(url, inlineMedia.playableVideoUrl)) return true
         }
         return false
       }
@@ -244,11 +280,20 @@ export default function ArticleContentRenderer({
       if (Array.isArray(storyImages) && storyImages.length > 0) {
         storyImages.forEach((si) => {
           const siUrl = typeof si === 'string' ? si : si.url
-          if (!siUrl || isVideoPosterOrThumb(siUrl)) return
+          if (!siUrl || isVideoPosterOrThumb(siUrl) || isHeroVideoUrl(siUrl)) return
+
+          const siType = typeof si === 'object' && si.type ? si.type : (isVideoUrl(siUrl) ? 'video' : 'image')
+          // Skip story videos already embedded in HTML — those are rendered from the DOM once.
+          if (
+            siType === 'video' &&
+            htmlVideoSources.some((vSrc) => isSameImage(vSrc, siUrl))
+          ) {
+            return
+          }
+
           const existing = allImages.find((img) => isSameImage(img.src, siUrl))
           const siCap = typeof si === 'object' && si.caption !== undefined ? (si.caption || '') : (typeof si === 'object' ? (si.alt || '') : (imageAlt || ''))
           const siAlt = typeof si === 'object' && si.alt !== undefined ? (si.alt || '') : (siCap || articleTitle || '')
-          const siType = typeof si === 'object' && si.type ? si.type : (isVideoUrl(siUrl) ? 'video' : 'image')
 
           if (existing) {
             if (typeof si === 'object' && si.caption !== undefined) existing.caption = si.caption || ''
@@ -408,6 +453,10 @@ export default function ArticleContentRenderer({
         }
 
         if (isVid) {
+          // Skip hero duplicates and any video URL already rendered earlier in this pass
+          if (isHeroVideoUrl(imgObj.src) || isAlreadyRenderedVideo(imgObj.src)) return null
+          markVideoRendered(imgObj.src)
+
           const vidTitle = hotspotMeta ? hotspotMeta.title : (imgObj.caption || articleTitle)
           const vidSubtitle = hotspotMeta ? hotspotMeta.caption : undefined
 
@@ -490,6 +539,9 @@ export default function ArticleContentRenderer({
             node.getAttribute('src') || node.querySelector('source')?.getAttribute('src')
           const poster = node.getAttribute('poster') || undefined
           if (src) {
+            if (isHeroVideoUrl(src) || isAlreadyRenderedVideo(src)) return null
+            markVideoRendered(src)
+
             const vIndex = embeddedVideoCount++
             const alignClass = isBedHotspot
               ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
@@ -542,6 +594,9 @@ export default function ArticleContentRenderer({
                   vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src')
                 const poster = vid.getAttribute('poster') || undefined
                 if (!src) return null
+                if (isHeroVideoUrl(src) || isAlreadyRenderedVideo(src)) return null
+                markVideoRendered(src)
+
                 const vIndex = embeddedVideoCount++
                 const alignClass = isBedHotspot
                   ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
@@ -633,6 +688,9 @@ export default function ArticleContentRenderer({
           if (vid) {
             const src = vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src')
             if (!src) return null
+            if (isHeroVideoUrl(src) || isAlreadyRenderedVideo(src)) return null
+            markVideoRendered(src)
+
             const poster = vid.getAttribute('poster') || undefined
             const vIndex = embeddedVideoCount++
             const alignClass = isBedHotspot

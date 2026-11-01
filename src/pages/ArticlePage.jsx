@@ -135,12 +135,14 @@ export default function ArticlePage({ defaultId }) {
     article.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
-        // If article has a hero video, do not include the video thumbnail / poster / video url as a body story image
+        // If article has a hero video, do not include the video / poster / delivery URL as a body story image
         if (
           mediaInfo.isVideo &&
           (isSameImage(url, mediaInfo.videoThumbnailUrl) ||
             isSameImage(url, mediaInfo.posterUrl) ||
-            isSameImage(url, mediaInfo.videoUrl))
+            isSameImage(url, mediaInfo.videoUrl) ||
+            isSameImage(url, mediaInfo.deliveryVideoUrl) ||
+            isSameImage(url, mediaInfo.playableVideoUrl))
         ) {
           return
         }
