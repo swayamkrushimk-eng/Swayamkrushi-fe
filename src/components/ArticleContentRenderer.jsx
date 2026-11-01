@@ -62,22 +62,33 @@ export default function ArticleContentRenderer({
         )
       }
 
-      // All <video> sources already present in the article body HTML
-      const htmlVideoSources = Array.from(doc.body.querySelectorAll('video'))
-        .map((vid) => (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim())
-        .filter(Boolean)
+      // Story-media videos are rendered as the preferred small floated players.
+      // Strip matching body <video> embeds (and hero duplicates) so the same clip
+      // is never also shown as a full-width card.
+      const storyVideoUrls = Array.isArray(storyImages)
+        ? storyImages
+            .map((si) => {
+              const url = typeof si === 'string' ? si : si?.url
+              if (!url) return ''
+              const type = typeof si === 'object' && si.type ? si.type : (isVideoUrl(url) ? 'video' : 'image')
+              return type === 'video' || isVideoUrl(url) ? url.trim() : ''
+            })
+            .filter(Boolean)
+        : []
 
-      // If ArticlePage already shows a featured hero video, remove matching embeds from the body
-      // so the same upload is not fetched/rendered a second time.
-      if (inlineMedia?.isVideo && (inlineMedia.videoUrl || inlineMedia.deliveryVideoUrl)) {
-        Array.from(doc.body.querySelectorAll('video')).forEach((vid) => {
-          const src = (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim()
-          if (!src || !isHeroVideoUrl(src)) return
-          const fig = vid.closest('figure')
-          if (fig) fig.remove()
-          else vid.remove()
-        })
+      const shouldStripBodyVideo = (src) => {
+        if (!src) return false
+        if (isHeroVideoUrl(src)) return true
+        return storyVideoUrls.some((u) => isSameImage(u, src))
       }
+
+      Array.from(doc.body.querySelectorAll('video')).forEach((vid) => {
+        const src = (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim()
+        if (!shouldStripBodyVideo(src)) return
+        const fig = vid.closest('figure')
+        if (fig) fig.remove()
+        else vid.remove()
+      })
 
       // Filter helper for video thumbnails/posters
       const isVideoPosterOrThumb = (url) => {
@@ -283,14 +294,6 @@ export default function ArticleContentRenderer({
           if (!siUrl || isVideoPosterOrThumb(siUrl) || isHeroVideoUrl(siUrl)) return
 
           const siType = typeof si === 'object' && si.type ? si.type : (isVideoUrl(siUrl) ? 'video' : 'image')
-          // Skip story videos already embedded in HTML — those are rendered from the DOM once.
-          if (
-            siType === 'video' &&
-            htmlVideoSources.some((vSrc) => isSameImage(vSrc, siUrl))
-          ) {
-            return
-          }
-
           const existing = allImages.find((img) => isSameImage(img.src, siUrl))
           const siCap = typeof si === 'object' && si.caption !== undefined ? (si.caption || '') : (typeof si === 'object' ? (si.alt || '') : (imageAlt || ''))
           const siAlt = typeof si === 'object' && si.alt !== undefined ? (si.alt || '') : (siCap || articleTitle || '')
@@ -301,13 +304,20 @@ export default function ArticleContentRenderer({
             if (typeof si === 'object' && si.placement) existing.placement = si.placement
             if (typeof si === 'object' && si.size) existing.size = si.size
             existing.type = siType
-          } else if (!hasExplicitFigures || !figureSources.some((fSrc) => isSameImage(fSrc, siUrl))) {
+          } else if (
+            // Matching body videos were stripped above so story videos always use the
+            // small floated player. Still skip if a non-video figure already owns the URL.
+            siType === 'video' ||
+            !hasExplicitFigures ||
+            !figureSources.some((fSrc) => isSameImage(fSrc, siUrl))
+          ) {
             allImages.push({
               src: siUrl,
               caption: siCap,
               alt: siAlt,
-              placement: typeof si === 'object' ? si.placement : undefined,
-              size: typeof si === 'object' ? si.size : undefined,
+              placement: typeof si === 'object' ? (si.placement || 'left') : 'left',
+              // Prefer the compact floated player for story videos
+              size: typeof si === 'object' ? (si.size || 'small') : 'small',
               type: siType
             })
           }
@@ -533,7 +543,7 @@ export default function ArticleContentRenderer({
           return null
         }
 
-        // Direct Video Element
+        // Direct Video Element — keep the compact floated player (not full-width)
         if (tagName === 'video') {
           const src =
             node.getAttribute('src') || node.querySelector('source')?.getAttribute('src')
@@ -543,10 +553,11 @@ export default function ArticleContentRenderer({
             markVideoRendered(src)
 
             const vIndex = embeddedVideoCount++
-            const alignClass = isBedHotspot
-              ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
-              : ''
             const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
+            const alignClass = isBedHotspot
+              ? (vIndex % 2 === 0 ? 'float-right' : 'float-left')
+              : 'float-left'
+            const sizeClass = 'size-small'
 
             const matchedMedia = Array.isArray(storyImages)
               ? storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
@@ -559,7 +570,7 @@ export default function ArticleContentRenderer({
             const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
 
             return (
-              <div key={key} className={`article-embedded-video-card ${alignClass}`}>
+              <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
                 <div className="article-video-player-container">
                   <VideoPlayer
                     src={src}
@@ -570,21 +581,21 @@ export default function ArticleContentRenderer({
                     category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
                   />
                 </div>
-                {hotspotMeta ? (
-                  <div className="article-embedded-video-caption">
-                    <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                  </div>
-                ) : explicitCaption ? (
-                  <div className="article-embedded-video-caption">
-                    <span>{explicitCaption}</span>
-                  </div>
+                {(hotspotMeta || explicitCaption) ? (
+                  <figcaption className="article-inline-caption">
+                    {hotspotMeta ? (
+                      <>
+                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                      </>
+                    ) : explicitCaption}
+                  </figcaption>
                 ) : null}
-              </div>
+              </figure>
             )
           }
         }
 
-        // Node containing video child(ren)
+        // Node containing video child(ren) — prefer compact floated player
         const videoEls = Array.from(node.querySelectorAll('video'))
         if (videoEls.length > 0) {
           return (
@@ -598,15 +609,30 @@ export default function ArticleContentRenderer({
                 markVideoRendered(src)
 
                 const vIndex = embeddedVideoCount++
-                const alignClass = isBedHotspot
-                  ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
-                  : ''
                 const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
+                const parentFig = vid.closest('figure')
+                let alignClass = isBedHotspot
+                  ? (vIndex % 2 === 0 ? 'float-right' : 'float-left')
+                  : 'float-left'
+                let sizeClass = 'size-small'
+                if (parentFig) {
+                  if (parentFig.classList.contains('float-right')) alignClass = 'float-right'
+                  else if (parentFig.classList.contains('float-center')) alignClass = 'float-center'
+                  else if (parentFig.classList.contains('float-left')) alignClass = 'float-left'
+                  if (parentFig.classList.contains('size-big')) sizeClass = 'size-big'
+                  else if (parentFig.classList.contains('size-small')) sizeClass = 'size-small'
+                }
 
-                const figcap = vid.closest('figure')?.querySelector('figcaption')
+                const figcap = parentFig?.querySelector('figcaption')
                 const matchedMedia = Array.isArray(storyImages)
                   ? storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
                   : null
+                if (matchedMedia?.placement) {
+                  alignClass = matchedMedia.placement === 'right' ? 'float-right' : matchedMedia.placement === 'center' ? 'float-center' : 'float-left'
+                }
+                if (matchedMedia?.size) {
+                  sizeClass = matchedMedia.size === 'big' ? 'size-big' : 'size-small'
+                }
                 const explicitCaption = matchedMedia !== null && matchedMedia !== undefined
                   ? (matchedMedia.caption || '')
                   : (figcap?.textContent?.trim() || vid.getAttribute('data-caption') || vid.getAttribute('title') || '')
@@ -615,7 +641,7 @@ export default function ArticleContentRenderer({
                 const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
 
                 return (
-                  <div key={`${key}-vid-${vSubIdx}`} className={`article-embedded-video-card ${alignClass}`}>
+                  <figure key={`${key}-vid-${vSubIdx}`} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
                     <div className="article-video-player-container">
                       <VideoPlayer
                         src={src}
@@ -627,16 +653,16 @@ export default function ArticleContentRenderer({
                         category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
                       />
                     </div>
-                    {hotspotMeta ? (
-                      <div className="article-embedded-video-caption">
-                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                      </div>
-                    ) : explicitCaption ? (
-                      <div className="article-embedded-video-caption">
-                        <span>{explicitCaption}</span>
-                      </div>
+                    {(hotspotMeta || explicitCaption) ? (
+                      <figcaption className="article-inline-caption">
+                        {hotspotMeta ? (
+                          <>
+                            <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                          </>
+                        ) : explicitCaption}
+                      </figcaption>
                     ) : null}
-                  </div>
+                  </figure>
                 )
               })}
             </React.Fragment>
@@ -693,13 +719,27 @@ export default function ArticleContentRenderer({
 
             const poster = vid.getAttribute('poster') || undefined
             const vIndex = embeddedVideoCount++
-            const alignClass = isBedHotspot
-              ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
-              : ''
             const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
             const matchedMedia = Array.isArray(storyImages)
               ? storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
               : null
+
+            let alignClass = isBedHotspot
+              ? (vIndex % 2 === 0 ? 'float-right' : 'float-left')
+              : 'float-left'
+            let sizeClass = 'size-small'
+            if (node.classList.contains('float-right')) alignClass = 'float-right'
+            else if (node.classList.contains('float-center')) alignClass = 'float-center'
+            else if (node.classList.contains('float-left')) alignClass = 'float-left'
+            if (node.classList.contains('size-big')) sizeClass = 'size-big'
+            else if (node.classList.contains('size-small')) sizeClass = 'size-small'
+            if (matchedMedia?.placement) {
+              alignClass = matchedMedia.placement === 'right' ? 'float-right' : matchedMedia.placement === 'center' ? 'float-center' : 'float-left'
+            }
+            if (matchedMedia?.size) {
+              sizeClass = matchedMedia.size === 'big' ? 'size-big' : 'size-small'
+            }
+
             const explicitCaption = matchedMedia !== null && matchedMedia !== undefined
               ? (matchedMedia.caption || '')
               : (figcaption?.textContent?.trim() || vid.getAttribute('data-caption') || vid.getAttribute('title') || '')
@@ -707,7 +747,7 @@ export default function ArticleContentRenderer({
             const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
 
             return (
-              <div key={key} className={`article-embedded-video-card ${alignClass}`}>
+              <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
                 <div className="article-video-player-container">
                   <VideoPlayer
                     src={src}
@@ -719,16 +759,16 @@ export default function ArticleContentRenderer({
                     category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
                   />
                 </div>
-                {hotspotMeta ? (
-                  <div className="article-embedded-video-caption">
-                    <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                  </div>
-                ) : explicitCaption ? (
-                  <div className="article-embedded-video-caption">
-                    <span>{explicitCaption}</span>
-                  </div>
+                {(hotspotMeta || explicitCaption) ? (
+                  <figcaption className="article-inline-caption">
+                    {hotspotMeta ? (
+                      <>
+                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
+                      </>
+                    ) : explicitCaption}
+                  </figcaption>
                 ) : null}
-              </div>
+              </figure>
             )
           }
 
