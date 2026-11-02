@@ -11,6 +11,7 @@
 
 /* ─── Editorial Header ─── */
 .events-header {
+  width: 100%;
   border-bottom: 1px solid var(--hair, #6e1e38);
   padding-bottom: 20px;
   margin-bottom: 32px;
@@ -30,7 +31,8 @@
   font-size: clamp(15.5px, 1.6vw, 17.5px);
   line-height: 1.55;
   color: var(--plum, #4a2340);
-  max-width: 760px;
+  max-width: none;
+  width: 100%;
   margin: 0;
 }
 
