@@ -686,6 +686,29 @@
   box-sizing: border-box !important;
 }
 
+/* Full-width landscape story videos (big / centered) */
+.article-inline-figure.article-inline-video-figure.size-big,
+.article-inline-figure.article-inline-video-figure.float-center.size-big {
+  width: 100% !important;
+  max-width: 100% !important;
+  float: none !important;
+  clear: both !important;
+  display: block !important;
+  margin: 28px 0 24px !important;
+  box-sizing: border-box !important;
+}
+
+.article-inline-figure.article-inline-video-figure.size-big .article-video-player-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.article-inline-figure.article-inline-video-figure.size-big .article-video-player-container video {
+  width: 100% !important;
+  aspect-ratio: 16 / 9 !important;
+  object-fit: contain !important;
+}
+
 .article-editorial-body .article-embedded-video-card.size-small.float-right,
 .article-rich-content .article-embedded-video-card.size-small.float-right,
 .article-inline-figure.article-inline-video-figure.float-right {

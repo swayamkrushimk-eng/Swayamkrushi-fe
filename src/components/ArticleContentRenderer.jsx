@@ -422,15 +422,21 @@ export default function ArticleContentRenderer({
         }
         prevParaTarget = targetPara
 
-        const isRight = isBedHotspot
-          ? (imgIdx % 2 === 0)
-          : (isDairy
-              ? false
-              : (imgObj.placement
-                  ? imgObj.placement === 'right'
-                  : (imgIdx % 2 === 0 ? startsRight : !startsRight)))
-        const alignClass = isRight ? 'float-right' : 'float-left'
         const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || (imgObj.size === 'big' ? 'size-big' : 'size-small'))
+        let alignClass
+        if (isBedHotspot) {
+          alignClass = imgIdx % 2 === 0 ? 'float-right' : 'float-left'
+        } else if (isDairy) {
+          alignClass = 'float-left'
+        } else if (imgObj.placement === 'center' || sizeClass === 'size-big') {
+          alignClass = imgObj.placement === 'left' ? 'float-left' : imgObj.placement === 'right' ? 'float-right' : 'float-center'
+        } else if (imgObj.placement === 'right') {
+          alignClass = 'float-right'
+        } else if (imgObj.placement === 'left') {
+          alignClass = 'float-left'
+        } else {
+          alignClass = imgIdx % 2 === 0 ? (startsRight ? 'float-right' : 'float-left') : (!startsRight ? 'float-right' : 'float-left')
+        }
 
         const targetNodeIdx =
           pNodeIndices.length > 0
