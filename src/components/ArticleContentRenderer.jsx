@@ -403,10 +403,14 @@ export default function ArticleContentRenderer({
         }
       }
 
-      // If an explicit imageAlt is passed, apply it to the first image if it has no custom caption (only for non-video articles)
+      // Apply cover imageAlt only to the first still image — never overwrite video captions
       if (!hasEmbeddedVideo && imageAlt && allImages.length > 0) {
-        if (!allImages[0].caption || allImages[0].caption.trim() === '' || allImages[0].caption === articleTitle) {
-          allImages[0].caption = imageAlt
+        const firstStill = allImages.find((img) => img.type !== 'video' && !isVideoUrl(img.src))
+        if (
+          firstStill &&
+          (!firstStill.caption || firstStill.caption.trim() === '' || firstStill.caption === articleTitle)
+        ) {
+          firstStill.caption = imageAlt
         }
       }
 

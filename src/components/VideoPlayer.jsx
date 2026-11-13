@@ -161,19 +161,23 @@ export default function VideoPlayer({
 
     const tryPlay = async () => {
       if (enterFullscreenBeforePlay) {
-        // Prefer already-active browser fullscreen from the welcome tap
-        if (document.fullscreenElement) {
-          if (!cancelled) setIsFullscreen(true)
-        } else {
-          const ok = await requestNativeFullscreen(containerRef.current, video)
-          if (cancelled) return
-          if (!ok || !document.fullscreenElement) {
-            // Fullscreen API requires a user gesture — one-tap native FS gate
-            if (!cancelled) setFsGestureNeeded(true)
-            return
+        // Welcome tap already put the document in native fullscreen.
+        // Promote the player into that fullscreen session when possible — never show a second tap gate.
+        const el = containerRef.current
+        if (document.fullscreenElement && el && document.fullscreenElement !== el) {
+          try {
+            if (el.requestFullscreen) {
+              await el.requestFullscreen({ navigationUI: 'hide' })
+            } else if (el.webkitRequestFullscreen) {
+              el.webkitRequestFullscreen()
+            }
+          } catch {
+            /* stay on document fullscreen — still true browser FS */
           }
-          if (!cancelled) setIsFullscreen(true)
+        } else if (!document.fullscreenElement) {
+          await requestNativeFullscreen(el, video)
         }
+        if (!cancelled) setIsFullscreen(!!document.fullscreenElement)
         await new Promise((r) => setTimeout(r, 150))
         if (cancelled) return
       }
@@ -181,17 +185,21 @@ export default function VideoPlayer({
       try {
         await playUnmuted()
       } catch {
-        // Unmuted autoplay also needs a user gesture after long delays
-        if (forceUnmuted || enterFullscreenBeforePlay) {
-          if (!cancelled) setFsGestureNeeded(true)
-          return
-        }
+        // Keep tour automatic: if unmuted is blocked, start muted then unmute when allowed
         try {
           video.muted = true
           if (!cancelled) setIsMuted(true)
           claimExclusiveMedia(ownerId)
           await video.play()
           if (!cancelled) setIsPlaying(true)
+          if (forceUnmuted) {
+            try {
+              video.muted = false
+              if (!cancelled) setIsMuted(false)
+            } catch {
+              /* stay muted */
+            }
+          }
         } catch {
           /* autoplay blocked */
         }

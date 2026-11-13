@@ -35,7 +35,7 @@ export default function MainContent() {
         setMainArts(mapped)
       }
     }
-    fetchArticles({ section: 'main' }).then(loadMain)
+    fetchArticles({ section: 'main', forceFresh: true }).then(loadMain)
 
     const onUpdate = (e) => {
       if (e.detail?.key === 'section_main' && Array.isArray(e.detail.data)) {
@@ -87,20 +87,18 @@ export default function MainContent() {
             ) : buildingBlocksMedia.posterUrl ? (
               <img
                 src={buildingBlocksMedia.posterUrl}
-                alt="CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students"
-                onError={(e) => { e.target.src = buildingBlocksSvg }}
+                alt={buildingBlocks.imageAlt || buildingBlocks.title || ''}
+                onError={(e) => {
+                  if (buildingBlocks.imageUrl) e.target.src = buildingBlocks.imageUrl
+                  else e.target.src = buildingBlocksSvg
+                }}
               />
             ) : null}
-            {(() => {
-              const cap = buildingBlocks.imageAlt !== undefined
-                ? (buildingBlocks.imageAlt === 'A Game of Building Blocks' || buildingBlocks.imageAlt === 'Building blocks of a dream' ? 'CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students' : buildingBlocks.imageAlt)
-                : 'CLASS IN PROGRESS : Chavan, spl educator, explains different concepts to his students'
-              return cap ? (
-                <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                  {cap}
-                </figcaption>
-              ) : null
-            })()}
+            {buildingBlocks.imageAlt ? (
+              <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+                {buildingBlocks.imageAlt}
+              </figcaption>
+            ) : null}
           </figure>
         )}
         <p>{buildingBlocks.paragraphs[1]}</p>

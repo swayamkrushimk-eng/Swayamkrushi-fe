@@ -36,6 +36,7 @@ export default function WelcomeTour() {
   const markDone = () => {
     try {
       localStorage.setItem(STORAGE_KEY, '1')
+      sessionStorage.removeItem('swayamkrushi_tour_fs')
     } catch {
       /* ignore */
     }
@@ -75,16 +76,24 @@ export default function WelcomeTour() {
     if (startedFlowRef.current || !active || !showWelcome) return
     startedFlowRef.current = true
 
-    // True browser fullscreen (not CSS enlarge) — must run in this user-gesture handler
+    // True browser fullscreen for the whole tour — must run in this user-gesture handler.
+    // Video play later reuses this session so it does not ask to tap again.
     try {
       const root = document.documentElement
-      if (root.requestFullscreen) {
-        await root.requestFullscreen({ navigationUI: 'hide' })
-      } else if (root.webkitRequestFullscreen) {
-        root.webkitRequestFullscreen()
+      if (!document.fullscreenElement) {
+        if (root.requestFullscreen) {
+          await root.requestFullscreen({ navigationUI: 'hide' })
+        } else if (root.webkitRequestFullscreen) {
+          root.webkitRequestFullscreen()
+        }
+      }
+      try {
+        sessionStorage.setItem('swayamkrushi_tour_fs', '1')
+      } catch {
+        /* ignore */
       }
     } catch {
-      /* VideoPlayer will prompt again at play if needed */
+      /* Keep tour running; player will still autoplay inside the page */
     }
 
     setExiting(true)

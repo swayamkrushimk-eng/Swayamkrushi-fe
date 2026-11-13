@@ -179,7 +179,7 @@ export default function Navbar() {
                 <Link to="/annual-reports" onClick={closeAllMenus}>Annual reports</Link>
               </li>
               <li>
-                <Link to="/faq" onClick={closeAllMenus}>FAQ</Link>
+                <Link to="/faq" onClick={closeAllMenus}>FAQs</Link>
               </li>
               <li>
                 <Link to="/contact" onClick={closeAllMenus}>Contact</Link>

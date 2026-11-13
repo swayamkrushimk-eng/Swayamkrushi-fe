@@ -338,9 +338,10 @@ export async function fetchArticleById(id) {
     } catch {}
   }
 
-  // Always prefer a fresh network fetch so admin media edits show on the site
+  // Always prefer a fresh network fetch so admin edits are what the site shows
   try {
-    const res = await fetch(`${API_BASE_URL}/articles/${id}`)
+    const bust = `t=${Date.now()}`
+    const res = await fetch(`${API_BASE_URL}/articles/${id}?${bust}`, { cache: 'no-store' })
     if (res.ok) {
       const data = await res.json()
       if (data && !isIdDeleted('article', data.id) && !isIdDeleted('article', data._id)) {
@@ -349,7 +350,7 @@ export async function fetchArticleById(id) {
       }
     }
     if (altId) {
-      const resAlt = await fetch(`${API_BASE_URL}/articles/${altId}`)
+      const resAlt = await fetch(`${API_BASE_URL}/articles/${altId}?${bust}`, { cache: 'no-store' })
       if (resAlt.ok) {
         const dataAlt = await resAlt.json()
         if (dataAlt && !isIdDeleted('article', dataAlt.id) && !isIdDeleted('article', dataAlt._id)) {

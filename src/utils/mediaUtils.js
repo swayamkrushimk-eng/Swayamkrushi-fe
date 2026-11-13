@@ -179,9 +179,14 @@ export function resolveArticleMedia(article, fallbackImage = null) {
     }
   }
 
-  // If a real video URL exists, prefer video over a stale "text" / no-thumbnail flag
-  // (e.g. Dare to Dream after promoting a body video to hero).
-  if (hasValidVideo && (type === 'text' || type === 'image')) {
+  // Prefer video over a stale "text" flag when a hero video URL exists
+  // (e.g. Dare to Dream). Never override an explicit admin "image" feature.
+  const explicitImage =
+    String(article.featuredMediaType || '').toLowerCase() === 'image' ||
+    String(article.mediaType || '').toLowerCase() === 'image'
+  if (hasValidVideo && type === 'text') {
+    type = 'video'
+  } else if (hasValidVideo && type === 'image' && !explicitImage) {
     type = 'video'
   }
 

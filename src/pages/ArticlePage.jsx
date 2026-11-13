@@ -1,6 +1,6 @@
 import { useEffect, useState, Fragment } from 'react'
 import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { getArticleById, articleImagesMap } from '../data/allArticles'
+import { articleImagesMap } from '../data/allArticles'
 import { fetchArticleById, isIdDeleted } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
 import VideoPlayer from '../components/VideoPlayer'
@@ -96,17 +96,15 @@ export default function ArticlePage({ defaultId }) {
       return
     }
     fetchArticleById(id).then((data) => {
-      if (data && data.title && !isIdDeleted('article', id)) {
+      // Site always mirrors admin/API — do not fall back to bundled local JSON
+      if (data && data.title && !isIdDeleted('article', id) && !isIdDeleted('article', data.id)) {
         setArticle(data)
       } else {
-        // Fallback to local only if server returned nothing
-        const local = getArticleById(id)
-        setArticle(local)
+        setArticle(null)
       }
       setLoading(false)
     }).catch(() => {
-      const local = getArticleById(id)
-      setArticle(local)
+      setArticle(null)
       setLoading(false)
     })
   }, [id])
@@ -167,10 +165,15 @@ export default function ArticlePage({ defaultId }) {
     ? article.paragraphs
     : [article.excerpt || '']
 
-  // If a video only lives in images[] / contentHtml (common for Dare to Dream),
-  // promote it to hero media so it can render at the top instead of the bottom.
+  // Respect admin featured media. Only promote a body video to the hero when the
+  // article is meant to be a video story (or legacy entries with no featured image).
   const articleForMedia = (() => {
     const next = { ...article }
+    const featuredType = String(next.featuredMediaType || next.mediaType || '').toLowerCase()
+    const adminSaysImage = featuredType === 'image' || (!!next.imageUrl && featuredType !== 'video' && featuredType !== 'text')
+    const adminSaysVideo = featuredType === 'video'
+    const adminSaysText = featuredType === 'text' || next.hasThumbnail === false
+
     const findVideoInImages = () => {
       if (!Array.isArray(next.images)) return null
       for (const img of next.images) {
@@ -192,16 +195,27 @@ export default function ArticlePage({ defaultId }) {
       return match?.[1] ? { url: match[1], caption: '' } : null
     }
 
-    const promoted = (!next.videoUrl || String(next.videoUrl).trim().length < 5)
-      ? (findVideoInImages() || findVideoInHtml())
-      : null
+    const missingHeroVideo = !next.videoUrl || String(next.videoUrl).trim().length < 5
+    // Do not steal story clips into the hero when admin set featured media to Image
+    const mayPromoteVideo =
+      missingHeroVideo &&
+      !adminSaysImage &&
+      !adminSaysText &&
+      (adminSaysVideo || !next.imageUrl)
+
+    const promoted = mayPromoteVideo ? (findVideoInImages() || findVideoInHtml()) : null
 
     if (promoted?.url) {
       next.videoUrl = promoted.url
       if (promoted.caption && !next.imageAlt) next.imageAlt = promoted.caption
     }
 
-    if (next.videoUrl && String(next.videoUrl).trim().length > 5) {
+    if (adminSaysImage && !adminSaysVideo) {
+      // Keep featured image as hero; body videos stay in images[] / contentHtml
+      next.mediaType = 'image'
+      next.featuredMediaType = 'image'
+      next.videoUrl = ''
+    } else if (next.videoUrl && String(next.videoUrl).trim().length > 5) {
       next.mediaType = 'video'
       next.featuredMediaType = 'video'
       next.hasThumbnail = true
@@ -339,11 +353,25 @@ export default function ArticlePage({ defaultId }) {
     }
   }
 
-  // If there's an imageAlt and the first image has no custom caption, use imageAlt for it (only for non-video articles)
-  const firstImgObj = Array.isArray(article.images) && article.images.length > 0 ? article.images[0] : null
-  const firstHasExplicitCaption = firstImgObj && typeof firstImgObj === 'object' && firstImgObj.caption !== undefined
-  if (!mediaInfo.isVideo && !firstHasExplicitCaption && article.imageAlt && allStoryImages.length > 0 && (!allStoryImages[0].caption || allStoryImages[0].caption.trim() === '')) {
-    allStoryImages[0].caption = article.imageAlt
+  // Cover imageAlt only fills an empty still-image caption — never overwrite video captions
+  if (!mediaInfo.isVideo && article.imageAlt && allStoryImages.length > 0) {
+    const firstStillIdx = allStoryImages.findIndex(
+      (img) => img.type !== 'video' && !isVideoUrl(img.url)
+    )
+    if (firstStillIdx >= 0) {
+      const firstStill = allStoryImages[firstStillIdx]
+      const sourceImg =
+        Array.isArray(article.images) &&
+        article.images.find((img) => {
+          const url = typeof img === 'string' ? img : img?.url
+          return url && isSameImage(url, firstStill.url)
+        })
+      const hasExplicitCaption =
+        sourceImg && typeof sourceImg === 'object' && sourceImg.caption !== undefined
+      if (!hasExplicitCaption && (!firstStill.caption || firstStill.caption.trim() === '')) {
+        allStoryImages[firstStillIdx].caption = article.imageAlt
+      }
+    }
   }
 
   const getArticleHash = (str = '') => {
