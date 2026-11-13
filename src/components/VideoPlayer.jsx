@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
 import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './VideoPlayer.css'
@@ -74,11 +75,14 @@ export default function VideoPlayer({
 }) {
   const containerRef = useRef(null)
   const videoRef = useRef(null)
+  const theaterRootRef = useRef(null)
+  const theaterVideoRef = useRef(null)
   const hideControlsTimerRef = useRef(null)
   const playableVideoUrl = getPlayableVideoUrl(src)
   const resolvedPoster = poster || getVideoThumbnailUrl(src) || undefined
   const ownerId = `video:${playableVideoUrl || src || title || 'player'}`
 
+  const [tourTheater, setTourTheater] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -134,13 +138,14 @@ export default function VideoPlayer({
     }
   }, [src])
 
-  // Start playback when autoPlay flips on (e.g. guided tour after delay)
+  // Tour / autoPlay: open a body-level fullscreen theater (true viewport cover), then play
   useEffect(() => {
-    if (!autoPlay || !videoRef.current || !playableVideoUrl) return
-    const video = videoRef.current
+    if (!autoPlay || !playableVideoUrl) return undefined
     let cancelled = false
 
-    const playUnmuted = async () => {
+    const playOn = async (video) => {
+      if (!video) return
+      claimExclusiveMedia(ownerId)
       if (forceUnmuted) {
         video.muted = false
         video.volume = 0.85
@@ -149,46 +154,13 @@ export default function VideoPlayer({
           setVolume(0.85)
         }
       }
-      claimExclusiveMedia(ownerId)
-      await video.play()
-      if (!cancelled) {
-        setIsPlaying(true)
-        if (forceUnmuted) setIsMuted(false)
-      }
-    }
-
-    const tryPlay = async () => {
-      const el = containerRef.current
-
-      if (enterFullscreenBeforePlay && el) {
-        // Always cover the viewport automatically for the tour — no tap prompts.
-        el.classList.add('is-tour-immersive')
-        if (!cancelled) setIsFullscreen(true)
-
-        // Also try native Fullscreen API when the browser allows it
-        try {
-          if (document.fullscreenElement && document.fullscreenElement !== el) {
-            if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' })
-            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
-          } else if (!document.fullscreenElement) {
-            await requestNativeFullscreen(el, video)
-          }
-        } catch {
-          /* immersive CSS cover already active */
-        }
-
-        await new Promise((r) => setTimeout(r, 120))
-        if (cancelled) return
-      }
-
       try {
-        await playUnmuted()
+        await video.play()
+        if (!cancelled) setIsPlaying(true)
       } catch {
-        // Keep tour fully automatic if unmuted autoplay is blocked
         try {
           video.muted = true
           if (!cancelled) setIsMuted(true)
-          claimExclusiveMedia(ownerId)
           await video.play()
           if (!cancelled) setIsPlaying(true)
           if (forceUnmuted) {
@@ -205,12 +177,55 @@ export default function VideoPlayer({
       }
     }
 
-    tryPlay()
+    if (enterFullscreenBeforePlay) {
+      setTourTheater(true)
+      document.body.classList.add('tour-fs-lock')
+
+      const startTheater = async () => {
+        if (cancelled) return
+        const root = theaterRootRef.current
+        const video = theaterVideoRef.current
+        if (!root || !video) {
+          requestAnimationFrame(startTheater)
+          return
+        }
+
+        // Prefer native browser fullscreen on the theater root
+        try {
+          await requestNativeFullscreen(root, video)
+        } catch {
+          /* portal already covers the viewport */
+        }
+        if (!cancelled) setIsFullscreen(true)
+        await playOn(video)
+      }
+
+      // Wait a frame so the portal mounts
+      const t = window.setTimeout(startTheater, 50)
+      return () => {
+        cancelled = true
+        clearTimeout(t)
+        setTourTheater(false)
+        document.body.classList.remove('tour-fs-lock')
+        theaterRootRef.current?.classList.remove('is-tour-immersive')
+      }
+    }
+
+    // Non-tour autoplay on the inline player
+    if (!videoRef.current) return undefined
+    playOn(videoRef.current)
     return () => {
       cancelled = true
-      containerRef.current?.classList.remove('is-tour-immersive')
     }
   }, [autoPlay, playableVideoUrl, ownerId, forceUnmuted, enterFullscreenBeforePlay])
+
+  const closeTourTheater = () => {
+    setTourTheater(false)
+    setIsFullscreen(false)
+    setIsPlaying(false)
+    document.body.classList.remove('tour-fs-lock')
+    exitNativeFullscreen().catch(() => {})
+  }
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {
@@ -433,14 +448,44 @@ export default function VideoPlayer({
   return (
     <div
       ref={containerRef}
-      className={`pro-player-container ${isFullscreen ? 'is-fullscreen' : ''} ${!showControls && isPlaying ? 'controls-hidden' : ''} ${className}`}
+      className={`pro-player-container ${isFullscreen && !tourTheater ? 'is-fullscreen' : ''} ${!showControls && isPlaying ? 'controls-hidden' : ''} ${className}`}
       style={{
         ...(containerAspect ? { aspectRatio: containerAspect } : {}),
-        ...style
+        ...style,
+        ...(tourTheater ? { visibility: 'hidden' } : null)
       }}
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
+      {tourTheater &&
+        createPortal(
+          <div
+            ref={theaterRootRef}
+            className="tour-fs-theater"
+            role="dialog"
+            aria-label={title || 'Fullscreen video'}
+          >
+            <video
+              ref={theaterVideoRef}
+              className="tour-fs-theater-video"
+              src={playableVideoUrl}
+              poster={resolvedPoster}
+              playsInline
+              preload="auto"
+              crossOrigin="anonymous"
+              onEnded={() => {
+                closeTourTheater()
+                if (onEnded) onEnded()
+              }}
+              onPlaying={() => {
+                claimExclusiveMedia(ownerId)
+                setIsPlaying(true)
+              }}
+              onPause={() => setIsPlaying(false)}
+            />
+          </div>,
+          document.body
+        )}
       {/* ─── VIDEO SCREEN / STAGE ─── */}
       <div className="pro-player-stage" onClick={() => togglePlay()}>
         <video
@@ -481,12 +526,8 @@ export default function VideoPlayer({
           }}
           onEnded={() => {
             setIsPlaying(false)
-            containerRef.current?.classList.remove('is-tour-immersive')
-            setIsFullscreen(false)
-            const finish = () => {
-              if (onEnded) onEnded()
-            }
-            exitNativeFullscreen().then(finish).catch(finish)
+            closeTourTheater()
+            if (onEnded) onEnded()
           }}
           onError={(e) => {
             const mediaErr = videoRef.current?.error || e?.target?.error
