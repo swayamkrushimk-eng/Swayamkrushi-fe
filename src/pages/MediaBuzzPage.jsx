@@ -83,15 +83,18 @@ function isTeluguArticle(article) {
 /**
  * Display order:
  * 1) English paper/link cards
- * 2) Telugu paper/link cards
- * 3) Newspaper clipping images
- * 4) Video last
+ * 2) English newspaper clipping images (e.g. The Hindu)
+ * 3) Telugu paper/link cards
+ * 4) Other newspaper clipping images
+ * 5) Video last
  */
 function sortDisplayCards(cards) {
   const rank = (card) => {
-    if (card._cardType === 'video') return 3
-    if (card._cardType === 'image') return 2
-    if (isTeluguArticle(card)) return 1
+    if (card._cardType === 'video') return 4
+    if (card._cardType === 'image') {
+      return isTeluguArticle(card) ? 3 : 1
+    }
+    if (isTeluguArticle(card)) return 2
     return 0
   }
 
