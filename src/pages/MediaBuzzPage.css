@@ -342,6 +342,28 @@
   cursor: pointer;
 }
 
+.buzz-article-card.buzz-video-card {
+  grid-column: 1 / -1;
+}
+
+.buzz-card-media.buzz-video-media {
+  height: auto;
+  min-height: 240px;
+  background: #0f0b0d;
+}
+
+.buzz-card-video {
+  width: 100%;
+  max-height: min(70vh, 560px);
+  display: block;
+  background: #000;
+  object-fit: contain;
+}
+
+.buzz-article-card.buzz-video-card:hover .buzz-card-video {
+  transform: none;
+}
+
 .buzz-card-media {
   position: relative;
   width: 100%;

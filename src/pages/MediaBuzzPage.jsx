@@ -5,18 +5,32 @@ import hinduClipping from '../assets/images/hindu-35-years-clipping.jpg'
 import eenaduClipping from '../assets/images/eenadu-2026-10-10-clipping.jpg'
 import andhraPrabhaClipping from '../assets/images/andhra-prabha-2026-10-10-clipping.jpg'
 import andhraJyothyClipping from '../assets/images/andhra-jyothy-2026-10-10-clipping.jpg'
+import aadabPurpleDayClipping from '../assets/images/aadab-hyderabad-purple-day-2026-03-27.jpg'
+import nijamPurpleDayClipping from '../assets/images/nijam-cheputham-purple-day-2026-03-27.jpg'
+import iviewPurpleDayClipping from '../assets/images/iview-news-purple-day-2026-03-27.jpg'
+import andhraPrabhaPurpleDayClipping from '../assets/images/andhra-prabha-purple-day-2026-03-27.jpg'
 import './MediaBuzzPage.css'
 
 const CLIPPING_IMAGE_BY_ID = {
   'hindu-35-years-milestone': hinduClipping,
   'eenadu-epaper-2026-10-10': eenaduClipping,
   'andhra-prabha-rangareddy-2026-10-10': andhraPrabhaClipping,
-  'andhra-jyothy-uppal-malkajgiri-2026-10-10': andhraJyothyClipping
+  'andhra-jyothy-uppal-malkajgiri-2026-10-10': andhraJyothyClipping,
+  'aadab-hyderabad-purple-day-2026-03-27': aadabPurpleDayClipping,
+  'nijam-cheputham-purple-day-2026-03-27': nijamPurpleDayClipping,
+  'iview-news-purple-day-2026-03-27': iviewPurpleDayClipping,
+  'andhra-prabha-purple-day-2026-03-27': andhraPrabhaPurpleDayClipping
+}
+
+const VIDEO_BY_ID = {
+  'purple-day-epilepsy-awareness-video': '/media-buzz/purple-day-epilepsy-awareness-2026.mp4'
 }
 
 function withClippingDefaults(article) {
   const fallbackImage = CLIPPING_IMAGE_BY_ID[article.id]
+  const fallbackVideo = VIDEO_BY_ID[article.id]
   const dbImage = typeof article.image === 'string' ? article.image.trim() : (article.image || '')
+  const dbVideo = typeof article.video === 'string' ? article.video.trim() : (article.video || '')
   // Prefer the bundled newspaper scan when available. DB entries sometimes store a broken
   // Cloudinary URL (or a video URL) after a failed/mis-typed upload.
   const looksUnusable =
@@ -25,10 +39,12 @@ function withClippingDefaults(article) {
     dbImage.includes('/video/upload/') ||
     dbImage.includes('placeholder')
   const image = (!looksUnusable ? dbImage : '') || fallbackImage || ''
+  const video = dbVideo || fallbackVideo || ''
   const isClipping = !!article.isClipping || !!fallbackImage
   return {
     ...article,
     image: image || null,
+    video: video || null,
     isClipping
   }
 }
@@ -39,7 +55,10 @@ const TELUGU_OUTLETS = [
   'eenadu',
   'ninadam',
   'andhra prabha',
-  'andhra jyothy'
+  'andhra jyothy',
+  'aadab',
+  'nijam',
+  'iview'
 ]
 
 function isTeluguArticle(article) {
@@ -66,9 +85,11 @@ function isTeluguArticle(article) {
  * 1) English paper/link cards
  * 2) Telugu paper/link cards
  * 3) Newspaper clipping images
+ * 4) Video last
  */
 function sortDisplayCards(cards) {
   const rank = (card) => {
+    if (card._cardType === 'video') return 3
     if (card._cardType === 'image') return 2
     if (isTeluguArticle(card)) return 1
     return 0
@@ -81,12 +102,13 @@ function sortDisplayCards(cards) {
   })
 }
 
-/** Split each record into: image-only clipping card(s) + normal link card(s). */
+/** Split each record into: image-only clipping card(s) + normal link card(s) + video. */
 function toDisplayCards(articles) {
   const cards = []
 
   articles.forEach((raw) => {
     const article = withClippingDefaults(raw)
+    const hasVideo = !!(article.video && String(article.video).trim())
     const hasClippingImage = !!(article.isClipping && article.image)
     const hasLinkContent =
       !!(article.articleUrl && article.articleUrl.trim()) ||
@@ -100,16 +122,30 @@ function toDisplayCards(articles) {
       })
     }
 
+    if (hasVideo) {
+      cards.push({
+        ...article,
+        _cardKey: `${article.id || article._id}-video`,
+        _cardType: 'video'
+      })
+    }
+
     // Normal link / text card — never carry the newspaper scan thumbnail
+    // Skip pure video entries (video already has its own card).
+    if (hasVideo && !hasClippingImage && !(article.articleUrl && article.articleUrl.trim())) {
+      return
+    }
+
     if (hasLinkContent && (!hasClippingImage || article.articleUrl)) {
       cards.push({
         ...article,
         image: hasClippingImage ? null : article.image,
+        video: null,
         isClipping: false,
         _cardKey: `${article.id || article._id}-link`,
         _cardType: 'link'
       })
-    } else if (!hasClippingImage) {
+    } else if (!hasClippingImage && !hasVideo) {
       cards.push({
         ...article,
         _cardKey: `${article.id || article._id}-link`,
@@ -327,6 +363,92 @@ export const MEDIA_ARTICLES = [
     articleUrl: 'https://epaper.andhrajyothy.com/Hyd_Uppal_Malkajgiri?eid=122&edate=10/10/2026&pgid=1524855&device=desktop&view=3',
     featured: false,
     order: 15
+  },
+  {
+    id: 'aadab-hyderabad-purple-day-2026-03-27',
+    title: 'ఎపిలెప్సీ(మూర్ఛ)పై అపోహలను తొలగించాలి',
+    outlet: 'Aadab Hyderabad',
+    outletType: 'Print & Newspapers',
+    date: '27/03/2026',
+    category: 'Telugu Clipping',
+    badge: 'AADAB HYDERABAD',
+    image: aadabPurpleDayClipping,
+    isClipping: true,
+    excerpt: 'ఆదాబ్ హైదరాబాద్ కథనం: పర్పుల్ డే సందర్భంగా స్వయంకృషి వ్యవస్థాపకురాలు డా. మంజులా కళ్యాణ్ ఎపిలెప్సీపై అపోహలు తొలగించాలని పిలుపునిచ్చారు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Aadab Hyderabad', 'Purple Day', 'Epilepsy Awareness', 'Telugu E-Paper'],
+    articleUrl: 'https://epaper.aadabhyderabad.in/',
+    featured: false,
+    order: 20
+  },
+  {
+    id: 'nijam-cheputham-purple-day-2026-03-27',
+    title: 'ఎపిలెప్సీ(మూర్ఛ)పై అపోహలను తొలగించాలి',
+    outlet: 'Nijam Cheputham',
+    outletType: 'Print & Newspapers',
+    date: '27/03/2026',
+    category: 'Telugu Clipping',
+    badge: 'NIJAM CHEPUTHAM',
+    image: nijamPurpleDayClipping,
+    isClipping: true,
+    excerpt: 'నిజం చెబుతాం కథనం: సోమాజిగూడ ప్రెస్ క్లబ్‌లో పర్పుల్ డే అవగాహన కార్యక్రమం — స్వయంకృషి ద్వారా ఎపిలెప్సీ బాధితులకు సమగ్ర సహకారం.',
+    readTime: 'Telugu Clipping',
+    tags: ['Nijam Cheputham', 'Purple Day', 'Epilepsy Awareness', 'Telugu E-Paper'],
+    articleUrl: 'https://epaper.nijamnews.in/clip/154307',
+    featured: false,
+    order: 21
+  },
+  {
+    id: 'iview-news-purple-day-2026-03-27',
+    title: 'ఎపిలెప్సీ (మూర్ఛ)పై అపోహలను తొలగించాలి',
+    outlet: 'iView News',
+    outletType: 'Print & Newspapers',
+    date: '27/03/2026',
+    category: 'Telugu Clipping',
+    badge: 'IVIEW NEWS',
+    image: iviewPurpleDayClipping,
+    isClipping: true,
+    excerpt: 'iవ్యూ న్యూస్ కథనం: పర్పుల్ డే సందర్భంగా స్వయంకృషి నిర్వహించిన ఎపిలెప్సీ అవగాహన కార్యక్రమం మరియు PurpleDay.org.in వెబ్‌సైట్ ప్రారంభం.',
+    readTime: 'Telugu Clipping',
+    tags: ['iView News', 'Purple Day', 'Epilepsy Awareness', 'Telugu E-Paper'],
+    articleUrl: 'https://epaper.iviewnews.in',
+    featured: false,
+    order: 22
+  },
+  {
+    id: 'andhra-prabha-purple-day-2026-03-27',
+    title: 'మూర్ఛ వ్యాధిపై అపోహలు తొలగించాలి',
+    outlet: 'Andhra Prabha',
+    outletType: 'Print & Newspapers',
+    date: '27/03/2026',
+    category: 'Telugu Clipping',
+    badge: 'ANDHRA PRABHA',
+    image: andhraPrabhaPurpleDayClipping,
+    isClipping: true,
+    excerpt: 'ఆంధ్రప్రభ కథనం: ఖైరతాబాద్ — డా. మంజులా కళ్యాణ్ పర్పుల్ డే సందర్భంగా ఎపిలెప్సీపై అపోహలు తొలగించాలని పిలుపునిచ్చారు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Andhra Prabha', 'Purple Day', 'Epilepsy Awareness', 'Telugu E-Paper'],
+    articleUrl: 'https://epaper.prabhanews.com',
+    featured: false,
+    order: 23
+  },
+  {
+    id: 'purple-day-epilepsy-awareness-video',
+    title: 'Purple Day Epilepsy Awareness — Swayamkrushi',
+    outlet: 'Swayamkrushi Media',
+    outletType: 'Digital & Magazines',
+    date: 'March 2026',
+    category: 'Video Coverage',
+    badge: 'VIDEO',
+    image: null,
+    video: '/media-buzz/purple-day-epilepsy-awareness-2026.mp4',
+    isClipping: false,
+    excerpt: 'Video coverage from Swayamkrushi’s Purple Day epilepsy awareness programme.',
+    readTime: 'Video',
+    tags: ['Purple Day', 'Epilepsy Awareness', 'Video', 'Swayamkrushi'],
+    articleUrl: '',
+    featured: false,
+    order: 99
   }
 ]
 
@@ -430,6 +552,32 @@ export default function MediaBuzzPage() {
                     />
                     <span className="buzz-outlet-badge">{article.outlet}</span>
                     <span className="clipping-zoom-hint">🔍 Zoom</span>
+                  </div>
+                </article>
+              )
+            }
+
+            if (article._cardType === 'video') {
+              return (
+                <article key={article._cardKey} className="buzz-article-card buzz-video-card">
+                  <div className="buzz-card-media buzz-video-media">
+                    <video
+                      className="buzz-card-video"
+                      src={article.video}
+                      controls
+                      playsInline
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                    <span className="buzz-outlet-badge">{article.outlet}</span>
+                  </div>
+                  <div className="buzz-card-body">
+                    <div className="buzz-card-meta">
+                      <span className="buzz-card-date">{article.date} · {article.readTime}</span>
+                    </div>
+                    <h3 className="buzz-card-title">{article.title}</h3>
+                    {article.excerpt && <p className="buzz-card-excerpt">{article.excerpt}</p>}
                   </div>
                 </article>
               )
