@@ -303,6 +303,7 @@ export default function ArticleContentRenderer({
             if (typeof si === 'object' && si.alt !== undefined) existing.alt = si.alt || ''
             if (typeof si === 'object' && si.placement) existing.placement = si.placement
             if (typeof si === 'object' && si.size) existing.size = si.size
+            if (typeof si === 'object' && si.afterHeading) existing.afterHeading = si.afterHeading
             existing.type = siType
           } else if (
             // Matching body videos were stripped above so story videos always use the
@@ -318,7 +319,8 @@ export default function ArticleContentRenderer({
               placement: typeof si === 'object' ? (si.placement || 'left') : 'left',
               // Prefer the compact floated player for story videos
               size: typeof si === 'object' ? (si.size || 'small') : 'small',
-              type: siType
+              type: siType,
+              afterHeading: typeof si === 'object' ? (si.afterHeading || '') : ''
             })
           }
         })
@@ -410,6 +412,30 @@ export default function ArticleContentRenderer({
       const isBedHotspot = articleId === 'bed-hotspot' || articleId === 'bedhotspot'
       let embeddedVideoCount = 0
 
+      const findNodeAfterHeading = (headingText) => {
+        const needle = String(headingText || '').toLowerCase().trim()
+        if (!needle) return -1
+        let headingIdx = -1
+        cleanBodyNodes.forEach((node, idx) => {
+          if (node.nodeType !== Node.ELEMENT_NODE) return
+          const tag = node.tagName?.toLowerCase() || ''
+          const text = (node.textContent || '').replace(/\s+/g, ' ').trim().toLowerCase()
+          const isHeadingTag = /^h[1-6]$/.test(tag)
+          const isShortPara = tag === 'p' && text.length > 0 && text.length < 100
+          if ((isHeadingTag || isShortPara) && text.includes(needle)) {
+            headingIdx = idx
+          }
+        })
+        if (headingIdx < 0) return -1
+        for (let i = headingIdx + 1; i < cleanBodyNodes.length; i += 1) {
+          const n = cleanBodyNodes[i]
+          if (n.nodeType !== Node.ELEMENT_NODE) continue
+          const tag = n.tagName?.toLowerCase() || ''
+          if (tag === 'p' || /^h[1-6]$/.test(tag)) return i
+        }
+        return Math.min(headingIdx + 1, cleanBodyNodes.length - 1)
+      }
+
       allImages.forEach((imgObj, imgIdx) => {
         let targetPara = 0
         if (imgIdx === 0) {
@@ -438,10 +464,15 @@ export default function ArticleContentRenderer({
           alignClass = imgIdx % 2 === 0 ? (startsRight ? 'float-right' : 'float-left') : (!startsRight ? 'float-right' : 'float-left')
         }
 
-        const targetNodeIdx =
+        let targetNodeIdx =
           pNodeIndices.length > 0
             ? pNodeIndices[targetPara]
             : Math.min(cleanBodyNodes.length - 1, imgIdx)
+
+        if (imgObj.afterHeading) {
+          const afterIdx = findNodeAfterHeading(imgObj.afterHeading)
+          if (afterIdx >= 0) targetNodeIdx = afterIdx
+        }
 
         if (!insertBeforeMap.has(targetNodeIdx)) {
           insertBeforeMap.set(targetNodeIdx, [])

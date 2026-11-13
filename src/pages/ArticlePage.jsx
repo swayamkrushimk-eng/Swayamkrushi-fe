@@ -7,7 +7,19 @@ import VideoPlayer from '../components/VideoPlayer'
 import { resolveArticleMedia, isSameImage, isVideoUrl } from '../utils/mediaUtils'
 import SEO from '../components/SEO'
 import ArticleAudioPlayer from '../components/ArticleAudioPlayer'
+import manjulaaVisionaryImg from '../assets/images/manjulaa-visionary-home-of-care.png'
 import './ArticlePage.css'
+
+const HOME_OF_CARE_VISIONARY = {
+  url: manjulaaVisionaryImg,
+  // Caption is baked into the artwork; keep figcaption empty to avoid duplication.
+  caption: '',
+  alt: "VISIONARY: Swayamkrushi is a manifestation of Manjulaa Kalyaan's dream to care for and rehabilitate persons with intellectual disabilities",
+  placement: 'right',
+  size: 'small',
+  type: 'image',
+  afterHeading: 'The heart and soul of Swayamkrushi'
+}
 
 const EDITORIAL_SECTIONS = [
   {
@@ -173,11 +185,32 @@ export default function ArticlePage({ defaultId }) {
             : ((typeof img === 'object' && img.placement) || 'left'),
           size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
           type: typeof img === 'object' && img.type ? img.type : (isVideoUrl(url) ? 'video' : 'image'),
+          afterHeading: typeof img === 'object' ? (img.afterHeading || '') : '',
           title: bedHotspotMeta?.title,
           subtitle: bedHotspotMeta?.caption
         })
       }
     })
+  }
+
+  // Pin Manjulaa visionary portrait under "The heart and soul of Swayamkrushi" (right).
+  if (article.id === 'home-of-care' || id === 'home-of-care') {
+    const isManjulaaPortrait = (img) => {
+      const cap = `${img.caption || ''} ${img.alt || ''}`.toLowerCase()
+      const url = String(img.url || '').toLowerCase()
+      return (
+        cap.includes('heart and soul') ||
+        cap.includes('visionary') ||
+        cap.includes('manjulaa kalyaan, founder') ||
+        url.includes('xg9qemgyszqdhbsjymy8') ||
+        url.includes('diizcur6lyalwamfkie3') ||
+        url.includes('manjulaa-visionary-home-of-care')
+      )
+    }
+    for (let i = allStoryImages.length - 1; i >= 0; i -= 1) {
+      if (isManjulaaPortrait(allStoryImages[i])) allStoryImages.splice(i, 1)
+    }
+    allStoryImages.push({ ...HOME_OF_CARE_VISIONARY })
   }
 
   // Only use article thumbnail/poster as fallback if NO story images exist, article is not a video or text-only, and no rich HTML content exists
@@ -243,6 +276,18 @@ export default function ArticlePage({ defaultId }) {
       const spacing = Math.max(2, dynamicStep + stepVariance)
       targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
     }
+
+    if (imgObj.afterHeading) {
+      const needle = String(imgObj.afterHeading).toLowerCase().trim()
+      const headingIdx = allParagraphs.findIndex((p) => {
+        const text = String(p || '').replace(/\s+/g, ' ').trim().toLowerCase()
+        return text === needle || (text.includes(needle) && text.length < 100)
+      })
+      if (headingIdx >= 0) {
+        targetPara = Math.min(totalParas - 1, headingIdx + 1)
+      }
+    }
+
     prevParaTarget = targetPara
 
     const alignClass = isDairy

@@ -1,7 +1,12 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import {
-  generateCartesiaSpeech,
   buildArticleNarrationText,
+  splitTextIntoChunks,
+  hashTranscript,
+  getCachedCartesiaSpeech,
+  generateCartesiaSpeechChunk,
+  finalizeCartesiaSpeechCache,
+  prefetchCartesiaSpeechChunk0,
 } from '../services/cartesiaTts'
 import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './ArticleAudioPlayer.css'
@@ -28,6 +33,7 @@ function StopIcon() {
 export default function ArticleAudioPlayer({ article, compact = false }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [statusText, setStatusText] = useState('')
   const [audioUrl, setAudioUrl] = useState(null)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
@@ -37,34 +43,47 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
   const [isExpanded, setIsExpanded] = useState(false)
 
   const audioRef = useRef(null)
+  const playlistRef = useRef([])
+  const chunkIndexRef = useRef(0)
+  const stoppedRef = useRef(false)
+  const preparingRestRef = useRef(false)
+  const sessionRef = useRef(0)
   const ownerId = `tts:${article?.id || 'current-article'}`
 
   const text = buildArticleNarrationText(article)
+  const articleId = article?.id || article?._id || 'current-article'
 
-  // Reset audio when article changes
-  useEffect(() => {
+  const clearPlaylistSession = useCallback(() => {
+    sessionRef.current += 1
+    stoppedRef.current = true
+    preparingRestRef.current = false
+    playlistRef.current = []
+    chunkIndexRef.current = 0
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current = null
     }
+  }, [])
+
+  // Reset audio when article changes
+  useEffect(() => {
+    clearPlaylistSession()
     setIsPlaying(false)
     setIsLoading(false)
+    setStatusText('')
     setAudioUrl(null)
     setCurrentTime(0)
     setDuration(0)
     setError(null)
     setIsExpanded(false)
-  }, [article?.id])
+  }, [article?.id, clearPlaylistSession])
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current = null
-      }
+      clearPlaylistSession()
     }
-  }, [])
+  }, [clearPlaylistSession])
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {
@@ -75,26 +94,52 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
     })
   }, [ownerId])
 
+  // Warm first chunk while the user reads (idle), so Listen starts faster.
+  useEffect(() => {
+    if (!text || compact) return undefined
+
+    let cancelled = false
+    const runPrefetch = () => {
+      if (cancelled) return
+      prefetchCartesiaSpeechChunk0({ text, articleId })
+    }
+
+    let idleId = null
+    let timeoutId = null
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      idleId = window.requestIdleCallback(runPrefetch, { timeout: 2500 })
+    } else {
+      timeoutId = setTimeout(runPrefetch, 900)
+    }
+
+    return () => {
+      cancelled = true
+      if (idleId != null && typeof window !== 'undefined' && 'cancelIdleCallback' in window) {
+        window.cancelIdleCallback(idleId)
+      }
+      if (timeoutId) clearTimeout(timeoutId)
+    }
+  }, [text, articleId, compact])
+
   const stopNarration = () => {
+    stoppedRef.current = true
+    preparingRestRef.current = false
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
     }
     setIsPlaying(false)
     setIsLoading(false)
+    setStatusText('')
     if (!compact) setIsExpanded(false)
     setCurrentTime(0)
   }
 
-  const handleStartListening = async () => {
-    claimExclusiveMedia(ownerId)
-    if (compact && isPlaying) return
-    setError(null)
-    if (!compact) setIsExpanded(true)
-
-    const attachAndPlay = async (url) => {
+  const playUrl = useCallback(
+    async (url, { onEnded } = {}) => {
       const audio = new Audio(url)
       audio.playbackRate = playbackRate
+      audio.muted = isMuted
 
       audio.onloadedmetadata = () => {
         setDuration(audio.duration || 0)
@@ -105,66 +150,203 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
       }
 
       audio.onended = () => {
-        setIsPlaying(false)
-        setCurrentTime(0)
+        if (typeof onEnded === 'function') {
+          onEnded()
+        } else {
+          setIsPlaying(false)
+          setCurrentTime(0)
+        }
       }
 
       audio.onerror = () => {
         setError('Playback failed. Please try again.')
         setIsPlaying(false)
         setIsLoading(false)
+        setStatusText('')
       }
 
       audioRef.current = audio
       claimExclusiveMedia(ownerId)
       await audio.play()
       setIsPlaying(true)
-    }
+      setAudioUrl(url)
+    },
+    [playbackRate, isMuted, ownerId]
+  )
 
-    // If audio is already loaded and ready in memory
-    if (audioRef.current && audioUrl) {
-      if (isPlaying) {
-        audioRef.current.pause()
-        setIsPlaying(false)
-      } else {
-        audioRef.current
-          .play()
-          .then(() => setIsPlaying(true))
-          .catch((err) => {
-            console.error('Audio play error:', err)
-            setError('Playback failed. Please try again.')
+  const prefetchRemainingChunks = useCallback(
+    async (chunks, startIndex, sessionId) => {
+      preparingRestRef.current = true
+      setStatusText('Playing (preparing rest…)')
+      for (let i = startIndex; i < chunks.length; i += 1) {
+        if (stoppedRef.current || sessionRef.current !== sessionId) return
+        if (playlistRef.current[i]) continue
+        try {
+          const { audioUrl: url } = await generateCartesiaSpeechChunk({
+            text: chunks[i],
+            chunkIndex: i,
+            articleId,
           })
+          if (stoppedRef.current || sessionRef.current !== sessionId) return
+          playlistRef.current[i] = url
+        } catch (err) {
+          console.warn('Chunk prefetch failed:', err)
+          // Keep going; playNext will surface errors if needed
+        }
       }
+      preparingRestRef.current = false
+      if (!stoppedRef.current && sessionRef.current === sessionId) {
+        setStatusText('')
+        finalizeCartesiaSpeechCache({
+          articleId,
+          text,
+          chunks,
+        }).catch(() => {})
+      }
+    },
+    [articleId, text]
+  )
+
+  const playChunkAt = useCallback(
+    async (index, chunks, sessionId) => {
+      if (stoppedRef.current || sessionRef.current !== sessionId) return
+
+      let url = playlistRef.current[index]
+      if (!url) {
+        setIsLoading(true)
+        setStatusText(index === 0 ? 'Starting…' : 'Preparing next part…')
+        const result = await generateCartesiaSpeechChunk({
+          text: chunks[index],
+          chunkIndex: index,
+          articleId,
+        })
+        if (stoppedRef.current || sessionRef.current !== sessionId) return
+        url = result.audioUrl
+        playlistRef.current[index] = url
+        setIsLoading(false)
+      }
+
+      chunkIndexRef.current = index
+      const isLast = index >= chunks.length - 1
+      if (preparingRestRef.current && !isLast) {
+        setStatusText('Playing (preparing rest…)')
+      } else {
+        setStatusText('')
+      }
+
+      await playUrl(url, {
+        onEnded: () => {
+          if (stoppedRef.current || sessionRef.current !== sessionId) return
+          if (index + 1 < chunks.length) {
+            playChunkAt(index + 1, chunks, sessionId).catch((err) => {
+              console.error('Next chunk play error:', err)
+              setError(err.message || 'Playback failed. Please try again.')
+              setIsPlaying(false)
+              setIsLoading(false)
+            })
+          } else {
+            setIsPlaying(false)
+            setCurrentTime(0)
+            setStatusText('')
+          }
+        },
+      })
+    },
+    [articleId, playUrl]
+  )
+
+  const handleStartListening = async () => {
+    claimExclusiveMedia(ownerId)
+    if (compact && isPlaying) return
+    setError(null)
+    if (!compact) setIsExpanded(true)
+
+    // Toggle pause/resume when already have an active audio element
+    if (audioRef.current && audioUrl && isPlaying) {
+      if (compact) return
+      audioRef.current.pause()
+      setIsPlaying(false)
       return
     }
 
-    if (audioUrl) {
-      setIsLoading(true)
+    if (audioRef.current && audioUrl && !isPlaying) {
       try {
-        await attachAndPlay(audioUrl)
+        claimExclusiveMedia(ownerId)
+        await audioRef.current.play()
+        setIsPlaying(true)
       } catch (err) {
         console.error('Audio play error:', err)
         setError('Playback failed. Please try again.')
-        setIsPlaying(false)
-      } finally {
-        setIsLoading(false)
       }
       return
     }
 
-    setIsLoading(true)
-    try {
-      const { audioUrl: url } = await generateCartesiaSpeech({
-        text,
-        articleId: article?.id || 'current-article',
-      })
+    if (!text) {
+      setError('No readable text available to narrate.')
+      return
+    }
 
-      setAudioUrl(url)
-      await attachAndPlay(url)
+    stoppedRef.current = false
+    const sessionId = sessionRef.current + 1
+    sessionRef.current = sessionId
+    playlistRef.current = []
+    chunkIndexRef.current = 0
+
+    setIsLoading(true)
+    setStatusText('Starting…')
+
+    try {
+      const hash = await hashTranscript(text)
+      const cached = await getCachedCartesiaSpeech({ articleId, hash, text })
+      if (stoppedRef.current || sessionRef.current !== sessionId) return
+
+      if (cached?.audioUrl) {
+        setIsLoading(false)
+        setStatusText('')
+        await playUrl(cached.audioUrl)
+        return
+      }
+
+      const chunks = splitTextIntoChunks(text)
+      if (!chunks.length) {
+        throw new Error('No readable text available to narrate.')
+      }
+
+      // Single short article: one chunk, play immediately
+      if (chunks.length === 1) {
+        const { audioUrl: url } = await generateCartesiaSpeechChunk({
+          text: chunks[0],
+          chunkIndex: 0,
+          articleId,
+        })
+        if (stoppedRef.current || sessionRef.current !== sessionId) return
+        playlistRef.current[0] = url
+        setIsLoading(false)
+        setStatusText('')
+        await playUrl(url)
+        finalizeCartesiaSpeechCache({ articleId, hash, text, chunks }).catch(() => {})
+        return
+      }
+
+      // Progressive: play chunk 0 ASAP, prefetch the rest
+      const first = await generateCartesiaSpeechChunk({
+        text: chunks[0],
+        chunkIndex: 0,
+        articleId,
+      })
+      if (stoppedRef.current || sessionRef.current !== sessionId) return
+      playlistRef.current[0] = first.audioUrl
+      setIsLoading(false)
+
+      // Kick off remaining chunks in background
+      prefetchRemainingChunks(chunks, 1, sessionId)
+
+      await playChunkAt(0, chunks, sessionId)
     } catch (err) {
       console.error('Voice narration error:', err)
       setError(err.message || 'Failed to generate voice narration.')
       setIsPlaying(false)
+      setStatusText('')
     } finally {
       setIsLoading(false)
     }
@@ -225,6 +407,15 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
     const s = Math.floor(secs % 60)
     return `${m}:${s < 10 ? '0' : ''}${s}`
   }
+
+  const loadingLabel = statusText || (isLoading ? 'Loading audio...' : '')
+  const playingLabel = statusText
+    ? statusText
+    : isLoading
+      ? loadingLabel
+      : isPlaying
+        ? 'Now Playing'
+        : 'Voice Narration'
 
   if (compact) {
     return (
@@ -296,7 +487,7 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
                   <span></span>
                   <span></span>
                 </span>
-                <span>{isLoading ? 'Loading audio...' : isPlaying ? 'Now Playing' : 'Voice Narration'}</span>
+                <span>{playingLabel}</span>
               </div>
               <span className="player-article-name">{article?.title}</span>
             </div>
@@ -325,7 +516,6 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
             </div>
           ) : (
             <>
-              {/* Timeline scrubber row */}
               <div className="player-scrubber-row">
                 <span className="player-time-current">{formatTime(currentTime)}</span>
                 <div className="player-slider-container">
@@ -347,7 +537,6 @@ export default function ArticleAudioPlayer({ article, compact = false }) {
                 <span className="player-time-total">{formatTime(duration)}</span>
               </div>
 
-              {/* Controls bar */}
               <div className="player-controls-row">
                 <div className="player-controls-left">
                   <button
