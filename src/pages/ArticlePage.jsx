@@ -271,6 +271,11 @@ export default function ArticlePage({ defaultId }) {
           typeof img === 'object' && img.caption !== undefined
             ? img.caption
             : (typeof img === 'object' && img.alt ? img.alt : '')
+        // Default zigzag L/R so stories don't stack every figure on the left.
+        // Explicit admin placement still wins when set.
+        const zigzagPlacement = allStoryImages.length % 2 === 0 ? 'left' : 'right'
+        const adminPlacement =
+          typeof img === 'object' && img.placement ? String(img.placement).toLowerCase() : ''
 
         allStoryImages.push({
           url,
@@ -278,7 +283,9 @@ export default function ArticlePage({ defaultId }) {
           alt: (typeof img === 'object' && (img.alt || img.caption)) || '',
           placement: isBedHotspot
             ? (allStoryImages.length % 2 === 0 ? 'right' : 'left')
-            : ((typeof img === 'object' && img.placement) || 'left'),
+            : (adminPlacement === 'left' || adminPlacement === 'right' || adminPlacement === 'center'
+                ? adminPlacement
+                : zigzagPlacement),
           size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
           type: typeof img === 'object' && img.type ? img.type : (isVideoUrl(url) ? 'video' : 'image'),
           afterHeading: typeof img === 'object' ? (img.afterHeading || '') : ''
@@ -405,7 +412,8 @@ export default function ArticlePage({ defaultId }) {
     } else {
       const stepVariance = (seed >> (imgIdx + 1)) % 2
       const spacing = Math.max(2, dynamicStep + stepVariance)
-      targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
+      // Always leave text between media — never stack on consecutive paragraphs
+      targetPara = Math.min(totalParas - 1, Math.max(prevParaTarget + 2, prevParaTarget + spacing))
     }
 
     if (imgObj.afterHeading) {
@@ -421,11 +429,12 @@ export default function ArticlePage({ defaultId }) {
 
     prevParaTarget = targetPara
 
+    const zigzagAlign = imgIdx % 2 === 0 ? 'float-left' : 'float-right'
     const alignClass = isDairy
       ? 'float-left'
       : (imgObj.placement
           ? (imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left')
-          : (imgIdx % 2 === 0 ? (startsRight ? 'float-right' : 'float-left') : (!startsRight ? 'float-right' : 'float-left')))
+          : zigzagAlign)
     const sizeClass = imgObj.size === 'big' ? 'size-big' : 'size-small'
 
     if (!imagePlacementMap[targetPara]) imagePlacementMap[targetPara] = []

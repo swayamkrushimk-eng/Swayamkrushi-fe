@@ -479,14 +479,21 @@ export default function ArticleContentRenderer({
         if (imgIdx === 0) {
           targetPara = Math.min(totalParas - 1, initialPara)
         } else {
-          // Space subsequent images apart
+          // Keep at least one full paragraph of text between media (zigzag breathing room)
           const stepVariance = (seed >> (imgIdx + 1)) % 2
           const spacing = Math.max(2, dynamicStep + stepVariance)
-          targetPara = Math.min(totalParas - 1, prevParaTarget + spacing)
+          targetPara = Math.min(totalParas - 1, Math.max(prevParaTarget + 2, prevParaTarget + spacing))
+        }
+        // If we'd land on the last para with more media left, pull earlier slots apart instead of stacking
+        if (imgIdx < allImages.length - 1 && targetPara >= totalParas - 1 && totalParas > 2) {
+          targetPara = Math.max(initialPara, totalParas - 1 - (allImages.length - 1 - imgIdx) * 2)
+          if (targetPara <= prevParaTarget) targetPara = Math.min(totalParas - 1, prevParaTarget + 2)
         }
         prevParaTarget = targetPara
 
         const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || (imgObj.size === 'big' ? 'size-big' : 'size-small'))
+        // Zigzag by default: left → right → left… Explicit placement still honored.
+        const zigzagAlign = imgIdx % 2 === 0 ? 'float-left' : 'float-right'
         let alignClass
         if (isBedHotspot) {
           alignClass = imgIdx % 2 === 0 ? 'float-right' : 'float-left'
@@ -499,7 +506,7 @@ export default function ArticleContentRenderer({
         } else if (imgObj.placement === 'left') {
           alignClass = 'float-left'
         } else {
-          alignClass = imgIdx % 2 === 0 ? (startsRight ? 'float-right' : 'float-left') : (!startsRight ? 'float-right' : 'float-left')
+          alignClass = zigzagAlign
         }
 
         let targetNodeIdx =
