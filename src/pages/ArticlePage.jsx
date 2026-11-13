@@ -1,5 +1,5 @@
 import { useEffect, useState, Fragment } from 'react'
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { articleImagesMap } from '../data/allArticles'
 import { fetchArticleById, isIdDeleted } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
@@ -79,17 +79,12 @@ const EDITORIAL_SECTIONS = [
 export default function ArticlePage({ defaultId }) {
   const { id: paramId } = useParams()
   const id = paramId || defaultId || 'story-encounter'
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const isWelcomeTour = searchParams.get('tour') === '1'
   const [article, setArticle] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [tourAutoPlay, setTourAutoPlay] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
     setLoading(true)
-    setTourAutoPlay(false)
     if (isIdDeleted('article', id)) {
       setArticle(null)
       setLoading(false)
@@ -108,35 +103,6 @@ export default function ArticlePage({ defaultId }) {
       setLoading(false)
     })
   }, [id])
-
-  // Guided welcome tour: wait for play signal (or local 2s fallback), then autoplay hero video
-  useEffect(() => {
-    if (!isWelcomeTour) return undefined
-
-    const onTourEvent = (e) => {
-      if (e?.detail?.phase === 'play') {
-        setTourAutoPlay(true)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-      }
-    }
-    window.addEventListener('swayamkrushi_welcome_tour', onTourEvent)
-
-    const fallback = setTimeout(() => {
-      setTourAutoPlay(true)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }, 2200)
-
-    return () => {
-      window.removeEventListener('swayamkrushi_welcome_tour', onTourEvent)
-      clearTimeout(fallback)
-    }
-  }, [isWelcomeTour, id])
-
-  const handleTourVideoEnded = () => {
-    if (!isWelcomeTour) return
-    window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'video-ended' } }))
-    navigate('/', { replace: true })
-  }
 
   if (loading) {
     return (
@@ -536,10 +502,6 @@ export default function ArticlePage({ defaultId }) {
                 category={article.category || 'Featured Story'}
                 aspectRatio={isPortrait ? '9/16' : '16/9'}
                 objectFit={mediaInfo.videoUrl && mediaInfo.videoUrl.includes('vcuwit1kzoa5rvnc2zee') ? 'cover' : (isPortrait ? 'cover' : 'contain')}
-                autoPlay={isWelcomeTour && tourAutoPlay}
-                forceUnmuted={isWelcomeTour}
-                enterFullscreenBeforePlay={isWelcomeTour}
-                onEnded={isWelcomeTour ? handleTourVideoEnded : undefined}
               />
             </div>
             {(heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`) ? (

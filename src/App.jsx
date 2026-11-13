@@ -15,7 +15,6 @@ import EventsPage from './pages/EventsPage'
 import DonationPage from './pages/DonationPage'
 import AnnualReportsPage from './pages/AnnualReportsPage'
 import ImagePreviewModal from './components/ImagePreviewModal'
-import WelcomeTour from './components/WelcomeTour'
 import { trackPageView } from './services/api'
 import './utils/mediaCoordinator'
 
@@ -33,7 +32,6 @@ function App() {
   return (
     <HashRouter>
       <PageTracker />
-      <WelcomeTour />
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Navbar />
         <div style={{ flex: 1, minHeight: 'calc(100vh - 140px)' }}>
