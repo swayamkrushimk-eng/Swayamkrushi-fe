@@ -14,17 +14,6 @@ function getArticleHash(str = '') {
   return Math.abs(h)
 }
 
-const BED_HOTSPOT_VIDEOS = [
-  {
-    title: 'M Sarada (Principal)',
-    caption: 'An overview...Principal Sarada speaks about the B.ED course'
-  },
-  {
-    title: 'PVB Sudhakar (HoD)',
-    caption: 'Direct from the Head....Sudhakar gives an intro'
-  }
-]
-
 export default function ArticleContentRenderer({
   htmlContent,
   articleTitle = '',
@@ -540,21 +529,16 @@ export default function ArticleContentRenderer({
         let alignClass = imgObj.alignClass || (imgObj.placement === 'right' ? 'float-right' : imgObj.placement === 'center' ? 'float-center' : 'float-left')
         let sizeClass = imgObj.sizeClass || (imgObj.size === 'big' ? 'size-big' : 'size-small')
 
-        let hotspotMeta = null
         if (isBedHotspot) {
           const vIndex = embeddedVideoCount++
           alignClass = vIndex % 2 === 0 ? 'float-right' : 'float-left'
           sizeClass = 'size-small'
-          hotspotMeta = BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length]
         }
 
         if (isVid) {
           // Skip hero duplicates and any video URL already rendered earlier in this pass
           if (isHeroVideoUrl(imgObj.src) || isAlreadyRenderedVideo(imgObj.src)) return null
           markVideoRendered(imgObj.src)
-
-          const vidTitle = hotspotMeta ? hotspotMeta.title : (imgObj.caption || articleTitle)
-          const vidSubtitle = hotspotMeta ? hotspotMeta.caption : undefined
 
           return (
             <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
@@ -563,18 +547,13 @@ export default function ArticleContentRenderer({
                   src={imgObj.src}
                   poster={imgObj.poster || undefined}
                   autoPlay={false}
-                  title={vidTitle}
-                  subtitle={vidSubtitle}
-                  category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                  title={imgObj.caption || articleTitle}
+                  category="Story Clip"
                 />
               </div>
-              {(hotspotMeta || imgObj.caption) ? (
+              {imgObj.caption ? (
                 <figcaption className="article-inline-caption">
-                  {hotspotMeta ? (
-                    <>
-                      <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                    </>
-                  ) : imgObj.caption}
+                  {imgObj.caption}
                 </figcaption>
               ) : null}
             </figure>
@@ -639,7 +618,6 @@ export default function ArticleContentRenderer({
             markVideoRendered(src)
 
             const vIndex = embeddedVideoCount++
-            const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
             const alignClass = isBedHotspot
               ? (vIndex % 2 === 0 ? 'float-right' : 'float-left')
               : 'float-left'
@@ -652,9 +630,6 @@ export default function ArticleContentRenderer({
               ? (matchedMedia.caption || '')
               : (node.getAttribute('data-caption') || node.getAttribute('title') || '')
 
-            const vidTitle = hotspotMeta ? hotspotMeta.title : (matchedMedia?.title || articleTitle)
-            const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
-
             return (
               <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
                 <div className="article-video-player-container">
@@ -662,18 +637,13 @@ export default function ArticleContentRenderer({
                     src={src}
                     poster={poster}
                     autoPlay={false}
-                    title={vidTitle}
-                    subtitle={vidSubtitle}
-                    category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                    title={explicitCaption || articleTitle}
+                    category="Story Clip"
                   />
                 </div>
-                {(hotspotMeta || explicitCaption) ? (
+                {explicitCaption ? (
                   <figcaption className="article-inline-caption">
-                    {hotspotMeta ? (
-                      <>
-                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                      </>
-                    ) : explicitCaption}
+                    {explicitCaption}
                   </figcaption>
                 ) : null}
               </figure>
@@ -695,7 +665,6 @@ export default function ArticleContentRenderer({
                 markVideoRendered(src)
 
                 const vIndex = embeddedVideoCount++
-                const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
                 const parentFig = vid.closest('figure')
                 let alignClass = isBedHotspot
                   ? (vIndex % 2 === 0 ? 'float-right' : 'float-left')
@@ -723,9 +692,6 @@ export default function ArticleContentRenderer({
                   ? (matchedMedia.caption || '')
                   : (figcap?.textContent?.trim() || vid.getAttribute('data-caption') || vid.getAttribute('title') || '')
 
-                const vidTitle = hotspotMeta ? hotspotMeta.title : (matchedMedia?.title || articleTitle)
-                const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
-
                 return (
                   <figure key={`${key}-vid-${vSubIdx}`} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
                     <div className="article-video-player-container">
@@ -733,19 +699,14 @@ export default function ArticleContentRenderer({
                         src={src}
                         poster={poster}
                         autoPlay={false}
-                        title={vidTitle}
-                        subtitle={vidSubtitle}
+                        title={explicitCaption || articleTitle}
                         objectFit={src && src.includes('vcuwit1kzoa5rvnc2zee') ? 'cover' : 'contain'}
-                        category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                        category="Story Clip"
                       />
                     </div>
-                    {(hotspotMeta || explicitCaption) ? (
+                    {explicitCaption ? (
                       <figcaption className="article-inline-caption">
-                        {hotspotMeta ? (
-                          <>
-                            <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                          </>
-                        ) : explicitCaption}
+                        {explicitCaption}
                       </figcaption>
                     ) : null}
                   </figure>
@@ -767,23 +728,17 @@ export default function ArticleContentRenderer({
                 const alignClass = isBedHotspot
                   ? (vIndex % 2 === 0 ? 'size-small float-right bed-hotspot-video-right' : 'size-small float-left bed-hotspot-video-left')
                   : ''
-                const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
 
                 return (
                   <div key={`${key}-iframe-${ifIdx}`} className={`article-embedded-video-card ${alignClass}`}>
                     <iframe
                       src={src}
-                      title={hotspotMeta ? hotspotMeta.title : articleTitle}
+                      title={articleTitle}
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       style={{ width: '100%', height: isBedHotspot ? '220px' : '380px', borderRadius: '8px' }}
                     />
-                    {hotspotMeta && (
-                      <div className="article-embedded-video-caption">
-                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                      </div>
-                    )}
                   </div>
                 )
               })}
@@ -805,7 +760,6 @@ export default function ArticleContentRenderer({
 
             const poster = vid.getAttribute('poster') || undefined
             const vIndex = embeddedVideoCount++
-            const hotspotMeta = isBedHotspot ? BED_HOTSPOT_VIDEOS[vIndex % BED_HOTSPOT_VIDEOS.length] : null
             const matchedMedia = Array.isArray(storyImages)
               ? storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si.url, src))
               : null
@@ -829,8 +783,6 @@ export default function ArticleContentRenderer({
             const explicitCaption = matchedMedia !== null && matchedMedia !== undefined
               ? (matchedMedia.caption || '')
               : (figcaption?.textContent?.trim() || vid.getAttribute('data-caption') || vid.getAttribute('title') || '')
-            const vidTitle = hotspotMeta ? hotspotMeta.title : (matchedMedia?.title || articleTitle)
-            const vidSubtitle = hotspotMeta ? hotspotMeta.caption : (explicitCaption || undefined)
 
             return (
               <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass} article-inline-video-figure`}>
@@ -839,19 +791,14 @@ export default function ArticleContentRenderer({
                     src={src}
                     poster={poster}
                     autoPlay={false}
-                    title={vidTitle}
-                    subtitle={vidSubtitle}
+                    title={explicitCaption || articleTitle}
                     objectFit={src && src.includes('vcuwit1kzoa5rvnc2zee') ? 'cover' : 'contain'}
-                    category={hotspotMeta ? hotspotMeta.title : "Story Clip"}
+                    category="Story Clip"
                   />
                 </div>
-                {(hotspotMeta || explicitCaption) ? (
+                {explicitCaption ? (
                   <figcaption className="article-inline-caption">
-                    {hotspotMeta ? (
-                      <>
-                        <strong>{hotspotMeta.title}</strong> &mdash; <span>{hotspotMeta.caption}</span>
-                      </>
-                    ) : explicitCaption}
+                    {explicitCaption}
                   </figcaption>
                 ) : null}
               </figure>

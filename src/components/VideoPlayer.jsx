@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from 'react'
-import { createPortal } from 'react-dom'
 import { getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
 import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './VideoPlayer.css'
@@ -95,7 +94,6 @@ export default function VideoPlayer({
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [intrinsicAspect, setIntrinsicAspect] = useState(null)
-  const [fsGestureNeeded, setFsGestureNeeded] = useState(false)
 
   // Format time (seconds -> mm:ss)
   const formatTime = (timeInSec) => {
@@ -160,32 +158,33 @@ export default function VideoPlayer({
     }
 
     const tryPlay = async () => {
-      if (enterFullscreenBeforePlay) {
-        // Welcome tap already put the document in native fullscreen.
-        // Promote the player into that fullscreen session when possible — never show a second tap gate.
-        const el = containerRef.current
-        if (document.fullscreenElement && el && document.fullscreenElement !== el) {
-          try {
-            if (el.requestFullscreen) {
-              await el.requestFullscreen({ navigationUI: 'hide' })
-            } else if (el.webkitRequestFullscreen) {
-              el.webkitRequestFullscreen()
-            }
-          } catch {
-            /* stay on document fullscreen — still true browser FS */
+      const el = containerRef.current
+
+      if (enterFullscreenBeforePlay && el) {
+        // Always cover the viewport automatically for the tour — no tap prompts.
+        el.classList.add('is-tour-immersive')
+        if (!cancelled) setIsFullscreen(true)
+
+        // Also try native Fullscreen API when the browser allows it
+        try {
+          if (document.fullscreenElement && document.fullscreenElement !== el) {
+            if (el.requestFullscreen) await el.requestFullscreen({ navigationUI: 'hide' })
+            else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen()
+          } else if (!document.fullscreenElement) {
+            await requestNativeFullscreen(el, video)
           }
-        } else if (!document.fullscreenElement) {
-          await requestNativeFullscreen(el, video)
+        } catch {
+          /* immersive CSS cover already active */
         }
-        if (!cancelled) setIsFullscreen(!!document.fullscreenElement)
-        await new Promise((r) => setTimeout(r, 150))
+
+        await new Promise((r) => setTimeout(r, 120))
         if (cancelled) return
       }
 
       try {
         await playUnmuted()
       } catch {
-        // Keep tour automatic: if unmuted is blocked, start muted then unmute when allowed
+        // Keep tour fully automatic if unmuted autoplay is blocked
         try {
           video.muted = true
           if (!cancelled) setIsMuted(true)
@@ -209,34 +208,9 @@ export default function VideoPlayer({
     tryPlay()
     return () => {
       cancelled = true
+      containerRef.current?.classList.remove('is-tour-immersive')
     }
   }, [autoPlay, playableVideoUrl, ownerId, forceUnmuted, enterFullscreenBeforePlay])
-
-  const handleNativeFsGate = async (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const video = videoRef.current
-    const el = containerRef.current
-    if (!video || !el) return
-
-    const ok = await requestNativeFullscreen(el, video)
-    setIsFullscreen(!!document.fullscreenElement || ok)
-    setFsGestureNeeded(false)
-
-    try {
-      if (forceUnmuted) {
-        video.muted = false
-        video.volume = 0.85
-        setIsMuted(false)
-        setVolume(0.85)
-      }
-      claimExclusiveMedia(ownerId)
-      await video.play()
-      setIsPlaying(true)
-    } catch {
-      /* play blocked */
-    }
-  }
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {
@@ -467,19 +441,6 @@ export default function VideoPlayer({
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
-      {fsGestureNeeded &&
-        createPortal(
-          <button
-            type="button"
-            className="pro-native-fs-gate"
-            onPointerDown={handleNativeFsGate}
-            onClick={handleNativeFsGate}
-            aria-label="Play video in fullscreen"
-          >
-            <span className="pro-native-fs-gate-label">Tap to play fullscreen</span>
-          </button>,
-          document.body
-        )}
       {/* ─── VIDEO SCREEN / STAGE ─── */}
       <div className="pro-player-stage" onClick={() => togglePlay()}>
         <video
@@ -520,6 +481,8 @@ export default function VideoPlayer({
           }}
           onEnded={() => {
             setIsPlaying(false)
+            containerRef.current?.classList.remove('is-tour-immersive')
+            setIsFullscreen(false)
             const finish = () => {
               if (onEnded) onEnded()
             }

@@ -4,15 +4,15 @@ import { fetchSettings } from '../services/api'
 import './WelcomeTour.css'
 
 const STORAGE_KEY = 'swayamkrushi_welcome_tour_done'
+const WELCOME_MS = 2800
 const HOME_HOLD_MS = 10000
 const ARTICLE_WAIT_MS = 2000
 const DARE_TO_DREAM_PATH = '/article/dare-to-dream'
 
 /**
- * Guided one-time tour (when admin toggle is ON):
- * white welcome (tap → true browser fullscreen) → home (10s) → Dare to Dream (2s) → play → home
- *
- * Native Fullscreen API requires a user gesture; the welcome tap unlocks it for the whole tour.
+ * Fully automatic guided tour (when admin toggle is ON):
+ * white welcome → home (10s) → Dare to Dream (2s) → fullscreen play → home
+ * No tap / click prompts at any step.
  */
 export default function WelcomeTour() {
   const navigate = useNavigate()
@@ -20,7 +20,6 @@ export default function WelcomeTour() {
   const [exiting, setExiting] = useState(false)
   const [active, setActive] = useState(false)
   const timersRef = useRef([])
-  const startedFlowRef = useRef(false)
 
   const clearTimers = () => {
     timersRef.current.forEach((id) => clearTimeout(id))
@@ -55,53 +54,6 @@ export default function WelcomeTour() {
     }
   }
 
-  const beginTimedFlow = () => {
-    setShowWelcome(false)
-    setExiting(false)
-    navigate('/', { replace: true })
-    window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'home' } }))
-
-    schedule(() => {
-      navigate(`${DARE_TO_DREAM_PATH}?tour=1`)
-      window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'article' } }))
-
-      schedule(() => {
-        window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'play' } }))
-      }, ARTICLE_WAIT_MS)
-    }, HOME_HOLD_MS)
-  }
-
-  const startFromWelcomeTap = async (e) => {
-    e?.preventDefault?.()
-    if (startedFlowRef.current || !active || !showWelcome) return
-    startedFlowRef.current = true
-
-    // True browser fullscreen for the whole tour — must run in this user-gesture handler.
-    // Video play later reuses this session so it does not ask to tap again.
-    try {
-      const root = document.documentElement
-      if (!document.fullscreenElement) {
-        if (root.requestFullscreen) {
-          await root.requestFullscreen({ navigationUI: 'hide' })
-        } else if (root.webkitRequestFullscreen) {
-          root.webkitRequestFullscreen()
-        }
-      }
-      try {
-        sessionStorage.setItem('swayamkrushi_tour_fs', '1')
-      } catch {
-        /* ignore */
-      }
-    } catch {
-      /* Keep tour running; player will still autoplay inside the page */
-    }
-
-    setExiting(true)
-    schedule(() => {
-      beginTimedFlow()
-    }, 400)
-  }
-
   useEffect(() => {
     let cancelled = false
 
@@ -133,7 +85,44 @@ export default function WelcomeTour() {
 
       setActive(true)
       setShowWelcome(true)
+      try {
+        sessionStorage.setItem('swayamkrushi_tour_fs', '1')
+      } catch {
+        /* ignore */
+      }
       window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'welcome' } }))
+
+      // Try native FS opportunistically (may be blocked without gesture — player uses immersive cover)
+      try {
+        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen({ navigationUI: 'hide' })
+        }
+      } catch {
+        /* automatic immersive player covers this */
+      }
+
+      schedule(() => {
+        if (cancelled) return
+        setExiting(true)
+        schedule(() => {
+          if (cancelled) return
+          setShowWelcome(false)
+          setExiting(false)
+          navigate('/', { replace: true })
+          window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'home' } }))
+
+          schedule(() => {
+            if (cancelled) return
+            navigate(`${DARE_TO_DREAM_PATH}?tour=1`)
+            window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'article' } }))
+
+            schedule(() => {
+              if (cancelled) return
+              window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'play' } }))
+            }, ARTICLE_WAIT_MS)
+          }, HOME_HOLD_MS)
+        }, 550)
+      }, WELCOME_MS)
     }
 
     boot()
@@ -149,18 +138,16 @@ export default function WelcomeTour() {
   if (!active || !showWelcome) return null
 
   return (
-    <button
-      type="button"
+    <div
       className={`welcome-tour-overlay${exiting ? ' is-exiting' : ''}`}
-      onPointerDown={startFromWelcomeTap}
-      onClick={startFromWelcomeTap}
-      aria-label="Welcome to Swayamkrushi — tap to enter"
+      role="dialog"
+      aria-label="Welcome to Swayamkrushi"
+      aria-live="polite"
     >
-      <span className="welcome-tour-wordmark">
+      <h1 className="welcome-tour-wordmark">
         <span className="welcome-tour-lead">Welcome to</span>
         <span className="welcome-tour-brand wordmark">Swayamkrushi</span>
-      </span>
-      <span className="welcome-tour-hint">Tap to enter</span>
-    </button>
+      </h1>
+    </div>
   )
 }

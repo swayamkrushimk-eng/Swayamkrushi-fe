@@ -167,12 +167,21 @@ export default function ArticlePage({ defaultId }) {
 
   // Respect admin featured media. Only promote a body video to the hero when the
   // article is meant to be a video story (or legacy entries with no featured image).
+  // Dare to Dream / Home of Care always keep their story video as the top hero.
   const articleForMedia = (() => {
     const next = { ...article }
+    const isForcedTopVideo =
+      next.id === 'dare-to-dream' ||
+      id === 'dare-to-dream' ||
+      next.id === 'home-of-care' ||
+      id === 'home-of-care'
     const featuredType = String(next.featuredMediaType || next.mediaType || '').toLowerCase()
-    const adminSaysImage = featuredType === 'image' || (!!next.imageUrl && featuredType !== 'video' && featuredType !== 'text')
-    const adminSaysVideo = featuredType === 'video'
-    const adminSaysText = featuredType === 'text' || next.hasThumbnail === false
+    const adminSaysImage =
+      !isForcedTopVideo &&
+      (featuredType === 'image' || (!!next.imageUrl && featuredType !== 'video' && featuredType !== 'text'))
+    const adminSaysVideo = featuredType === 'video' || isForcedTopVideo
+    const adminSaysText =
+      !isForcedTopVideo && (featuredType === 'text' || next.hasThumbnail === false)
 
     const findVideoInImages = () => {
       if (!Array.isArray(next.images)) return null
@@ -197,17 +206,17 @@ export default function ArticlePage({ defaultId }) {
 
     const missingHeroVideo = !next.videoUrl || String(next.videoUrl).trim().length < 5
     // Do not steal story clips into the hero when admin set featured media to Image
+    // (except Dare to Dream / Home of Care, which always use the top video hero).
     const mayPromoteVideo =
       missingHeroVideo &&
-      !adminSaysImage &&
-      !adminSaysText &&
-      (adminSaysVideo || !next.imageUrl)
+      (isForcedTopVideo ||
+        (!adminSaysImage && !adminSaysText && (adminSaysVideo || !next.imageUrl)))
 
     const promoted = mayPromoteVideo ? (findVideoInImages() || findVideoInHtml()) : null
 
     if (promoted?.url) {
       next.videoUrl = promoted.url
-      if (promoted.caption && !next.imageAlt) next.imageAlt = promoted.caption
+      if (promoted.caption) next.imageAlt = promoted.caption
     }
 
     if (adminSaysImage && !adminSaysVideo) {
@@ -221,10 +230,12 @@ export default function ArticlePage({ defaultId }) {
       next.hasThumbnail = true
     }
 
-    // Dare to Dream / Home of Care: always full-width top hero video
-    if (next.id === 'dare-to-dream' || id === 'dare-to-dream' || next.id === 'home-of-care' || id === 'home-of-care') {
+    if (isForcedTopVideo) {
       next.videoPlacement = 'center'
       next.videoSize = 'big'
+      next.mediaType = next.videoUrl ? 'video' : next.mediaType
+      next.featuredMediaType = next.videoUrl ? 'video' : next.featuredMediaType
+      next.hasThumbnail = next.videoUrl ? true : next.hasThumbnail
     }
 
     return next
@@ -256,35 +267,21 @@ export default function ArticlePage({ defaultId }) {
           return
         }
         const isBedHotspot = article.id === 'bed-hotspot' || id === 'bed-hotspot'
-        const bedHotspotMeta = isBedHotspot
-          ? [
-              {
-                title: 'M Sarada (Principal)',
-                caption: 'An overview...Principal Sarada speaks about the B.ED course'
-              },
-              {
-                title: 'PVB Sudhakar (HoD)',
-                caption: 'Direct from the Head....Sudhakar gives an intro'
-              }
-            ][allStoryImages.length % 2]
-          : null
+        const adminCaption =
+          typeof img === 'object' && img.caption !== undefined
+            ? img.caption
+            : (typeof img === 'object' && img.alt ? img.alt : '')
 
         allStoryImages.push({
           url,
-          caption: bedHotspotMeta
-            ? `${bedHotspotMeta.title} — ${bedHotspotMeta.caption}`
-            : (typeof img === 'object' && img.caption !== undefined ? img.caption : (typeof img === 'object' && img.alt ? img.alt : '')),
-          alt: bedHotspotMeta
-            ? bedHotspotMeta.title
-            : ((typeof img === 'object' && (img.alt || img.caption)) || ''),
+          caption: adminCaption || '',
+          alt: (typeof img === 'object' && (img.alt || img.caption)) || '',
           placement: isBedHotspot
             ? (allStoryImages.length % 2 === 0 ? 'right' : 'left')
             : ((typeof img === 'object' && img.placement) || 'left'),
           size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
           type: typeof img === 'object' && img.type ? img.type : (isVideoUrl(url) ? 'video' : 'image'),
-          afterHeading: typeof img === 'object' ? (img.afterHeading || '') : '',
-          title: bedHotspotMeta?.title,
-          subtitle: bedHotspotMeta?.caption
+          afterHeading: typeof img === 'object' ? (img.afterHeading || '') : ''
         })
       }
     })

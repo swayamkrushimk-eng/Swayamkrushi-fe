@@ -18,30 +18,19 @@
   transition: all 0.25s ease;
 }
 
-/* Native Fullscreen API gate (browsers require a user gesture) */
-.pro-native-fs-gate {
-  position: fixed;
-  inset: 0;
-  z-index: 100002;
-  margin: 0;
-  border: 0;
-  padding: 0;
-  width: 100vw;
-  height: 100vh;
-  cursor: pointer;
-  background: rgba(0, 0, 0, 0.88);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--head, Georgia, serif);
-  color: #fff;
-}
-
-.pro-native-fs-gate-label {
-  font-size: clamp(18px, 4vw, 28px);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  pointer-events: none;
+/* Automatic tour fullscreen cover (no tap required) */
+.pro-player-container.is-tour-immersive {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100001 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border-radius: 0 !important;
+  background: #000;
+  box-shadow: none !important;
 }
 
 .pro-player-container.is-fullscreen {
