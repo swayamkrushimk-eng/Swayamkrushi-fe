@@ -169,12 +169,12 @@ export default function WelcomeTour() {
     <div
       className={`welcome-tour-overlay${exiting ? ' is-exiting' : ''}`}
       role="dialog"
-      aria-label="Welcome to Swayamkrushi"
+      aria-label="Welcome to Swayamkrushi website"
       aria-live="polite"
     >
       <h1 className="welcome-tour-wordmark">
         <span className="welcome-tour-lead">Welcome to</span>
-        <span className="welcome-tour-brand wordmark">Swayamkrushi</span>
+        <span className="welcome-tour-brand wordmark">Swayamkrushi website</span>
       </h1>
     </div>
   )
