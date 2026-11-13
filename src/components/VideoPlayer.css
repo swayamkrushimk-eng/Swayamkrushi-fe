@@ -18,6 +18,19 @@
   transition: all 0.25s ease;
 }
 
+.pro-player-container.is-tour-immersive {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100001 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  max-width: none !important;
+  max-height: none !important;
+  aspect-ratio: auto !important;
+  border-radius: 0 !important;
+  background: #000;
+}
+
 .pro-player-container.is-fullscreen {
   border-radius: 0;
   width: 100vw;

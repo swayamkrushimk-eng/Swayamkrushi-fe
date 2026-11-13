@@ -117,8 +117,9 @@ export default function WelcomeTour() {
       aria-label="Welcome to Swayamkrushi"
       aria-live="polite"
     >
-      <h1 className="welcome-tour-wordmark wordmark">
-        Welcome to Swayamkr<span className="ushi-part">ushi</span>
+      <h1 className="welcome-tour-wordmark">
+        <span className="welcome-tour-lead">Welcome to</span>
+        <span className="welcome-tour-brand wordmark">Swayamkrushi</span>
       </h1>
     </div>
   )

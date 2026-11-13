@@ -16,6 +16,8 @@ export default function VideoPlayer({
   tag,
   durationText = '2:30',
   autoPlay = false,
+  forceUnmuted = false,
+  enterFullscreenBeforePlay = false,
   showTitleOverlay = false,
   aspectRatio = '16/9',
   objectFit = 'contain',
@@ -93,12 +95,92 @@ export default function VideoPlayer({
     const video = videoRef.current
     let cancelled = false
 
+    const waitForFullscreen = () =>
+      new Promise((resolve) => {
+        if (document.fullscreenElement) {
+          resolve(true)
+          return
+        }
+        const onChange = () => {
+          document.removeEventListener('fullscreenchange', onChange)
+          resolve(!!document.fullscreenElement)
+        }
+        document.addEventListener('fullscreenchange', onChange)
+        setTimeout(() => {
+          document.removeEventListener('fullscreenchange', onChange)
+          resolve(!!document.fullscreenElement)
+        }, 800)
+      })
+
+    const enterFullscreen = async () => {
+      const el = containerRef.current
+      if (!el) return false
+      try {
+        if (el.requestFullscreen) {
+          await el.requestFullscreen()
+        } else if (el.webkitRequestFullscreen) {
+          await el.webkitRequestFullscreen()
+        } else if (video.webkitEnterFullscreen) {
+          video.webkitEnterFullscreen()
+        }
+        await waitForFullscreen()
+        if (!cancelled) setIsFullscreen(!!document.fullscreenElement || true)
+        return true
+      } catch {
+        // Fallback: CSS immersive cover when native fullscreen is blocked
+        if (!cancelled) {
+          el.classList.add('is-tour-immersive')
+          setIsFullscreen(true)
+        }
+        return false
+      }
+    }
+
     const tryPlay = async () => {
+      if (forceUnmuted) {
+        const level = 0.85
+        video.muted = false
+        video.volume = level
+        if (!cancelled) {
+          setIsMuted(false)
+          setVolume(level)
+        }
+      }
+
+      if (enterFullscreenBeforePlay) {
+        await enterFullscreen()
+        if (cancelled) return
+        // Brief beat so fullscreen paints before playback starts
+        await new Promise((r) => setTimeout(r, 200))
+        if (cancelled) return
+      }
+
       try {
         claimExclusiveMedia(ownerId)
+        if (forceUnmuted) {
+          video.muted = false
+        }
         await video.play()
-        if (!cancelled) setIsPlaying(true)
+        if (!cancelled) {
+          setIsPlaying(true)
+          if (forceUnmuted) setIsMuted(false)
+        }
       } catch {
+        if (forceUnmuted) {
+          // Tour requires sound — retry unmuted once more, never mute
+          try {
+            video.muted = false
+            claimExclusiveMedia(ownerId)
+            await video.play()
+            if (!cancelled) {
+              setIsPlaying(true)
+              setIsMuted(false)
+            }
+          } catch {
+            /* autoplay with sound blocked by browser */
+          }
+          return
+        }
         try {
           video.muted = true
           if (!cancelled) setIsMuted(true)
@@ -114,8 +196,9 @@ export default function VideoPlayer({
     tryPlay()
     return () => {
       cancelled = true
+      containerRef.current?.classList.remove('is-tour-immersive')
     }
-  }, [autoPlay, playableVideoUrl, ownerId])
+  }, [autoPlay, playableVideoUrl, ownerId, forceUnmuted, enterFullscreenBeforePlay])
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {
@@ -388,7 +471,15 @@ export default function VideoPlayer({
           }}
           onEnded={() => {
             setIsPlaying(false)
-            if (onEnded) onEnded()
+            const finish = () => {
+              containerRef.current?.classList.remove('is-tour-immersive')
+              if (onEnded) onEnded()
+            }
+            if (document.fullscreenElement) {
+              document.exitFullscreen().then(finish).catch(finish)
+            } else {
+              finish()
+            }
           }}
           onError={(e) => {
             const mediaErr = videoRef.current?.error || e?.target?.error

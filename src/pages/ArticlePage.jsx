@@ -498,6 +498,8 @@ export default function ArticlePage({ defaultId }) {
                 aspectRatio={isPortrait ? '9/16' : '16/9'}
                 objectFit={mediaInfo.videoUrl && mediaInfo.videoUrl.includes('vcuwit1kzoa5rvnc2zee') ? 'cover' : (isPortrait ? 'cover' : 'contain')}
                 autoPlay={isWelcomeTour && tourAutoPlay}
+                forceUnmuted={isWelcomeTour}
+                enterFullscreenBeforePlay={isWelcomeTour}
                 onEnded={isWelcomeTour ? handleTourVideoEnded : undefined}
               />
             </div>

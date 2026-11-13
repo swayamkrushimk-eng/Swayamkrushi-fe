@@ -14,16 +14,31 @@
   animation: welcome-tour-fade-out 0.55s ease both;
 }
 
-.welcome-tour-wordmark.wordmark {
+.welcome-tour-wordmark {
+  margin: 0;
+  text-align: center;
+}
+
+.welcome-tour-lead {
+  display: block;
+  font-family: var(--head);
+  font-weight: 600;
+  font-size: clamp(18px, 3.2vw, 28px);
+  letter-spacing: 0.04em;
+  color: #5c534c;
+  margin-bottom: 0.35em;
+}
+
+.welcome-tour-brand.wordmark {
+  display: block;
   font-family: var(--head);
   font-weight: 700;
-  text-align: center;
-  font-size: clamp(28px, 7vw, 72px);
+  font-size: clamp(32px, 8vw, 96px);
   line-height: 1.04;
   letter-spacing: -0.02em;
   color: #1b1418;
   margin: 0;
-  max-width: 18ch;
+  white-space: nowrap;
 }
 
 @keyframes welcome-tour-fade-in {
@@ -45,7 +60,7 @@
 }
 
 @media (max-width: 640px) {
-  .welcome-tour-wordmark {
-    font-size: clamp(26px, 8.5vw, 40px);
+  .welcome-tour-brand.wordmark {
+    font-size: clamp(28px, 9vw, 42px);
   }
 }
