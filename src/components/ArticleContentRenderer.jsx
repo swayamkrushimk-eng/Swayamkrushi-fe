@@ -79,16 +79,16 @@ export default function ArticleContentRenderer({
         else vid.remove()
       })
 
-      // Filter helper for video thumbnails/posters
+      // Filter helper for hero-video thumbnails/posters only.
+      // Do NOT treat a featured IMAGE cover as a "video poster" just because the
+      // article body also embeds a separate story video (e.g. Sowing Seeds).
       const isVideoPosterOrThumb = (url) => {
-        if (!hasEmbeddedVideo || !url) return false
-        if (inlineMedia) {
-          if (isSameImage(url, inlineMedia.posterUrl)) return true
-          if (isSameImage(url, inlineMedia.videoThumbnailUrl)) return true
-          if (isSameImage(url, inlineMedia.videoUrl)) return true
-          if (isSameImage(url, inlineMedia.deliveryVideoUrl)) return true
-          if (isSameImage(url, inlineMedia.playableVideoUrl)) return true
-        }
+        if (!url || !inlineMedia?.isVideo) return false
+        if (isSameImage(url, inlineMedia.posterUrl)) return true
+        if (isSameImage(url, inlineMedia.videoThumbnailUrl)) return true
+        if (isSameImage(url, inlineMedia.videoUrl)) return true
+        if (isSameImage(url, inlineMedia.deliveryVideoUrl)) return true
+        if (isSameImage(url, inlineMedia.playableVideoUrl)) return true
         return false
       }
 
