@@ -33,6 +33,54 @@ function withClippingDefaults(article) {
   }
 }
 
+const TELUGU_OUTLETS = [
+  'mana telangana',
+  'sakshi',
+  'eenadu',
+  'ninadam',
+  'andhra prabha',
+  'andhra jyothy'
+]
+
+function isTeluguArticle(article) {
+  const text = [
+    article.title,
+    article.excerpt,
+    article.readTime,
+    article.category,
+    article.badge,
+    ...(Array.isArray(article.tags) ? article.tags : [])
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  if (/[\u0C00-\u0C7F]/.test(text)) return true
+  if (/telugu/i.test(text)) return true
+
+  const outlet = String(article.outlet || '').toLowerCase()
+  return TELUGU_OUTLETS.some((name) => outlet.includes(name))
+}
+
+/**
+ * Display order:
+ * 1) English paper/link cards
+ * 2) Telugu paper/link cards
+ * 3) Newspaper clipping images
+ */
+function sortDisplayCards(cards) {
+  const rank = (card) => {
+    if (card._cardType === 'image') return 2
+    if (isTeluguArticle(card)) return 1
+    return 0
+  }
+
+  return [...cards].sort((a, b) => {
+    const byGroup = rank(a) - rank(b)
+    if (byGroup !== 0) return byGroup
+    return (a.order || 0) - (b.order || 0)
+  })
+}
+
 /** Split each record into: image-only clipping card(s) + normal link card(s). */
 function toDisplayCards(articles) {
   const cards = []
@@ -70,10 +118,11 @@ function toDisplayCards(articles) {
     }
   })
 
-  return cards
+  return sortDisplayCards(cards)
 }
 
 export const MEDIA_ARTICLES = [
+  // ── English papers ──────────────────────────────────────────────────────
   {
     id: 'deccan-chronicle-35-years',
     title: 'Swayamkrushi Marks 35 Years Of Empowering Persons With Disabilities',
@@ -88,7 +137,8 @@ export const MEDIA_ARTICLES = [
     readTime: '3 min read',
     tags: ['Deccan Chronicle', '35 Years', 'Milestone Celebration', 'Special Education'],
     articleUrl: 'https://www.deccanchronicle.com/southern-states/telangana/swayamkrushi-marks-35-years-of-empowering-persons-with-disabilities-1975055',
-    featured: true
+    featured: true,
+    order: 1
   },
   {
     id: 'telangana-today-35-years',
@@ -104,7 +154,8 @@ export const MEDIA_ARTICLES = [
     readTime: '4 min read',
     tags: ['Telangana Today', '35 Years', 'Hyderabad', 'Special Education'],
     articleUrl: 'https://telanganatoday.com/swayamkrushi-marks-35-years-of-empowering-persons-with-intellectual-disabilities',
-    featured: true
+    featured: true,
+    order: 2
   },
   {
     id: 'newsmeter-classrooms-to-careers',
@@ -120,23 +171,8 @@ export const MEDIA_ARTICLES = [
     readTime: '5 min read',
     tags: ['NewsMeter', 'Career Transitions', 'Vocational Training', '3 Decades'],
     articleUrl: 'https://newsmeter.in/hyderabad/from-classrooms-to-careers-hyderabads-swayamkrushi-has-been-empowering-lives-for-over-3-decades-772608',
-    featured: true
-  },
-  {
-    id: 'mana-telangana-35-years',
-    title: 'Mana Telangana: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
-    outlet: 'Mana Telangana',
-    outletType: 'Print & Newspapers',
-    date: '04/08/2026',
-    category: 'Regional Press',
-    badge: 'MANA TELANGANA E-PAPER',
-    image: null,
-    isClipping: false,
-    excerpt: 'మన తెలంగాణ దినపత్రిక కథనం: మూడున్నర దశాబ్దాల పాటు మేధో వైకల్యం కలిగిన వ్యక్తుల విద్య, జీవనోపాధి, సాధికారతకు విశేష కృషి చేస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
-    readTime: 'Telugu E-Paper',
-    tags: ['Mana Telangana', '35 Years', 'Telugu E-Paper', 'Hyderabad'],
-    articleUrl: 'https://epaper.manatelangana.news/4183407/HYDERABAD/04-08-2026#issue/4/2',
-    featured: false
+    featured: true,
+    order: 3
   },
   {
     id: 'telangana-today-epaper-35-years',
@@ -152,7 +188,8 @@ export const MEDIA_ARTICLES = [
     readTime: 'E-Paper Edition',
     tags: ['Telangana Today', 'E-Paper', 'Hyderabad District', 'Special Education'],
     articleUrl: 'https://epaper.telanganatoday.com/article/Hyderabad?OrgId=30830d8e731&imageview=1&standalone=1&device=desktop',
-    featured: false
+    featured: false,
+    order: 4
   },
   {
     id: 'newsmeter-bharati-saini-art',
@@ -168,23 +205,8 @@ export const MEDIA_ARTICLES = [
     readTime: '4 min read',
     tags: ['Fine Arts', 'Inspiring Story', 'NewsMeter', 'Creative Vocational'],
     articleUrl: 'https://newsmeter.in/lifestyle/art-without-limits-uttarakhand-artist-bharati-saini-turns-elbow-stumps-into-tools-for-painting-774531',
-    featured: false
-  },
-  {
-    id: 'sakshi-hyderabad-district',
-    title: 'Sakshi Hyderabad District Edition: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
-    outlet: 'Sakshi Telugu Daily',
-    outletType: 'Print & Newspapers',
-    date: '09/08/2026',
-    category: 'Regional Press',
-    badge: 'SAKSHI E-PAPER',
-    image: null,
-    isClipping: false,
-    excerpt: 'సాక్షి హైదరాబాద్ ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ సేవలు ఆదర్శనీయం.',
-    readTime: 'Telugu E-Paper',
-    tags: ['Sakshi Daily', 'Telugu E-Paper', 'District Edition', 'Residential Care'],
-    articleUrl: 'https://epaper.sakshi.com/login/loginpage?ReturnUrl=%2fHyderabad_Main%3feid%3d123%26edate%3d09%2f08%2f2026%26pgid%3d916473%26device%3dmobile%26view%3d0%26sedId%3d0%26uemail%3d&eid=123&edate=09/08/2026&pgid=916473&device=mobile&view=0&sedId=0&uemail=',
-    featured: false
+    featured: false,
+    order: 5
   },
   {
     id: 'hindu-35-years-milestone',
@@ -200,7 +222,43 @@ export const MEDIA_ARTICLES = [
     readTime: 'Newspaper Report',
     tags: ['The Hindu', '35th Anniversary', 'Founder Felicitation', 'Special Education'],
     articleUrl: 'https://share.google/YhznuCLOlokk6iVY6',
-    featured: true
+    featured: true,
+    order: 6
+  },
+  // ── Telugu papers ───────────────────────────────────────────────────────
+  {
+    id: 'mana-telangana-35-years',
+    title: 'Mana Telangana: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Mana Telangana',
+    outletType: 'Print & Newspapers',
+    date: '04/08/2026',
+    category: 'Regional Press',
+    badge: 'MANA TELANGANA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'మన తెలంగాణ దినపత్రిక కథనం: మూడున్నర దశాబ్దాల పాటు మేధో వైకల్యం కలిగిన వ్యక్తుల విద్య, జీవనోపాధి, సాధికారతకు విశేష కృషి చేస్తున్న స్వయంకృషి సంస్థ ప్రస్థానం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Mana Telangana', '35 Years', 'Telugu E-Paper', 'Hyderabad'],
+    articleUrl: 'https://epaper.manatelangana.news/4183407/HYDERABAD/04-08-2026#issue/4/2',
+    featured: false,
+    order: 10
+  },
+  {
+    id: 'sakshi-hyderabad-district',
+    title: 'Sakshi Hyderabad District Edition: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
+    outlet: 'Sakshi Telugu Daily',
+    outletType: 'Print & Newspapers',
+    date: '09/08/2026',
+    category: 'Regional Press',
+    badge: 'SAKSHI E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'సాక్షి హైదరాబాద్ ఎడిషన్ కథనం: మూడున్నర దశాబ్దాలుగా మానసిక వికలాంగుల వికాసం, విద్యాబోధన, జీవనోపాధి కల్పిస్తున్న స్వయంకృషి సంస్థ సేవలు ఆదర్శనీయం.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Sakshi Daily', 'Telugu E-Paper', 'District Edition', 'Residential Care'],
+    articleUrl: 'https://epaper.sakshi.com/login/loginpage?ReturnUrl=%2fHyderabad_Main%3feid%3d123%26edate%3d09%2f08%2f2026%26pgid%3d916473%26device%3dmobile%26view%3d0%26sedId%3d0%26uemail%3d&eid=123&edate=09/08/2026&pgid=916473&device=mobile&view=0&sedId=0&uemail=',
+    featured: false,
+    order: 11
   },
   {
     id: 'eenadu-epaper-2026-10-10',
@@ -216,7 +274,8 @@ export const MEDIA_ARTICLES = [
     readTime: 'Telugu Clipping',
     tags: ['Eenadu', 'Telugu E-Paper', 'Regional Press', 'Special Education'],
     articleUrl: 'https://epaper.eenadu.net/Home/Index?date=10/10/2026&eid=239&pid=3613532',
-    featured: false
+    featured: false,
+    order: 12
   },
   {
     id: 'ninadam-telangana-2026-10-10',
@@ -232,7 +291,8 @@ export const MEDIA_ARTICLES = [
     readTime: 'Telugu E-Paper',
     tags: ['Ninadam News', 'Telugu E-Paper', 'Telangana', 'Community Care'],
     articleUrl: 'https://epaper.ninadamnews.com/paper.php?date=2026-10-10&edition=80',
-    featured: false
+    featured: false,
+    order: 13
   },
   {
     id: 'andhra-prabha-rangareddy-2026-10-10',
@@ -248,7 +308,8 @@ export const MEDIA_ARTICLES = [
     readTime: 'Telugu Clipping',
     tags: ['Andhra Prabha', 'Rangareddy District', 'Telugu E-Paper', 'Vocational Training'],
     articleUrl: 'https://epaper.prabhanews.com/viewer/?date=2026-10-10&section=Telangana+Districts&edition=Rangareddy&page=2',
-    featured: false
+    featured: false,
+    order: 14
   },
   {
     id: 'andhra-jyothy-uppal-malkajgiri-2026-10-10',
@@ -264,7 +325,8 @@ export const MEDIA_ARTICLES = [
     readTime: 'Telugu Clipping',
     tags: ['Andhra Jyothy', 'Uppal Malkajgiri', 'Telugu E-Paper', 'Special Education'],
     articleUrl: 'https://epaper.andhrajyothy.com/Hyd_Uppal_Malkajgiri?eid=122&edate=10/10/2026&pgid=1524855&device=desktop&view=3',
-    featured: false
+    featured: false,
+    order: 15
   }
 ]
 
