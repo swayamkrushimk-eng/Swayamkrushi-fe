@@ -369,8 +369,8 @@ export default function ArticleContentRenderer({
         ) {
           allImages.push({
             src: coverUrl,
-            caption:
-              imageAlt || (articleTitle ? `Archival spotlight: ${articleTitle}` : ''),
+            // Only show a caption when admin set one — never invent "Archival spotlight: …"
+            caption: imageAlt || '',
             alt: imageAlt || articleTitle || ''
           })
         }
