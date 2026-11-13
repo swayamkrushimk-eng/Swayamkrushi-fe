@@ -153,7 +153,8 @@ export default function AdminPage() {
     accountNumber: '',
     ifscCode: '',
     upiId: '',
-    welcomeTourEnabled: false
+    welcomeTourEnabled: false,
+    welcomeTourVersion: 1
   })
 
   // Loading & Filter states
@@ -2086,11 +2087,15 @@ export default function AdminPage() {
                       color: settings.welcomeTourEnabled ? '#fff' : '#5c534c'
                     }}
                     onClick={async () => {
-                      const next = { ...settings, welcomeTourEnabled: true }
+                      const next = {
+                        ...settings,
+                        welcomeTourEnabled: true,
+                        welcomeTourVersion: (Number(settings.welcomeTourVersion) || 0) + 1
+                      }
                       setSettings(next)
                       try {
                         await updateSettings(next)
-                        showNotification('Welcome site tour turned ON')
+                        showNotification('Welcome site tour turned ON — visitors will see it again')
                       } catch (err) {
                         showNotification('Failed to save tour toggle: ' + err.message, 'error')
                       }

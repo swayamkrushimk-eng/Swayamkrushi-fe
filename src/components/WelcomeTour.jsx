@@ -1,18 +1,29 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { fetchSettings } from '../services/api'
+import { API_BASE_URL } from '../services/api'
 import './WelcomeTour.css'
 
-const STORAGE_KEY = 'swayamkrushi_welcome_tour_done'
+const DONE_PREFIX = 'swayamkrushi_welcome_tour_done_v'
+const LEGACY_DONE_KEY = 'swayamkrushi_welcome_tour_done'
 const WELCOME_MS = 2800
 const HOME_HOLD_MS = 10000
 const ARTICLE_WAIT_MS = 2000
 const DARE_TO_DREAM_PATH = '/article/dare-to-dream'
 
+async function fetchTourSettings() {
+  // Always hit the network — shared settings cache can be stale without welcomeTourEnabled
+  const res = await fetch(`${API_BASE_URL}/settings?t=${Date.now()}`, { cache: 'no-store' })
+  if (!res.ok) throw new Error('settings fetch failed')
+  return res.json()
+}
+
+function doneKeyFor(version) {
+  return `${DONE_PREFIX}${Number(version) || 1}`
+}
+
 /**
  * Fully automatic guided tour (when admin toggle is ON):
  * white welcome → home (10s) → Dare to Dream (2s) → fullscreen play → home
- * No tap / click prompts at any step.
  */
 export default function WelcomeTour() {
   const navigate = useNavigate()
@@ -20,6 +31,7 @@ export default function WelcomeTour() {
   const [exiting, setExiting] = useState(false)
   const [active, setActive] = useState(false)
   const timersRef = useRef([])
+  const tourVersionRef = useRef(1)
 
   const clearTimers = () => {
     timersRef.current.forEach((id) => clearTimeout(id))
@@ -34,7 +46,8 @@ export default function WelcomeTour() {
 
   const markDone = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, '1')
+      localStorage.setItem(doneKeyFor(tourVersionRef.current), '1')
+      localStorage.removeItem(LEGACY_DONE_KEY)
       sessionStorage.removeItem('swayamkrushi_tour_fs')
     } catch {
       /* ignore */
@@ -67,21 +80,37 @@ export default function WelcomeTour() {
     window.addEventListener('swayamkrushi_welcome_tour', onTourEvent)
 
     async function boot() {
-      try {
-        if (localStorage.getItem(STORAGE_KEY) === '1') return
-      } catch {
-        /* ignore */
-      }
-
       let enabled = false
+      let version = 1
       try {
-        const settings = await fetchSettings()
+        const settings = await fetchTourSettings()
         enabled = Boolean(settings?.welcomeTourEnabled)
+        version = Number(settings?.welcomeTourVersion) || 1
       } catch {
         enabled = false
       }
 
       if (cancelled || !enabled) return
+
+      tourVersionRef.current = version
+
+      try {
+        // Prior "done" flags permanently blocked the tour even with the admin toggle ON.
+        // Clear legacy + one-time wipe of versioned keys so this fix can run again.
+        localStorage.removeItem(LEGACY_DONE_KEY)
+        const resetFlag = 'swayamkrushi_tour_storage_reset_v1'
+        if (!localStorage.getItem(resetFlag)) {
+          Object.keys(localStorage).forEach((key) => {
+            if (key === LEGACY_DONE_KEY || key.startsWith(DONE_PREFIX)) {
+              localStorage.removeItem(key)
+            }
+          })
+          localStorage.setItem(resetFlag, '1')
+        }
+        if (localStorage.getItem(doneKeyFor(version)) === '1') return
+      } catch {
+        /* ignore */
+      }
 
       setActive(true)
       setShowWelcome(true)
@@ -91,15 +120,6 @@ export default function WelcomeTour() {
         /* ignore */
       }
       window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'welcome' } }))
-
-      // Try native FS opportunistically (may be blocked without gesture — player uses immersive cover)
-      try {
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-          await document.documentElement.requestFullscreen({ navigationUI: 'hide' })
-        }
-      } catch {
-        /* automatic immersive player covers this */
-      }
 
       schedule(() => {
         if (cancelled) return
