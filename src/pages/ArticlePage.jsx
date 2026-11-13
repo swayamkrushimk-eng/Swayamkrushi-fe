@@ -499,12 +499,17 @@ export default function ArticlePage({ defaultId }) {
         const isDairy = article.id === 'story-dairy' || id === 'story-dairy'
         const isPortrait = !isTopBigVideo && (isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16')
         // Dare to Dream + Home of Care: always full-width hero at the top
+        // Dairy: always float portrait video on the right with text flowing on the left
         const placement = isTopBigVideo
           ? 'center'
-          : (articleForMedia.videoPlacement || article.videoPlacement || (isDairy ? 'right' : (isPortrait ? 'right' : 'center')))
+          : (isDairy
+              ? 'right'
+              : (articleForMedia.videoPlacement || article.videoPlacement || (isPortrait ? 'right' : 'center')))
         const sizeClass = isTopBigVideo
           ? 'size-big'
-          : (isPortrait || articleForMedia.videoSize === 'small' || article.videoSize === 'small' ? 'size-small' : 'size-big')
+          : (isDairy || isPortrait || articleForMedia.videoSize === 'small' || article.videoSize === 'small'
+              ? 'size-small'
+              : 'size-big')
         const heroCaption = articleForMedia.imageAlt || article.imageAlt
 
         return (
