@@ -2076,17 +2076,17 @@ export default function AdminPage() {
                 <div style={{ flex: '1 1 320px', minWidth: 0 }}>
                   <strong style={{ display: 'block', fontSize: 14 }}>Welcome site tour</strong>
                   <span style={{ fontSize: 12, color: '#8c8278' }}>
-                    White welcome → home (10s) → article video URL below → home. Once per visitor when ON.
+                    White welcome → home (10s) → full browser redirect to the URL below. Once per visitor when ON.
                   </span>
                   <label style={{ display: 'block', fontSize: 12, color: '#5c534c', marginTop: 10 }}>
-                    Tour video article URL
+                    Tour redirect URL
                   </label>
                   <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
                     <input
                       type="url"
                       className="admin-input"
                       style={{ flex: '1 1 260px', minWidth: 0 }}
-                      placeholder="e.g. /article/dare-to-dream or full page link"
+                      placeholder="https://example.com/video-or-page"
                       value={settings.welcomeTourVideoUrl || ''}
                       onChange={(e) =>
                         setSettings((prev) => ({ ...prev, welcomeTourVideoUrl: e.target.value }))
