@@ -176,7 +176,7 @@ export const MEDIA_ARTICLES = [
   },
   {
     id: 'telangana-today-epaper-35-years',
-    title: 'Telangana Today E-Paper: Swayamkrushi 35 Years Milestone Coverage',
+    title: 'Artist who paints with elbow stumps',
     outlet: 'Telangana Today',
     outletType: 'Print & Newspapers',
     date: 'August 2026',
@@ -344,7 +344,11 @@ export default function MediaBuzzPage() {
           const validData = data.filter((a) => a.title && a.title.trim() && !isIdDeleted('media_buzz', a.id) && !isIdDeleted('media_buzz', a._id))
           const existingIds = new Set(validData.map((a) => a.id))
           const missingDefaults = MEDIA_ARTICLES.filter((a) => !existingIds.has(a.id) && !isIdDeleted('media_buzz', a.id))
+          const titleFixes = {
+            'telangana-today-epaper-35-years': 'Artist who paints with elbow stumps'
+          }
           const combined = [...validData, ...missingDefaults]
+            .map((item) => (titleFixes[item.id] ? { ...item, title: titleFixes[item.id] } : item))
             .map(withClippingDefaults)
             .sort((a, b) => (a.order || 0) - (b.order || 0))
           setArticlesList(toDisplayCards(combined))
