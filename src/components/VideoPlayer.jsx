@@ -82,17 +82,40 @@ export default function VideoPlayer({
       setIntrinsicAspect(`${videoRef.current.videoWidth} / ${videoRef.current.videoHeight}`)
     }
 
-    if (autoPlay && videoRef.current) {
-      videoRef.current
-        .play()
-        .then(() => setIsPlaying(true))
-        .catch(() => {})
-    }
-
     return () => {
       if (hideControlsTimerRef.current) clearTimeout(hideControlsTimerRef.current)
     }
   }, [src])
+
+  // Start playback when autoPlay flips on (e.g. guided tour after delay)
+  useEffect(() => {
+    if (!autoPlay || !videoRef.current || !playableVideoUrl) return
+    const video = videoRef.current
+    let cancelled = false
+
+    const tryPlay = async () => {
+      try {
+        claimExclusiveMedia(ownerId)
+        await video.play()
+        if (!cancelled) setIsPlaying(true)
+      } catch {
+        try {
+          video.muted = true
+          if (!cancelled) setIsMuted(true)
+          claimExclusiveMedia(ownerId)
+          await video.play()
+          if (!cancelled) setIsPlaying(true)
+        } catch {
+          /* autoplay blocked */
+        }
+      }
+    }
+
+    tryPlay()
+    return () => {
+      cancelled = true
+    }
+  }, [autoPlay, playableVideoUrl, ownerId])
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {

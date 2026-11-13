@@ -152,7 +152,8 @@ export default function AdminPage() {
     bankName: '',
     accountNumber: '',
     ifscCode: '',
-    upiId: ''
+    upiId: '',
+    welcomeTourEnabled: false
   })
 
   // Loading & Filter states
@@ -2058,6 +2059,66 @@ export default function AdminPage() {
                 <button onClick={openNewArticleModal} className="admin-btn admin-btn-primary">
                   ✍️ Post New Article
                 </button>
+              </div>
+
+              <div
+                className="admin-filter-bar"
+                style={{
+                  marginBottom: 12,
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 16,
+                  flexWrap: 'wrap'
+                }}
+              >
+                <div>
+                  <strong style={{ display: 'block', fontSize: 14 }}>Welcome site tour</strong>
+                  <span style={{ fontSize: 12, color: '#8c8278' }}>
+                    White welcome → home (10s) → Dare to Dream → play video → home. Once per visitor when ON.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    type="button"
+                    className="admin-btn"
+                    style={{
+                      background: settings.welcomeTourEnabled ? '#2d6a4f' : '#e8e4df',
+                      color: settings.welcomeTourEnabled ? '#fff' : '#5c534c'
+                    }}
+                    onClick={async () => {
+                      const next = { ...settings, welcomeTourEnabled: true }
+                      setSettings(next)
+                      try {
+                        await updateSettings(next)
+                        showNotification('Welcome site tour turned ON')
+                      } catch (err) {
+                        showNotification('Failed to save tour toggle: ' + err.message, 'error')
+                      }
+                    }}
+                  >
+                    ON
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-btn"
+                    style={{
+                      background: !settings.welcomeTourEnabled ? '#9b2226' : '#e8e4df',
+                      color: !settings.welcomeTourEnabled ? '#fff' : '#5c534c'
+                    }}
+                    onClick={async () => {
+                      const next = { ...settings, welcomeTourEnabled: false }
+                      setSettings(next)
+                      try {
+                        await updateSettings(next)
+                        showNotification('Welcome site tour turned OFF')
+                      } catch (err) {
+                        showNotification('Failed to save tour toggle: ' + err.message, 'error')
+                      }
+                    }}
+                  >
+                    OFF
+                  </button>
+                </div>
               </div>
 
               {/* Filters and Search Bar */}
