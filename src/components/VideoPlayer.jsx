@@ -1,7 +1,53 @@
 import { useState, useRef, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { getPlayableVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
 import { claimExclusiveMedia, subscribeExclusiveMedia } from '../utils/mediaCoordinator'
 import './VideoPlayer.css'
+
+async function requestNativeFullscreen(el, video) {
+  if (!el && !video) return false
+
+  const attempts = []
+  if (el?.requestFullscreen) attempts.push(() => el.requestFullscreen({ navigationUI: 'hide' }))
+  if (el?.webkitRequestFullscreen) attempts.push(() => el.webkitRequestFullscreen())
+  if (el?.msRequestFullscreen) attempts.push(() => el.msRequestFullscreen())
+  if (video?.requestFullscreen) attempts.push(() => video.requestFullscreen({ navigationUI: 'hide' }))
+  if (document.documentElement?.requestFullscreen) {
+    attempts.push(() => document.documentElement.requestFullscreen({ navigationUI: 'hide' }))
+  }
+
+  for (const run of attempts) {
+    try {
+      const result = run()
+      if (result && typeof result.then === 'function') await result
+      if (document.fullscreenElement) return true
+    } catch {
+      /* try next candidate */
+    }
+  }
+
+  // iOS Safari media fullscreen (not Fullscreen API)
+  try {
+    if (typeof video?.webkitEnterFullscreen === 'function') {
+      video.webkitEnterFullscreen()
+      return true
+    }
+  } catch {
+    /* ignore */
+  }
+
+  return !!document.fullscreenElement
+}
+
+async function exitNativeFullscreen() {
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) {
+      await document.exitFullscreen()
+    }
+  } catch {
+    /* ignore */
+  }
+}
 
 export { getPlayableVideoUrl, getVideoThumbnailUrl }
 export const getDeliveryVideoUrl = getPlayableVideoUrl
@@ -49,6 +95,7 @@ export default function VideoPlayer({
   const [hasError, setHasError] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [intrinsicAspect, setIntrinsicAspect] = useState(null)
+  const [fsGestureNeeded, setFsGestureNeeded] = useState(false)
 
   // Format time (seconds -> mm:ss)
   const formatTime = (timeInSec) => {
@@ -95,90 +142,48 @@ export default function VideoPlayer({
     const video = videoRef.current
     let cancelled = false
 
-    const waitForFullscreen = () =>
-      new Promise((resolve) => {
-        if (document.fullscreenElement) {
-          resolve(true)
-          return
-        }
-        const onChange = () => {
-          document.removeEventListener('fullscreenchange', onChange)
-          resolve(!!document.fullscreenElement)
-        }
-        document.addEventListener('fullscreenchange', onChange)
-        setTimeout(() => {
-          document.removeEventListener('fullscreenchange', onChange)
-          resolve(!!document.fullscreenElement)
-        }, 800)
-      })
-
-    const enterFullscreen = async () => {
-      const el = containerRef.current
-      if (!el) return false
-      try {
-        if (el.requestFullscreen) {
-          await el.requestFullscreen()
-        } else if (el.webkitRequestFullscreen) {
-          await el.webkitRequestFullscreen()
-        } else if (video.webkitEnterFullscreen) {
-          video.webkitEnterFullscreen()
-        }
-        await waitForFullscreen()
-        if (!cancelled) setIsFullscreen(!!document.fullscreenElement || true)
-        return true
-      } catch {
-        // Fallback: CSS immersive cover when native fullscreen is blocked
+    const playUnmuted = async () => {
+      if (forceUnmuted) {
+        video.muted = false
+        video.volume = 0.85
         if (!cancelled) {
-          el.classList.add('is-tour-immersive')
-          setIsFullscreen(true)
+          setIsMuted(false)
+          setVolume(0.85)
         }
-        return false
+      }
+      claimExclusiveMedia(ownerId)
+      await video.play()
+      if (!cancelled) {
+        setIsPlaying(true)
+        if (forceUnmuted) setIsMuted(false)
       }
     }
 
     const tryPlay = async () => {
-      if (forceUnmuted) {
-        const level = 0.85
-        video.muted = false
-        video.volume = level
-        if (!cancelled) {
-          setIsMuted(false)
-          setVolume(level)
-        }
-      }
-
       if (enterFullscreenBeforePlay) {
-        await enterFullscreen()
-        if (cancelled) return
-        // Brief beat so fullscreen paints before playback starts
-        await new Promise((r) => setTimeout(r, 200))
+        // Prefer already-active browser fullscreen from the welcome tap
+        if (document.fullscreenElement) {
+          if (!cancelled) setIsFullscreen(true)
+        } else {
+          const ok = await requestNativeFullscreen(containerRef.current, video)
+          if (cancelled) return
+          if (!ok || !document.fullscreenElement) {
+            // Fullscreen API requires a user gesture — one-tap native FS gate
+            if (!cancelled) setFsGestureNeeded(true)
+            return
+          }
+          if (!cancelled) setIsFullscreen(true)
+        }
+        await new Promise((r) => setTimeout(r, 150))
         if (cancelled) return
       }
 
       try {
-        claimExclusiveMedia(ownerId)
-        if (forceUnmuted) {
-          video.muted = false
-        }
-        await video.play()
-        if (!cancelled) {
-          setIsPlaying(true)
-          if (forceUnmuted) setIsMuted(false)
-        }
+        await playUnmuted()
       } catch {
-        if (forceUnmuted) {
-          // Tour requires sound — retry unmuted once more, never mute
-          try {
-            video.muted = false
-            claimExclusiveMedia(ownerId)
-            await video.play()
-            if (!cancelled) {
-              setIsPlaying(true)
-              setIsMuted(false)
-            }
-          } catch {
-            /* autoplay with sound blocked by browser */
-          }
+        // Unmuted autoplay also needs a user gesture after long delays
+        if (forceUnmuted || enterFullscreenBeforePlay) {
+          if (!cancelled) setFsGestureNeeded(true)
           return
         }
         try {
@@ -196,9 +201,34 @@ export default function VideoPlayer({
     tryPlay()
     return () => {
       cancelled = true
-      containerRef.current?.classList.remove('is-tour-immersive')
     }
   }, [autoPlay, playableVideoUrl, ownerId, forceUnmuted, enterFullscreenBeforePlay])
+
+  const handleNativeFsGate = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const video = videoRef.current
+    const el = containerRef.current
+    if (!video || !el) return
+
+    const ok = await requestNativeFullscreen(el, video)
+    setIsFullscreen(!!document.fullscreenElement || ok)
+    setFsGestureNeeded(false)
+
+    try {
+      if (forceUnmuted) {
+        video.muted = false
+        video.volume = 0.85
+        setIsMuted(false)
+        setVolume(0.85)
+      }
+      claimExclusiveMedia(ownerId)
+      await video.play()
+      setIsPlaying(true)
+    } catch {
+      /* play blocked */
+    }
+  }
 
   useEffect(() => {
     return subscribeExclusiveMedia(ownerId, () => {
@@ -389,18 +419,16 @@ export default function VideoPlayer({
     resetControlsTimeout()
   }
 
-  // Fullscreen
+  // Fullscreen (native browser Fullscreen API only)
   const toggleFullscreen = () => {
     if (!containerRef.current) return
 
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen().catch((err) => {
-        console.warn('Fullscreen request failed:', err)
+      requestNativeFullscreen(containerRef.current, videoRef.current).then((ok) => {
+        if (ok) setIsFullscreen(true)
       })
     } else {
-      document.exitFullscreen().catch((err) => {
-        console.warn('Exit fullscreen failed:', err)
-      })
+      exitNativeFullscreen().then(() => setIsFullscreen(false))
     }
   }
 
@@ -431,6 +459,19 @@ export default function VideoPlayer({
       onMouseMove={resetControlsTimeout}
       onMouseLeave={() => isPlaying && setShowControls(false)}
     >
+      {fsGestureNeeded &&
+        createPortal(
+          <button
+            type="button"
+            className="pro-native-fs-gate"
+            onPointerDown={handleNativeFsGate}
+            onClick={handleNativeFsGate}
+            aria-label="Play video in fullscreen"
+          >
+            <span className="pro-native-fs-gate-label">Tap to play fullscreen</span>
+          </button>,
+          document.body
+        )}
       {/* ─── VIDEO SCREEN / STAGE ─── */}
       <div className="pro-player-stage" onClick={() => togglePlay()}>
         <video
@@ -472,14 +513,9 @@ export default function VideoPlayer({
           onEnded={() => {
             setIsPlaying(false)
             const finish = () => {
-              containerRef.current?.classList.remove('is-tour-immersive')
               if (onEnded) onEnded()
             }
-            if (document.fullscreenElement) {
-              document.exitFullscreen().then(finish).catch(finish)
-            } else {
-              finish()
-            }
+            exitNativeFullscreen().then(finish).catch(finish)
           }}
           onError={(e) => {
             const mediaErr = videoRef.current?.error || e?.target?.error

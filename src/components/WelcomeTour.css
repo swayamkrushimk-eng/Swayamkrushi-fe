@@ -4,10 +4,25 @@
   z-index: 100000;
   background: #ffffff;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.25rem;
   padding: 24px;
+  margin: 0;
+  border: 0;
+  width: 100%;
+  cursor: pointer;
   animation: welcome-tour-fade-in 0.6s ease both;
+}
+
+.welcome-tour-hint {
+  font-family: var(--head);
+  font-size: clamp(13px, 2.2vw, 16px);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8c8278;
 }
 
 .welcome-tour-overlay.is-exiting {
