@@ -134,23 +134,73 @@ export default function ArticlePage({ defaultId }) {
     ? article.paragraphs
     : [article.excerpt || '']
 
-  const hasExplicitNoImages = (Array.isArray(article.images) && article.images.length === 0 && !article.imageUrl)
+  // If a video only lives in images[] / contentHtml (common for Dare to Dream),
+  // promote it to hero media so it can render at the top instead of the bottom.
+  const articleForMedia = (() => {
+    const next = { ...article }
+    const findVideoInImages = () => {
+      if (!Array.isArray(next.images)) return null
+      for (const img of next.images) {
+        const url = typeof img === 'string' ? img : img?.url
+        if (!url) continue
+        const type = typeof img === 'object' ? img.type : ''
+        if (type === 'video' || isVideoUrl(url)) {
+          return {
+            url,
+            caption: typeof img === 'object' ? (img.caption || img.alt || '') : ''
+          }
+        }
+      }
+      return null
+    }
+    const findVideoInHtml = () => {
+      const html = next.contentHtml || ''
+      const match = html.match(/<video[^>]+src=["']([^"']+)["']/i) || html.match(/<source[^>]+src=["']([^"']+\.(?:mp4|webm|mov|m4v)[^"']*)["']/i)
+      return match?.[1] ? { url: match[1], caption: '' } : null
+    }
+
+    const promoted = (!next.videoUrl || String(next.videoUrl).trim().length < 5)
+      ? (findVideoInImages() || findVideoInHtml())
+      : null
+
+    if (promoted?.url) {
+      next.videoUrl = promoted.url
+      if (promoted.caption && !next.imageAlt) next.imageAlt = promoted.caption
+    }
+
+    if (next.videoUrl && String(next.videoUrl).trim().length > 5) {
+      next.mediaType = 'video'
+      next.featuredMediaType = 'video'
+      next.hasThumbnail = true
+    }
+
+    // Dare to Dream / Home of Care: always full-width top hero video
+    if (next.id === 'dare-to-dream' || id === 'dare-to-dream' || next.id === 'home-of-care' || id === 'home-of-care') {
+      next.videoPlacement = 'center'
+      next.videoSize = 'big'
+    }
+
+    return next
+  })()
+
+  const hasExplicitNoImages = (Array.isArray(articleForMedia.images) && articleForMedia.images.length === 0 && !articleForMedia.imageUrl)
   const localFallback = hasExplicitNoImages
     ? null
-    : (articleImagesMap[id] || articleImagesMap[article.id] || article.heroImage || null)
-  const mediaInfo = resolveArticleMedia(article, localFallback)
+    : (articleImagesMap[id] || articleImagesMap[articleForMedia.id] || articleForMedia.heroImage || null)
+  const mediaInfo = resolveArticleMedia(articleForMedia, localFallback)
   const hasInlineImage = !mediaInfo.isText && !mediaInfo.isVideo && !!mediaInfo.posterUrl
 
   // Gather all available story images for fallback paragraph mode & rich renderer
   const allStoryImages = []
-  if (Array.isArray(article.images) && article.images.length > 0) {
-    article.images.forEach((img) => {
+  if (Array.isArray(articleForMedia.images) && articleForMedia.images.length > 0) {
+    articleForMedia.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
-        // If article has a hero video, do not include the video / poster / delivery URL as a body story image
+        // Never re-inject the hero video (or its poster) as a floated body clip
         if (
           mediaInfo.isVideo &&
-          (isSameImage(url, mediaInfo.videoThumbnailUrl) ||
+          (isVideoUrl(url) ||
+            isSameImage(url, mediaInfo.videoThumbnailUrl) ||
             isSameImage(url, mediaInfo.posterUrl) ||
             isSameImage(url, mediaInfo.videoUrl) ||
             isSameImage(url, mediaInfo.deliveryVideoUrl) ||
@@ -193,6 +243,26 @@ export default function ArticlePage({ defaultId }) {
     })
   }
 
+  const isHeroVideoClip = (img) => {
+    const url = img.url || ''
+    return (
+      isVideoUrl(url) ||
+      img.type === 'video' ||
+      isSameImage(url, mediaInfo.videoUrl) ||
+      isSameImage(url, mediaInfo.deliveryVideoUrl) ||
+      isSameImage(url, mediaInfo.playableVideoUrl) ||
+      isSameImage(url, mediaInfo.posterUrl) ||
+      isSameImage(url, mediaInfo.videoThumbnailUrl)
+    )
+  }
+
+  // Dare to Dream: never leave the hero video as a floated body clip at the bottom
+  if (article.id === 'dare-to-dream' || id === 'dare-to-dream') {
+    for (let i = allStoryImages.length - 1; i >= 0; i -= 1) {
+      if (isHeroVideoClip(allStoryImages[i])) allStoryImages.splice(i, 1)
+    }
+  }
+
   // Pin Manjulaa visionary portrait under "The heart and soul of Swayamkrushi" (right).
   // Drop any old bottom portrait + do not re-inject the hero video as a floated body clip.
   if (article.id === 'home-of-care' || id === 'home-of-care') {
@@ -206,18 +276,6 @@ export default function ArticlePage({ defaultId }) {
         url.includes('xg9qemgyszqdhbsjymy8') ||
         url.includes('diizcur6lyalwamfkie3') ||
         url.includes('manjulaa-visionary-home-of-care')
-      )
-    }
-    const isHeroVideoClip = (img) => {
-      const url = img.url || ''
-      return (
-        isVideoUrl(url) ||
-        img.type === 'video' ||
-        isSameImage(url, mediaInfo.videoUrl) ||
-        isSameImage(url, mediaInfo.deliveryVideoUrl) ||
-        isSameImage(url, mediaInfo.playableVideoUrl) ||
-        isSameImage(url, mediaInfo.posterUrl) ||
-        isSameImage(url, mediaInfo.videoThumbnailUrl)
       )
     }
     for (let i = allStoryImages.length - 1; i >= 0; i -= 1) {
@@ -375,16 +433,21 @@ export default function ArticlePage({ defaultId }) {
 
       {/* Featured Hero Video (Only if story is a video) */}
       {!mediaInfo.isText && mediaInfo.isVideo && mediaInfo.videoUrl && (() => {
-        const isHomeOfCare = article.id === 'home-of-care' || id === 'home-of-care'
+        const isTopBigVideo =
+          article.id === 'home-of-care' ||
+          id === 'home-of-care' ||
+          article.id === 'dare-to-dream' ||
+          id === 'dare-to-dream'
         const isDairy = article.id === 'story-dairy' || id === 'story-dairy'
-        const isPortrait = !isHomeOfCare && (isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16')
-        // Home of Care: always full-width hero at the top
-        const placement = isHomeOfCare
+        const isPortrait = !isTopBigVideo && (isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16')
+        // Dare to Dream + Home of Care: always full-width hero at the top
+        const placement = isTopBigVideo
           ? 'center'
-          : (article.videoPlacement || (isDairy ? 'right' : (isPortrait ? 'right' : 'center')))
-        const sizeClass = isHomeOfCare
+          : (articleForMedia.videoPlacement || article.videoPlacement || (isDairy ? 'right' : (isPortrait ? 'right' : 'center')))
+        const sizeClass = isTopBigVideo
           ? 'size-big'
-          : (isPortrait || article.videoSize === 'small' ? 'size-small' : 'size-big')
+          : (isPortrait || articleForMedia.videoSize === 'small' || article.videoSize === 'small' ? 'size-small' : 'size-big')
+        const heroCaption = articleForMedia.imageAlt || article.imageAlt
 
         return (
           <figure
@@ -404,9 +467,9 @@ export default function ArticlePage({ defaultId }) {
                 autoPlay={false}
               />
             </div>
-            {(article.imageAlt !== undefined ? article.imageAlt : `Video spotlight: ${article.title}`) ? (
+            {(heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`) ? (
               <figcaption className="article-hero-caption">
-                {article.imageAlt !== undefined ? article.imageAlt : `Video spotlight: ${article.title}`}
+                {heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`}
               </figcaption>
             ) : null}
           </figure>

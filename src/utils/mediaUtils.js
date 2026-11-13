@@ -179,8 +179,14 @@ export function resolveArticleMedia(article, fallbackImage = null) {
     }
   }
 
-  // If explicitly set to text or thumbnail disabled
-  if (type === 'text' || article.hasThumbnail === false || article.showThumbnail === false) {
+  // If a real video URL exists, prefer video over a stale "text" / no-thumbnail flag
+  // (e.g. Dare to Dream after promoting a body video to hero).
+  if (hasValidVideo && (type === 'text' || type === 'image')) {
+    type = 'video'
+  }
+
+  // If explicitly set to text or thumbnail disabled (and no video to show)
+  if (!hasValidVideo && (type === 'text' || article.hasThumbnail === false || article.showThumbnail === false)) {
     return {
       featuredMediaType: 'text',
       isVideo: false,
@@ -198,7 +204,7 @@ export function resolveArticleMedia(article, fallbackImage = null) {
   }
 
   // 2. Video type
-  if (type === 'video' && hasValidVideo) {
+  if ((type === 'video' || hasValidVideo) && hasValidVideo) {
     const customPoster =
       article.videoPosterUrl && typeof article.videoPosterUrl === 'string' && article.videoPosterUrl.trim().length > 5
         ? sanitizeImageUrl(article.videoPosterUrl)
