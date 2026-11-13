@@ -154,7 +154,8 @@ export default function AdminPage() {
     ifscCode: '',
     upiId: '',
     welcomeTourEnabled: false,
-    welcomeTourVersion: 1
+    welcomeTourVersion: 1,
+    welcomeTourVideoUrl: ''
   })
 
   // Loading & Filter states
@@ -2072,11 +2073,40 @@ export default function AdminPage() {
                   flexWrap: 'wrap'
                 }}
               >
-                <div>
+                <div style={{ flex: '1 1 320px', minWidth: 0 }}>
                   <strong style={{ display: 'block', fontSize: 14 }}>Welcome site tour</strong>
                   <span style={{ fontSize: 12, color: '#8c8278' }}>
-                    White welcome → home (10s) → Dare to Dream → play video → home. Once per visitor when ON.
+                    White welcome → home (10s) → article video URL below → home. Once per visitor when ON.
                   </span>
+                  <label style={{ display: 'block', fontSize: 12, color: '#5c534c', marginTop: 10 }}>
+                    Tour video article URL
+                  </label>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 4, flexWrap: 'wrap' }}>
+                    <input
+                      type="url"
+                      className="admin-input"
+                      style={{ flex: '1 1 260px', minWidth: 0 }}
+                      placeholder="e.g. /article/dare-to-dream or full page link"
+                      value={settings.welcomeTourVideoUrl || ''}
+                      onChange={(e) =>
+                        setSettings((prev) => ({ ...prev, welcomeTourVideoUrl: e.target.value }))
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="admin-btn"
+                      onClick={async () => {
+                        try {
+                          await updateSettings(settings)
+                          showNotification('Tour video URL saved')
+                        } catch (err) {
+                          showNotification('Failed to save tour URL: ' + err.message, 'error')
+                        }
+                      }}
+                    >
+                      Save URL
+                    </button>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
                   <button

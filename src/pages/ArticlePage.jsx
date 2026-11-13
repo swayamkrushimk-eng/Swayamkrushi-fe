@@ -111,7 +111,7 @@ export default function ArticlePage({ defaultId }) {
 
   // Guided welcome tour: wait for play signal (or local 2s fallback), then autoplay hero video
   useEffect(() => {
-    if (!isWelcomeTour || id !== 'dare-to-dream') return undefined
+    if (!isWelcomeTour) return undefined
 
     const onTourEvent = (e) => {
       if (e?.detail?.phase === 'play') {

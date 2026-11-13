@@ -8,7 +8,6 @@ const LEGACY_DONE_KEY = 'swayamkrushi_welcome_tour_done'
 const WELCOME_MS = 2800
 const HOME_HOLD_MS = 10000
 const ARTICLE_WAIT_MS = 2000
-const DARE_TO_DREAM_PATH = '/article/dare-to-dream'
 
 async function fetchTourSettings() {
   // Always hit the network — shared settings cache can be stale without welcomeTourEnabled
@@ -22,8 +21,44 @@ function doneKeyFor(version) {
 }
 
 /**
+ * Normalize an admin-provided article link into a HashRouter path with ?tour=1.
+ * Accepts full site URLs, hash routes, or /article/… paths.
+ */
+export function resolveTourArticlePath(rawUrl = '') {
+  const raw = String(rawUrl || '').trim()
+  if (!raw) return ''
+
+  let path = raw
+  try {
+    if (/^https?:\/\//i.test(raw)) {
+      const u = new URL(raw)
+      path = u.hash?.startsWith('#') ? u.hash.slice(1) : u.pathname
+    } else if (raw.startsWith('#')) {
+      path = raw.slice(1)
+    }
+  } catch {
+    path = raw
+  }
+
+  path = path.split('?')[0].split('#')[0].trim()
+  if (!path) return ''
+  if (!path.startsWith('/')) path = `/${path}`
+
+  // Bare article id → /article/:id
+  if (!path.startsWith('/article/') && !path.startsWith('/events') && path !== '/') {
+    const maybeId = path.replace(/^\//, '')
+    if (maybeId && !maybeId.includes('/')) {
+      path = `/article/${maybeId}`
+    }
+  }
+
+  const sep = path.includes('?') ? '&' : '?'
+  return `${path}${sep}tour=1`
+}
+
+/**
  * Fully automatic guided tour (when admin toggle is ON):
- * white welcome → home (10s) → Dare to Dream (2s) → fullscreen play → home
+ * white welcome → home (10s) → admin-configured article video → home
  */
 export default function WelcomeTour() {
   const navigate = useNavigate()
@@ -32,6 +67,7 @@ export default function WelcomeTour() {
   const [active, setActive] = useState(false)
   const timersRef = useRef([])
   const tourVersionRef = useRef(1)
+  const tourTargetRef = useRef('')
 
   const clearTimers = () => {
     timersRef.current.forEach((id) => clearTimeout(id))
@@ -82,10 +118,12 @@ export default function WelcomeTour() {
     async function boot() {
       let enabled = false
       let version = 1
+      let targetPath = ''
       try {
         const settings = await fetchTourSettings()
         enabled = Boolean(settings?.welcomeTourEnabled)
         version = Number(settings?.welcomeTourVersion) || 1
+        targetPath = resolveTourArticlePath(settings?.welcomeTourVideoUrl)
       } catch {
         enabled = false
       }
@@ -93,6 +131,7 @@ export default function WelcomeTour() {
       if (cancelled || !enabled) return
 
       tourVersionRef.current = version
+      tourTargetRef.current = targetPath
 
       try {
         // Prior "done" flags permanently blocked the tour even with the admin toggle ON.
@@ -133,7 +172,13 @@ export default function WelcomeTour() {
 
           schedule(() => {
             if (cancelled) return
-            navigate(`${DARE_TO_DREAM_PATH}?tour=1`)
+            const dest = tourTargetRef.current
+            if (!dest) {
+              // No article URL configured — end tour on home
+              markDone()
+              return
+            }
+            navigate(dest)
             window.dispatchEvent(new CustomEvent('swayamkrushi_welcome_tour', { detail: { phase: 'article' } }))
 
             schedule(() => {
