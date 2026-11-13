@@ -194,6 +194,7 @@ export default function ArticlePage({ defaultId }) {
   }
 
   // Pin Manjulaa visionary portrait under "The heart and soul of Swayamkrushi" (right).
+  // Drop any old bottom portrait + do not re-inject the hero video as a floated body clip.
   if (article.id === 'home-of-care' || id === 'home-of-care') {
     const isManjulaaPortrait = (img) => {
       const cap = `${img.caption || ''} ${img.alt || ''}`.toLowerCase()
@@ -207,8 +208,22 @@ export default function ArticlePage({ defaultId }) {
         url.includes('manjulaa-visionary-home-of-care')
       )
     }
+    const isHeroVideoClip = (img) => {
+      const url = img.url || ''
+      return (
+        isVideoUrl(url) ||
+        img.type === 'video' ||
+        isSameImage(url, mediaInfo.videoUrl) ||
+        isSameImage(url, mediaInfo.deliveryVideoUrl) ||
+        isSameImage(url, mediaInfo.playableVideoUrl) ||
+        isSameImage(url, mediaInfo.posterUrl) ||
+        isSameImage(url, mediaInfo.videoThumbnailUrl)
+      )
+    }
     for (let i = allStoryImages.length - 1; i >= 0; i -= 1) {
-      if (isManjulaaPortrait(allStoryImages[i])) allStoryImages.splice(i, 1)
+      if (isManjulaaPortrait(allStoryImages[i]) || isHeroVideoClip(allStoryImages[i])) {
+        allStoryImages.splice(i, 1)
+      }
     }
     allStoryImages.push({ ...HOME_OF_CARE_VISIONARY })
   }
@@ -360,10 +375,16 @@ export default function ArticlePage({ defaultId }) {
 
       {/* Featured Hero Video (Only if story is a video) */}
       {!mediaInfo.isText && mediaInfo.isVideo && mediaInfo.videoUrl && (() => {
+        const isHomeOfCare = article.id === 'home-of-care' || id === 'home-of-care'
         const isDairy = article.id === 'story-dairy' || id === 'story-dairy'
-        const isPortrait = isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16'
-        const placement = article.videoPlacement || (isDairy ? 'right' : (isPortrait ? 'right' : 'center'))
-        const sizeClass = isPortrait || article.videoSize === 'small' ? 'size-small' : 'size-big'
+        const isPortrait = !isHomeOfCare && (isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16')
+        // Home of Care: always full-width hero at the top
+        const placement = isHomeOfCare
+          ? 'center'
+          : (article.videoPlacement || (isDairy ? 'right' : (isPortrait ? 'right' : 'center')))
+        const sizeClass = isHomeOfCare
+          ? 'size-big'
+          : (isPortrait || article.videoSize === 'small' ? 'size-small' : 'size-big')
 
         return (
           <figure

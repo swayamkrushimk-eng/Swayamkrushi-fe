@@ -130,6 +130,51 @@ export default function ArticleContentRenderer({
         if (!fig.querySelector('img') && !fig.querySelector('video')) fig.remove()
       })
 
+      // Home of Care / afterHeading portraits: remove in-place HTML copies so the
+      // curated storyImages placement (e.g. under "heart and soul", right) is the only one.
+      const isRelocatedPortrait = (src = '', caption = '') => {
+        const s = String(src).toLowerCase()
+        const c = String(caption).toLowerCase()
+        return (
+          c.includes('heart and soul') ||
+          c.includes('visionary') ||
+          c.includes('manjulaa kalyaan, founder') ||
+          s.includes('xg9qemgyszqdhbsjymy8') ||
+          s.includes('diizcur6lyalwamfkie3') ||
+          s.includes('manjulaa-visionary-home-of-care')
+        )
+      }
+
+      const storyImagesToRelocate = Array.isArray(storyImages)
+        ? storyImages.filter((si) => typeof si === 'object' && si.afterHeading)
+        : []
+
+      Array.from(doc.body.querySelectorAll('figure')).forEach((fig) => {
+        const mediaEl = fig.querySelector('img, video')
+        const src = (mediaEl?.getAttribute('src') || mediaEl?.querySelector('source')?.getAttribute('src') || '').trim()
+        const caption = (fig.querySelector('figcaption')?.textContent || mediaEl?.getAttribute('alt') || '').trim()
+        const matchedRelocate = storyImagesToRelocate.some((si) => isSameImage(si.url, src))
+        if (matchedRelocate || (articleId === 'home-of-care' && isRelocatedPortrait(src, caption))) {
+          fig.remove()
+        }
+      })
+
+      // Also strip bare <img> tags for the same relocated portraits
+      if (articleId === 'home-of-care' || storyImagesToRelocate.length > 0) {
+        Array.from(doc.body.querySelectorAll('img')).forEach((img) => {
+          const src = (img.getAttribute('src') || '').trim()
+          const alt = (img.getAttribute('alt') || '').trim()
+          const matchedRelocate = storyImagesToRelocate.some((si) => isSameImage(si.url, src))
+          if (matchedRelocate || (articleId === 'home-of-care' && isRelocatedPortrait(src, alt))) {
+            const parent = img.closest('p') || img.parentNode
+            img.remove()
+            if (parent && parent.tagName?.toLowerCase() === 'p' && !(parent.textContent || '').trim() && !parent.querySelector('img, video')) {
+              parent.remove()
+            }
+          }
+        })
+      }
+
       const cleanFigureElements = Array.from(doc.body.querySelectorAll('figure'))
       const hasExplicitFigures = cleanFigureElements.length > 0
 
