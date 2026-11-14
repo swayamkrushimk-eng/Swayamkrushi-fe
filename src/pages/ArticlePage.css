@@ -225,6 +225,8 @@
   margin: 0 0 16px;
   font-weight: 400;
   text-wrap: pretty;
+  /* Keep paragraph text in a column beside floats — avoids orphaned last lines under images */
+  display: flow-root;
 }
 
 /* Inline Floated Editorial Media (Inside Article Body with text flowing beside it) */
@@ -659,6 +661,8 @@
 .article-rich-chunk p,
 .article-rich-block p {
   margin: 0 0 18px;
+  /* Keep paragraph text in a column beside floats — avoids orphaned last lines under images */
+  display: flow-root;
 }
 
 /* Embedded Custom Pro Video Player inside Articles */
