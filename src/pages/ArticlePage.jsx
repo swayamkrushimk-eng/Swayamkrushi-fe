@@ -529,64 +529,104 @@ export default function ArticlePage({ defaultId }) {
         ) : (
           allParagraphs.map((para, idx) => {
             const imgsForThisPara = imagePlacementMap[idx] || []
+            const paraEl = (
+              <p key={`para-text-${idx}`} className={idx === 0 ? 'first-body-paragraph' : ''}>
+                {para}
+              </p>
+            )
+
+            const mediaEls = imgsForThisPara.map((imgObj, subIdx) => {
+              const isVid = isVideoUrl(imgObj.url)
+              const isBedHotspot = article.id === 'bed-hotspot' || id === 'bed-hotspot'
+              const alignClass = isBedHotspot
+                ? (subIdx % 2 === 0 ? 'float-right' : 'float-left')
+                : imgObj.alignClass
+              const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || 'size-small')
+              const isSideFloat =
+                sizeClass !== 'size-big' &&
+                alignClass !== 'float-center' &&
+                (alignClass === 'float-left' || alignClass === 'float-right')
+
+              return {
+                isSideFloat,
+                alignClass,
+                node: (
+                  <figure
+                    key={`para-img-${idx}-${subIdx}`}
+                    className={`article-inline-figure ${alignClass} ${sizeClass} ${isVid ? 'article-inline-video-figure' : ''}${isSideFloat ? ' in-float-pair' : ''}`}
+                  >
+                    {isVid ? (
+                      <div className="article-video-player-container">
+                        <VideoPlayer
+                          src={imgObj.url}
+                          poster={imgObj.poster || undefined}
+                          autoPlay={false}
+                          title={imgObj.title || imgObj.caption || article.title}
+                          subtitle={imgObj.subtitle}
+                          category={imgObj.title || "Story Clip"}
+                        />
+                      </div>
+                    ) : (
+                      <img
+                        src={imgObj.url}
+                        alt={imgObj.caption || article.title}
+                        className="article-inline-img"
+                        onError={(e) => {
+                          if (localFallback && e.target.src !== localFallback && !localFallback.toLowerCase().includes('.svg')) {
+                            e.target.src = localFallback
+                          } else {
+                            const fig = e.target.closest('figure')
+                            if (fig) fig.style.display = 'none'
+                          }
+                        }}
+                      />
+                    )}
+                    {imgObj.caption ? (
+                      <figcaption className="article-inline-caption">
+                        {imgObj.title && imgObj.subtitle ? (
+                          <>
+                            <strong>{imgObj.title}</strong> &mdash; <span>{imgObj.subtitle}</span>
+                          </>
+                        ) : (
+                          imgObj.caption
+                        )}
+                      </figcaption>
+                    ) : null}
+                  </figure>
+                )
+              }
+            })
+
+            // Pair the first side-floated media with this paragraph so text never wraps under it
+            const firstSideIdx = mediaEls.findIndex((m) => m.isSideFloat)
+            let bodyBlock
+            if (firstSideIdx >= 0) {
+              const side = mediaEls[firstSideIdx].alignClass === 'float-right' ? 'is-right' : 'is-left'
+              const before = mediaEls.slice(0, firstSideIdx).map((m) => m.node)
+              const pairedMedia = mediaEls[firstSideIdx].node
+              const after = mediaEls.slice(firstSideIdx + 1).map((m) => m.node)
+              bodyBlock = (
+                <>
+                  {before}
+                  <div className={`article-float-pair ${side}`}>
+                    {pairedMedia}
+                    <div className="article-float-pair-text">{paraEl}</div>
+                  </div>
+                  {after}
+                </>
+              )
+            } else {
+              bodyBlock = (
+                <>
+                  {mediaEls.map((m) => m.node)}
+                  {paraEl}
+                </>
+              )
+            }
 
             return (
               <Fragment key={idx}>
-                {imgsForThisPara.map((imgObj, subIdx) => {
-                  const isVid = isVideoUrl(imgObj.url)
-                  const isBedHotspot = article.id === 'bed-hotspot' || id === 'bed-hotspot'
-                  const alignClass = isBedHotspot
-                    ? (subIdx % 2 === 0 ? 'float-right' : 'float-left')
-                    : imgObj.alignClass
-                  const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || 'size-small')
-
-                  return (
-                    <figure
-                      key={`para-img-${idx}-${subIdx}`}
-                      className={`article-inline-figure ${alignClass} ${sizeClass} ${isVid ? 'article-inline-video-figure' : ''}`}
-                    >
-                      {isVid ? (
-                        <div className="article-video-player-container">
-                          <VideoPlayer
-                            src={imgObj.url}
-                            poster={imgObj.poster || undefined}
-                            autoPlay={false}
-                            title={imgObj.title || imgObj.caption || article.title}
-                            subtitle={imgObj.subtitle}
-                            category={imgObj.title || "Story Clip"}
-                          />
-                        </div>
-                      ) : (
-                        <img
-                          src={imgObj.url}
-                          alt={imgObj.caption || article.title}
-                          className="article-inline-img"
-                          onError={(e) => {
-                            if (localFallback && e.target.src !== localFallback && !localFallback.toLowerCase().includes('.svg')) {
-                              e.target.src = localFallback
-                            } else {
-                              const fig = e.target.closest('figure')
-                              if (fig) fig.style.display = 'none'
-                            }
-                          }}
-                        />
-                      )}
-                      {imgObj.caption ? (
-                        <figcaption className="article-inline-caption">
-                          {imgObj.title && imgObj.subtitle ? (
-                            <>
-                              <strong>{imgObj.title}</strong> &mdash; <span>{imgObj.subtitle}</span>
-                            </>
-                          ) : (
-                            imgObj.caption
-                          )}
-                        </figcaption>
-                      ) : null}
-                    </figure>
-                  )
-                })}
-
-                <p className={idx === 0 ? 'first-body-paragraph' : ''}>{para}</p>
+                {bodyBlock}
 
                 {/* Editorial callout after paragraph 2 matching classic broadsheet style */}
                 {idx === 2 && allParagraphs.length > 4 && (

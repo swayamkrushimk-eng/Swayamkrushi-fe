@@ -14,6 +14,51 @@ function getArticleHash(str = '') {
   return Math.abs(h)
 }
 
+function getElementClassName(el) {
+  if (!React.isValidElement(el)) return ''
+  const cls = el.props?.className
+  return typeof cls === 'string' ? cls : ''
+}
+
+function isSideFloatFigure(el) {
+  const cls = getElementClassName(el)
+  if (!cls.includes('article-inline-figure') && !cls.includes('article-embedded-video-card')) return false
+  if (cls.includes('float-center') || cls.includes('size-big')) return false
+  return cls.includes('float-left') || cls.includes('float-right')
+}
+
+function isBodyParagraphElement(el) {
+  if (!React.isValidElement(el)) return false
+  if (el.type === 'p') return true
+  const cls = getElementClassName(el)
+  return cls.includes('article-editorial-paragraph') || cls.includes('article-rich-p')
+}
+
+/** Keep body copy in a side column with floated media — never wrap orphaned last lines under videos/images. */
+function pairSideFloatsWithText(elements = []) {
+  const out = []
+  for (let i = 0; i < elements.length; i += 1) {
+    const el = elements[i]
+    const next = elements[i + 1]
+    if (isSideFloatFigure(el) && isBodyParagraphElement(next)) {
+      const cls = getElementClassName(el)
+      const side = cls.includes('float-right') ? 'is-right' : 'is-left'
+      out.push(
+        <div key={`float-pair-${i}`} className={`article-float-pair ${side}`}>
+          {React.cloneElement(el, {
+            className: `${cls} in-float-pair`.trim()
+          })}
+          <div className="article-float-pair-text">{next}</div>
+        </div>
+      )
+      i += 1
+    } else {
+      out.push(el)
+    }
+  }
+  return out
+}
+
 export default function ArticleContentRenderer({
   htmlContent,
   articleTitle = '',
@@ -907,7 +952,7 @@ export default function ArticleContentRenderer({
         }
       })
 
-      return results
+      return pairSideFloatsWithText(results)
     } catch (err) {
       console.warn('Error rendering rich article content:', err)
       return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
