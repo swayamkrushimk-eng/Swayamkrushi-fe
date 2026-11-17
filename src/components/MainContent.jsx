@@ -73,12 +73,31 @@ export default function MainContent() {
           <p className="lede">
             {(gloriousYears.paragraphs && gloriousYears.paragraphs[0]) || gloriousYears.excerpt}
           </p>
-          {!gloriousYearsMedia.isText && gloriousYearsMedia.posterUrl && (
-            <figure>
-              <img
-                src={gloriousYearsMedia.posterUrl}
-                alt={gloriousYears.imageAlt || gloriousYears.title || ''}
-              />
+          {!gloriousYearsMedia.isText && (
+            <figure
+              className={gloriousYearsMedia.isVideo ? 'main-story-video-container' : ''}
+              data-is-video={gloriousYearsMedia.isVideo ? 'true' : undefined}
+            >
+              {gloriousYearsMedia.isVideo && gloriousYearsMedia.videoUrl ? (
+                <div className="article-video-player-container" style={{ margin: '0 0 12px 0' }}>
+                  <VideoPlayer
+                    src={gloriousYearsMedia.deliveryVideoUrl || gloriousYearsMedia.videoUrl}
+                    poster={gloriousYearsMedia.posterUrl || undefined}
+                    title={gloriousYears.title}
+                    category={gloriousYears.category || 'Stories & Milestones'}
+                    aspectRatio="16/9"
+                    autoPlay={false}
+                  />
+                </div>
+              ) : gloriousYearsMedia.posterUrl ? (
+                <img
+                  src={gloriousYearsMedia.posterUrl}
+                  alt={gloriousYears.imageAlt || gloriousYears.title || ''}
+                  onError={(e) => {
+                    if (gloriousYears.imageUrl) e.target.src = gloriousYears.imageUrl
+                  }}
+                />
+              ) : null}
               {gloriousYears.imageAlt ? (
                 <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
                   {gloriousYears.imageAlt}

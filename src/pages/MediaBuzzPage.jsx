@@ -42,6 +42,32 @@ const VIDEO_BY_ID = {
   'youtube-etv-seethakka': 'https://www.youtube.com/watch?v=fqH8vlNlX9c'
 }
 
+/** Today's Coral Jubilee Media Buzz items (shown under the celebration heading). */
+const CORAL_JUBILEE_IDS = new Set([
+  'tv9-coral-jubilee-celebrations',
+  'youtube-abn-seethakka',
+  'youtube-etv-seethakka',
+  'youtube-swatantra-tv-seethakka',
+  'youtube-100-tv-seethakka',
+  'brk-news-reporter-ramu',
+  'deccan-chronicle-epaper-2026-11-17',
+  'hindu-former-vp-youth-social-initiatives-2026-11-16',
+  'telangana-today-epaper-2026-11-17',
+  'fpj-international-epaper-2026-11-17',
+  'metro-india-epaper-2026-11-17',
+  'eenadu-clipping-abhinandaneeyam-2026-11-17',
+  'eenadu-clipping-equal-opportunities-2026-11-17',
+  'eenadu-clipping-rare-gift-2026-11-17',
+  'eenadu-online-equal-opportunities-2026-11-17',
+  'sakshi-clipping-seethakka-2026-11-17',
+  'mana-telangana-epaper-2026-11-17',
+  'netram-clipping-venkaiah-2026-11-17'
+])
+
+function isCoralJubileeItem(article) {
+  return CORAL_JUBILEE_IDS.has(article?.id)
+}
+
 /** Compact top-row media videos (YouTube + featured local clips). */
 function isTopVideoCard(card) {
   if (card?._cardType !== 'video') return false
@@ -150,17 +176,17 @@ function isTeluguArticle(article) {
 }
 
 /**
- * Display order:
- * 0) Top video row (YouTube + featured local clips)
+ * Display order within a group:
+ * 0) Videos first
  * 1) English paper/link cards
- * 2) English newspaper clipping images (e.g. The Hindu)
+ * 2) English newspaper clipping images
  * 3) Telugu papers (links + clippings interleaved by order)
  * 4) Other local videos last
  */
 function sortDisplayCards(cards) {
   const rank = (card) => {
     if (card._cardType === 'video') {
-      return isTopVideoCard(card) ? -1 : 5
+      return isTopVideoCard(card) || isCoralJubileeItem(card) ? -1 : 5
     }
     if (isTeluguArticle(card)) return 2
     if (card._cardType === 'image') return 1
@@ -172,6 +198,19 @@ function sortDisplayCards(cards) {
     if (byGroup !== 0) return byGroup
     return (a.order || 0) - (b.order || 0)
   })
+}
+
+function splitJubileeAndArchive(cards) {
+  const jubilee = []
+  const archive = []
+  cards.forEach((card) => {
+    if (isCoralJubileeItem(card)) jubilee.push(card)
+    else archive.push(card)
+  })
+  return {
+    jubilee: sortDisplayCards(jubilee),
+    archive: sortDisplayCards(archive)
+  }
 }
 
 /** Split each record into: image-only clipping card(s) + normal link card(s) + video. */
@@ -843,13 +882,20 @@ export const MEDIA_ARTICLES = [
 ]
 
 export default function MediaBuzzPage() {
-  const [articlesList, setArticlesList] = useState([])
+  const [jubileeCards, setJubileeCards] = useState([])
+  const [archiveCards, setArchiveCards] = useState([])
   const [loading, setLoading] = useState(true)
   const [lightboxImage, setLightboxImage] = useState(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
     async function loadBuzz() {
+      const applyCards = (articles) => {
+        const { jubilee, archive } = splitJubileeAndArchive(toDisplayCards(articles))
+        setJubileeCards(jubilee)
+        setArchiveCards(archive)
+      }
+
       try {
         const data = await fetchMediaBuzz()
         if (Array.isArray(data) && data.length > 0) {
@@ -888,19 +934,13 @@ export default function MediaBuzzPage() {
             })
             .map(withClippingDefaults)
             .sort((a, b) => (a.order || 0) - (b.order || 0))
-          setArticlesList(toDisplayCards(combined))
+          applyCards(combined)
         } else {
-          // Fallback to local only if server returns nothing
-          setArticlesList(
-            toDisplayCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
-          )
+          applyCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
         }
       } catch (err) {
         console.warn('Error loading media buzz:', err)
-        // Fallback to local on error
-        setArticlesList(
-          toDisplayCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
-        )
+        applyCards(MEDIA_ARTICLES.filter((a) => !isIdDeleted('media_buzz', a.id)))
       } finally {
         setLoading(false)
       }
@@ -920,6 +960,162 @@ export default function MediaBuzzPage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [lightboxImage])
 
+  const renderCard = (article) => {
+    if (article._cardType === 'image') {
+      return (
+        <article
+          key={article._cardKey}
+          className="buzz-article-card image-only-card"
+          onClick={() =>
+            setLightboxImage({
+              src: article.image,
+              title: article.title || article.outlet,
+              outlet: article.outlet
+            })
+          }
+        >
+          <div className="buzz-card-media is-clipping-card full-card-image">
+            <img
+              src={article.image}
+              alt={article.title || article.outlet}
+              className="buzz-card-img"
+              onError={(e) => {
+                const fb = CLIPPING_IMAGE_BY_ID[article.id]
+                if (fb && e.currentTarget.src !== fb) {
+                  e.currentTarget.src = fb
+                }
+              }}
+            />
+            <span className="buzz-outlet-badge">{article.outlet}</span>
+            <span className="clipping-zoom-hint">🔍 Zoom</span>
+          </div>
+        </article>
+      )
+    }
+
+    if (article._cardType === 'video') {
+      const youtubeId = getYouTubeVideoId(article.video)
+      const youtubeWatchUrl = youtubeId
+        ? (article.articleUrl || getYouTubeWatchUrl(article.video))
+        : null
+      const youtubeEmbed = youtubeId && !isYouTubeEmbedBlocked(article.video)
+        ? getYouTubeEmbedUrl(article.video)
+        : null
+      const youtubeThumb = youtubeId ? getYouTubeThumbnailUrl(article.video) : null
+      const isYouTubeCard = Boolean(youtubeId)
+      const isCompactVideo = isTopVideoCard(article) || isCoralJubileeItem(article)
+
+      return (
+        <article
+          key={article._cardKey}
+          className={`buzz-article-card buzz-video-card ${isCompactVideo ? 'buzz-youtube-card' : 'buzz-video-wide'}`}
+        >
+          <div className={`buzz-card-media buzz-video-media ${isCompactVideo ? 'is-youtube' : ''}`}>
+            {youtubeEmbed ? (
+              <iframe
+                className="buzz-card-video buzz-youtube-embed"
+                src={youtubeEmbed}
+                title={article.title || 'YouTube video'}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+                loading="lazy"
+              />
+            ) : youtubeThumb ? (
+              <a
+                href={youtubeWatchUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="buzz-youtube-thumb-link"
+                aria-label={`Watch on YouTube: ${article.title || article.outlet}`}
+              >
+                <img
+                  src={youtubeThumb}
+                  alt={article.title || article.outlet}
+                  className="buzz-youtube-thumb"
+                />
+                <span className="buzz-youtube-play" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <polygon points="6 3 20 12 6 21 6 3" />
+                  </svg>
+                </span>
+              </a>
+            ) : (
+              <video
+                className={`buzz-card-video ${isCompactVideo ? 'buzz-local-compact-video' : ''}`}
+                src={article.video}
+                controls
+                playsInline
+                preload="metadata"
+              >
+                Your browser does not support the video tag.
+              </video>
+            )}
+            <span className="buzz-outlet-badge">{article.outlet}</span>
+          </div>
+          <div className="buzz-card-body">
+            {!isCompactVideo && (
+              <div className="buzz-card-meta">
+                <span className="buzz-card-date">{article.date} · {article.readTime}</span>
+              </div>
+            )}
+            <h3 className="buzz-card-title">{article.title}</h3>
+            {!isCompactVideo && article.excerpt && (
+              <p className="buzz-card-excerpt">{article.excerpt}</p>
+            )}
+            {isYouTubeCard && (
+              <div className="buzz-card-footer">
+                <a
+                  href={youtubeWatchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="buzz-card-link-btn"
+                >
+                  Watch on YouTube &rarr;
+                </a>
+              </div>
+            )}
+          </div>
+        </article>
+      )
+    }
+
+    return (
+      <article key={article._cardKey} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
+        {article.image && (
+          <div className="buzz-card-media">
+            <img src={article.image} alt={article.title} className="buzz-card-img" />
+            <span className="buzz-outlet-badge">{article.outlet}</span>
+          </div>
+        )}
+        <div className="buzz-card-body">
+          {!article.image && (
+            <div className="card-top-outlet-bar">
+              <span className="buzz-outlet-badge inline">{article.outlet}</span>
+            </div>
+          )}
+          <div className="buzz-card-meta">
+            <span className="buzz-card-date">{article.date} · {article.readTime}</span>
+          </div>
+          <h3 className="buzz-card-title">{article.title}</h3>
+          <p className="buzz-card-excerpt">{article.excerpt}</p>
+          {article.articleUrl && (
+            <div className="buzz-card-footer">
+              <a
+                href={article.articleUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="buzz-card-link-btn"
+              >
+                Read Full Story &rarr;
+              </a>
+            </div>
+          )}
+        </div>
+      </article>
+    )
+  }
+
   return (
     <>
       <SEO
@@ -928,174 +1124,42 @@ export default function MediaBuzzPage() {
       />
 
       <div className="media-buzz-wrap">
-        {/* Masthead Header */}
         <header className="media-buzz-header">
           <h1 className="buzz-headline">Media Buzz</h1>
         </header>
 
-        {/* Media Coverage Grid */}
-        <div className="buzz-articles-grid" style={loading ? { minHeight: '60vh' } : undefined}>
-          {loading ? (
+        {loading ? (
+          <div className="buzz-articles-grid" style={{ minHeight: '60vh' }}>
             <div style={{ gridColumn: '1 / -1', minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6f6a6c' }}>
               <p style={{ fontStyle: 'italic', fontSize: '15px' }}>Loading media coverage...</p>
             </div>
-          ) : articlesList.map((article) => {
-            if (article._cardType === 'image') {
-              return (
-                <article
-                  key={article._cardKey}
-                  className="buzz-article-card image-only-card"
-                  onClick={() =>
-                    setLightboxImage({
-                      src: article.image,
-                      title: article.title || article.outlet,
-                      outlet: article.outlet
-                    })
-                  }
-                >
-                  <div className="buzz-card-media is-clipping-card full-card-image">
-                    <img
-                      src={article.image}
-                      alt={article.title || article.outlet}
-                      className="buzz-card-img"
-                      onError={(e) => {
-                        const fb = CLIPPING_IMAGE_BY_ID[article.id]
-                        if (fb && e.currentTarget.src !== fb) {
-                          e.currentTarget.src = fb
-                        }
-                      }}
-                    />
-                    <span className="buzz-outlet-badge">{article.outlet}</span>
-                    <span className="clipping-zoom-hint">🔍 Zoom</span>
-                  </div>
-                </article>
-              )
-            }
-
-            if (article._cardType === 'video') {
-              const youtubeId = getYouTubeVideoId(article.video)
-              const youtubeWatchUrl = youtubeId
-                ? (article.articleUrl || getYouTubeWatchUrl(article.video))
-                : null
-              const youtubeEmbed = youtubeId && !isYouTubeEmbedBlocked(article.video)
-                ? getYouTubeEmbedUrl(article.video)
-                : null
-              const youtubeThumb = youtubeId ? getYouTubeThumbnailUrl(article.video) : null
-              const isYouTubeCard = Boolean(youtubeId)
-              const isCompactVideo = isTopVideoCard(article)
-
-              return (
-                <article
-                  key={article._cardKey}
-                  className={`buzz-article-card buzz-video-card ${isCompactVideo ? 'buzz-youtube-card' : 'buzz-video-wide'}`}
-                >
-                  <div className={`buzz-card-media buzz-video-media ${isCompactVideo ? 'is-youtube' : ''}`}>
-                    {youtubeEmbed ? (
-                      <iframe
-                        className="buzz-card-video buzz-youtube-embed"
-                        src={youtubeEmbed}
-                        title={article.title || 'YouTube video'}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                        loading="lazy"
-                      />
-                    ) : youtubeThumb ? (
-                      <a
-                        href={youtubeWatchUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="buzz-youtube-thumb-link"
-                        aria-label={`Watch on YouTube: ${article.title || article.outlet}`}
-                      >
-                        <img
-                          src={youtubeThumb}
-                          alt={article.title || article.outlet}
-                          className="buzz-youtube-thumb"
-                        />
-                        <span className="buzz-youtube-play" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" fill="currentColor">
-                            <polygon points="6 3 20 12 6 21 6 3" />
-                          </svg>
-                        </span>
-                      </a>
-                    ) : (
-                      <video
-                        className={`buzz-card-video ${isCompactVideo ? 'buzz-local-compact-video' : ''}`}
-                        src={article.video}
-                        controls
-                        playsInline
-                        preload="metadata"
-                      >
-                        Your browser does not support the video tag.
-                      </video>
-                    )}
-                    <span className="buzz-outlet-badge">{article.outlet}</span>
-                  </div>
-                  <div className="buzz-card-body">
-                    {!isCompactVideo && (
-                      <div className="buzz-card-meta">
-                        <span className="buzz-card-date">{article.date} · {article.readTime}</span>
-                      </div>
-                    )}
-                    <h3 className="buzz-card-title">{article.title}</h3>
-                    {!isCompactVideo && article.excerpt && (
-                      <p className="buzz-card-excerpt">{article.excerpt}</p>
-                    )}
-                    {isYouTubeCard && (
-                      <div className="buzz-card-footer">
-                        <a
-                          href={youtubeWatchUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="buzz-card-link-btn"
-                        >
-                          Watch on YouTube &rarr;
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </article>
-              )
-            }
-
-            // Normal link / press card — no newspaper scan thumbnail mixed in
-            return (
-              <article key={article._cardKey} className={`buzz-article-card ${!article.image ? 'no-image-card' : ''}`}>
-                {article.image && (
-                  <div className="buzz-card-media">
-                    <img src={article.image} alt={article.title} className="buzz-card-img" />
-                    <span className="buzz-outlet-badge">{article.outlet}</span>
-                  </div>
-                )}
-                <div className="buzz-card-body">
-                  {!article.image && (
-                    <div className="card-top-outlet-bar">
-                      <span className="buzz-outlet-badge inline">{article.outlet}</span>
-                    </div>
-                  )}
-                  <div className="buzz-card-meta">
-                    <span className="buzz-card-date">{article.date} · {article.readTime}</span>
-                  </div>
-                  <h3 className="buzz-card-title">{article.title}</h3>
-                  <p className="buzz-card-excerpt">{article.excerpt}</p>
-                  {article.articleUrl && (
-                    <div className="buzz-card-footer">
-                      <a
-                        href={article.articleUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="buzz-card-link-btn"
-                      >
-                        Read Full Story &rarr;
-                      </a>
-                    </div>
-                  )}
+          </div>
+        ) : (
+          <>
+            {jubileeCards.length > 0 && (
+              <section className="buzz-jubilee-section" aria-labelledby="buzz-jubilee-heading">
+                <h2 id="buzz-jubilee-heading" className="buzz-section-title">
+                  Celebrating 35 years of glory!
+                </h2>
+                <div className="buzz-articles-grid">
+                  {jubileeCards.map(renderCard)}
                 </div>
-              </article>
-            )
-          })}
-        </div>
+              </section>
+            )}
+
+            {jubileeCards.length > 0 && archiveCards.length > 0 && (
+              <div className="buzz-section-divider" role="separator" aria-hidden="true" />
+            )}
+
+            {archiveCards.length > 0 && (
+              <section className="buzz-archive-section" aria-label="Earlier media coverage">
+                <div className="buzz-articles-grid">
+                  {archiveCards.map(renderCard)}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </div>
 
       {/* Lightbox Modal for Full-Size Newspaper Clipping */}
