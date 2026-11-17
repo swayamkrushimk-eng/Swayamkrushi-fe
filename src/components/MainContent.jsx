@@ -48,7 +48,32 @@ export default function MainContent() {
   const bedHotspot = isIdDeleted('article', 'bed-hotspot') ? null : (mainArts['bed-hotspot'] || null)
   const buildingBlocks = isIdDeleted('article', 'building-blocks') ? null : (mainArts['building-blocks'] || null)
 
-  const gloriousYearsMedia = gloriousYears ? resolveArticleMedia(gloriousYears, null) : {}
+  // Homepage/outside: play the glory story video even when the article hero is an image
+  const gloriousYearsMedia = gloriousYears
+    ? resolveArticleMedia(
+        gloriousYears.videoUrl
+          ? { ...gloriousYears, featuredMediaType: 'video', mediaType: 'video' }
+          : gloriousYears,
+        null
+      )
+    : {}
+  const gloriousYearsVideoCaption = (() => {
+    if (!gloriousYears) return ''
+    const fromImages = Array.isArray(gloriousYears.images)
+      ? gloriousYears.images.find((img) => {
+          const url = typeof img === 'string' ? img : img?.url
+          const type = typeof img === 'object' ? img.type : ''
+          return (
+            (type === 'video' || (url && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url))) &&
+            (img.caption || img.alt)
+          )
+        })
+      : null
+    return (
+      (fromImages && (fromImages.caption || fromImages.alt)) ||
+      'Inspiring : Former Vice President M Venkaiah Naidu, despite being indisposed, spoke passionately about the cause in virtual mode'
+    )
+  })()
   const homeOfCareMedia = homeOfCare ? resolveArticleMedia(homeOfCare, birthdayImg) : {}
   const groupHomesMedia = groupHomes ? resolveArticleMedia(groupHomes, grouphomeResidentsImg) : {}
   const bedHotspotMedia = bedHotspot ? resolveArticleMedia(bedHotspot, null) : {}
@@ -67,20 +92,19 @@ export default function MainContent() {
             {(gloriousYears.paragraphs && gloriousYears.paragraphs[0]) || gloriousYears.excerpt}
           </p>
           {!gloriousYearsMedia.isText && (
-            <figure
-              className={gloriousYearsMedia.isVideo ? 'main-story-video-container' : ''}
-              data-is-video={gloriousYearsMedia.isVideo ? 'true' : undefined}
-            >
+            <figure data-is-video={gloriousYearsMedia.isVideo ? 'true' : undefined}>
               {gloriousYearsMedia.isVideo && gloriousYearsMedia.videoUrl ? (
-                <div className="article-video-player-container" style={{ margin: '0 0 12px 0' }}>
-                  <VideoPlayer
-                    src={gloriousYearsMedia.deliveryVideoUrl || gloriousYearsMedia.videoUrl}
-                    poster={gloriousYearsMedia.posterUrl || undefined}
-                    title={gloriousYears.title}
-                    category={gloriousYears.category || 'Stories & Milestones'}
-                    aspectRatio="16/9"
-                    autoPlay={false}
-                  />
+                <div className="main-story-video-container">
+                  <div className="article-video-player-container" style={{ margin: 0 }}>
+                    <VideoPlayer
+                      src={gloriousYearsMedia.deliveryVideoUrl || gloriousYearsMedia.videoUrl}
+                      poster={gloriousYearsMedia.posterUrl || undefined}
+                      title={gloriousYears.title}
+                      category={gloriousYears.category || 'Stories & Milestones'}
+                      aspectRatio="16/9"
+                      autoPlay={false}
+                    />
+                  </div>
                 </div>
               ) : gloriousYearsMedia.posterUrl ? (
                 <img
@@ -91,9 +115,9 @@ export default function MainContent() {
                   }}
                 />
               ) : null}
-              {gloriousYears.imageAlt ? (
-                <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                  {gloriousYears.imageAlt}
+              {(gloriousYearsMedia.isVideo ? gloriousYearsVideoCaption : gloriousYears.imageAlt) ? (
+                <figcaption className="main-story-video-caption">
+                  {gloriousYearsMedia.isVideo ? gloriousYearsVideoCaption : gloriousYears.imageAlt}
                 </figcaption>
               ) : null}
             </figure>

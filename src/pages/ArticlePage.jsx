@@ -221,6 +221,13 @@ export default function ArticlePage({ defaultId }) {
     articleForMedia.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
+        // Never re-inject the featured hero image into the body as a floated clip
+        if (
+          mediaInfo.isImage &&
+          (isSameImage(url, mediaInfo.posterUrl) || isSameImage(url, mediaInfo.imageUrl) || isSameImage(url, article.imageUrl))
+        ) {
+          return
+        }
         // Never re-inject the hero video (or its poster) as a floated body clip
         if (
           mediaInfo.isVideo &&
@@ -464,6 +471,22 @@ export default function ArticlePage({ defaultId }) {
 
       {/* Cartesia AI Voice Narration Listen Bar */}
       <ArticleAudioPlayer article={article} />
+
+      {/* Featured Hero Image (when admin sets featured media to image) */}
+      {!mediaInfo.isText && mediaInfo.isImage && mediaInfo.posterUrl && (
+        <figure className="article-hero-figure article-hero-image-figure size-big float-center">
+          <img
+            src={mediaInfo.posterUrl}
+            alt={articleForMedia.imageAlt || article.imageAlt || article.title || ''}
+            className="article-hero-image"
+          />
+          {(articleForMedia.imageAlt || article.imageAlt) ? (
+            <figcaption className="article-hero-caption">
+              {articleForMedia.imageAlt || article.imageAlt}
+            </figcaption>
+          ) : null}
+        </figure>
+      )}
 
       {/* Featured Hero Video (Only if story is a video) */}
       {!mediaInfo.isText && mediaInfo.isVideo && mediaInfo.videoUrl && (() => {

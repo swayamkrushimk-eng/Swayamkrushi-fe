@@ -5,6 +5,7 @@ import circleLeftImg from '../assets/images/circle-left.jpg'
 import facilitatorImg from '../assets/images/circle-facilitator.jpg'
 import circleRightImg from '../assets/images/circle-right.png'
 import joinUsBadge from '../assets/images/join-us-badge.png'
+import watchThisSpaceImg from '../assets/images/watch-this-space.png'
 import { fetchSettings } from '../services/api'
 
 export default function Masthead() {
@@ -91,31 +92,42 @@ export default function Masthead() {
         </Link>
       </div>
 
-      <p className="founder-line">
-        She drew a circle that shut her out &mdash; we drew a circle that took her in
-      </p>
+      <div className="impact-band">
+        <aside className="watch-this-space" aria-label="Coming soon announcements">
+          <img
+            src={watchThisSpaceImg}
+            alt="Watch this space for announcements, developments, new additions in coming days"
+          />
+        </aside>
 
-      <div className="numbers-wrap">
-        <div className="numbers">
-          <div>
-            <b>35+</b>
-            <span>Years served</span>
-          </div>
-          <div>
-            <b>250+</b>
-            <span>Lives empowered</span>
-          </div>
-          <div>
-            <b>5</b>
-            <span>Group homes</span>
-          </div>
-          <div>
-            <b>140+</b>
-            <span>Student strength</span>
-          </div>
-          <div>
-            <b>1000+</b>
-            <span>SPL educators</span>
+        <div className="impact-band-main">
+          <p className="founder-line">
+            She drew a circle that shut her out &mdash; we drew a circle that took her in
+          </p>
+
+          <div className="numbers-wrap">
+            <div className="numbers">
+              <div>
+                <b>35+</b>
+                <span>Years served</span>
+              </div>
+              <div>
+                <b>250+</b>
+                <span>Lives empowered</span>
+              </div>
+              <div>
+                <b>5</b>
+                <span>Group homes</span>
+              </div>
+              <div>
+                <b>140+</b>
+                <span>Student strength</span>
+              </div>
+              <div>
+                <b>1000+</b>
+                <span>SPL educators</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

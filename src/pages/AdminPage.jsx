@@ -2816,7 +2816,7 @@ export default function AdminPage() {
                   className="admin-input"
                 />
                 <span style={{ fontSize: '11px', color: '#776e65', marginTop: '4px', display: 'block' }}>
-                  This caption is displayed directly beneath the cover photo on cards and in the article header.
+                  Shown under the top cover/hero image inside the article. Leave blank for no caption.
                 </span>
               </div>
 
@@ -2969,10 +2969,10 @@ export default function AdminPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                   <div>
                     <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#3d342f' }}>
-                      🖼️ Story Photos & Placement / Sizing Controls
+                      🖼️ Story Photos / Videos & Captions
                     </h4>
                     <p style={{ margin: '3px 0 0', fontSize: '12px', color: '#776e65' }}>
-                      Position photos anywhere in the article (Left, Right, Center) and set size to <strong>Small</strong> or <strong>Big</strong>. Removing a photo completely deletes it and its caption.
+                      Add captions for every photo or video below. Set placement (Left, Right, Center) and size (<strong>Small</strong> or <strong>Big</strong>). Removing an item also removes its caption.
                     </p>
                   </div>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -3009,7 +3009,19 @@ export default function AdminPage() {
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '16px' }}>
-                    {articleForm.images.map((imgItem, idx) => (
+                    {articleForm.images.map((imgItem, idx) => {
+                      const itemIsVideo =
+                        imgItem.type === 'video' ||
+                        isVideoUrl(imgItem.url)
+                      const thumbSrc =
+                        (itemIsVideo &&
+                          (imgItem.videoThumbnailUrl ||
+                            imgItem.videoPosterUrl ||
+                            articleForm.videoThumbnailUrl ||
+                            articleForm.videoPosterUrl ||
+                            getVideoThumbnailUrl(imgItem.url))) ||
+                        imgItem.url
+                      return (
                       <div
                         key={idx}
                         style={{
@@ -3025,14 +3037,14 @@ export default function AdminPage() {
                         {/* Photo Thumbnail & Control Bar */}
                         <div style={{ position: 'relative', height: '160px', background: '#f5f0eb' }}>
                           <img
-                            src={imgItem.url}
-                            alt={imgItem.caption || `Story photo ${idx + 1}`}
+                            src={thumbSrc}
+                            alt={imgItem.caption || `Story media ${idx + 1}`}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                             onError={(e) => { e.currentTarget.style.display = 'none' }}
                           />
                           <div style={{ position: 'absolute', top: '6px', left: '6px', display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <span style={{ background: 'rgba(0,0,0,0.72)', color: '#fff', fontSize: '11px', fontWeight: 600, padding: '2px 8px', borderRadius: '4px' }}>
-                              Photo #{idx + 1}
+                              {itemIsVideo ? `Video #${idx + 1}` : `Photo #${idx + 1}`}
                             </span>
                             <span style={{ background: (imgItem.size === 'big' ? '#6e1e38' : '#2d6a4f'), color: '#fff', fontSize: '10px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase' }}>
                               {imgItem.size === 'big' ? 'BIG' : 'SMALL'}
@@ -3178,13 +3190,13 @@ export default function AdminPage() {
                           {/* Dedicated Caption Input Box */}
                           <div style={{ marginTop: '2px' }}>
                             <label style={{ fontSize: '11px', fontWeight: 700, color: '#4a3f35', textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0, display: 'block', marginBottom: '3px' }}>
-                              Caption for Photo #{idx + 1}:
+                              Caption for {itemIsVideo ? 'Video' : 'Photo'} #{idx + 1}:
                             </label>
                             <textarea
                               rows={2}
                               value={imgItem.caption || ''}
                               onChange={(e) => handleUpdateStoryImageCaption(idx, e.target.value)}
-                              placeholder={`Enter caption describing photo #${idx + 1}...`}
+                              placeholder={`Enter caption for this ${itemIsVideo ? 'video' : 'photo'}...`}
                               className="admin-textarea"
                               style={{
                                 fontSize: '12px',
@@ -3209,7 +3221,8 @@ export default function AdminPage() {
                           </div>
                         </div>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 )}
               </div>

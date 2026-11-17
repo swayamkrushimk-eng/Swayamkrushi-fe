@@ -118,8 +118,25 @@ export default function ArticleContentRenderer({
 
       Array.from(doc.body.querySelectorAll('video')).forEach((vid) => {
         const src = (vid.getAttribute('src') || vid.querySelector('source')?.getAttribute('src') || '').trim()
-        if (!shouldStripBodyVideo(src)) return
         const fig = vid.closest('figure')
+        // Keep intentionally big / centered body videos in place (e.g. under a section heading)
+        const keepInPlace =
+          fig &&
+          (fig.classList.contains('size-big') ||
+            fig.classList.contains('float-center') ||
+            (() => {
+              const matched = Array.isArray(storyImages)
+                ? storyImages.find((si) => isSameImage(typeof si === 'string' ? si : si?.url, src))
+                : null
+              if (!matched || typeof matched === 'string') return false
+              return (
+                matched.size === 'big' ||
+                matched.placement === 'center' ||
+                Boolean(matched.afterHeading)
+              )
+            })())
+        if (keepInPlace) return
+        if (!shouldStripBodyVideo(src)) return
         if (fig) fig.remove()
         else vid.remove()
       })
@@ -384,19 +401,20 @@ export default function ArticleContentRenderer({
             if (typeof si === 'object' && si.size) existing.size = si.size
             if (typeof si === 'object' && si.afterHeading) existing.afterHeading = si.afterHeading
             existing.type = siType
+          } else if (figureSources.some((fSrc) => isSameImage(fSrc, siUrl))) {
+            // Already present as an in-place figure — do not re-inject via zigzag
           } else if (
             // Matching body videos were stripped above so story videos always use the
             // small floated player. Still skip if a non-video figure already owns the URL.
             siType === 'video' ||
-            !hasExplicitFigures ||
-            !figureSources.some((fSrc) => isSameImage(fSrc, siUrl))
+            !hasExplicitFigures
           ) {
             allImages.push({
               src: siUrl,
               caption: siCap,
               alt: siAlt,
               placement: typeof si === 'object' ? (si.placement || 'left') : 'left',
-              // Prefer the compact floated player for story videos
+              // Prefer the compact floated player for story videos unless admin set big
               size: typeof si === 'object' ? (si.size || 'small') : 'small',
               type: siType,
               afterHeading: typeof si === 'object' ? (si.afterHeading || '') : ''
