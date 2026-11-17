@@ -809,25 +809,8 @@ img {
   border-bottom: 0;
 }
 
-/* Desktop/tablet: stretch center column so last story sits with the right rail */
+/* Desktop: keep center stories stacked tightly — no stretch/gap between them */
 @media (min-width: 821px) {
-  .body-col {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    min-height: 100%;
-  }
-
-  .body-col > section.center-about {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .center-last-story {
-    margin-top: auto;
-  }
-
   .body-col .center-story .main-read-more-wrap {
     margin: 28px 0 0 !important;
   }
@@ -838,6 +821,11 @@ img {
 
   .body-col .center-last-story .main-read-more-wrap {
     margin: 28px 0 0 !important;
+  }
+
+  /* Only bottom rail cards show more article text to meet the centre height */
+  .shoulder .rail-item--fill > p {
+    -webkit-line-clamp: 16 !important;
   }
 }
 
@@ -1394,6 +1382,10 @@ img {
     -webkit-line-clamp: 2 !important;
     -webkit-box-orient: vertical !important;
     overflow: hidden !important;
+  }
+
+  .shoulder .rail-item--fill > p {
+    -webkit-line-clamp: 8 !important;
   }
 
   .rail-more {

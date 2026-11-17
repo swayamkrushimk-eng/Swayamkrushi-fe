@@ -16,13 +16,6 @@ import ArticleAudioPlayer from './ArticleAudioPlayer'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import buildingBlocksSvg from '../assets/images/mocks/building-blocks.svg'
 
-function firstSentence(text) {
-  if (!text) return ''
-  const t = String(text).trim()
-  const match = t.match(/^.+?\.(?=\s|$)/)
-  return match ? match[0] : t
-}
-
 export default function MainContent() {
   const [mainArts, setMainArts] = useState({})
 
@@ -106,7 +99,6 @@ export default function MainContent() {
             </figure>
           )}
           {gloriousYears.paragraphs?.[1] && <p>{gloriousYears.paragraphs[1]}</p>}
-          {gloriousYears.paragraphs?.[2] && <p>{firstSentence(gloriousYears.paragraphs[2])}</p>}
 
           <p className="main-read-more-wrap">
             <Link to="/article/35-glorious-years" className="main-read-more-btn">
@@ -222,7 +214,6 @@ export default function MainContent() {
 
               <p className="lede">{homeOfCare.paragraphs[0]}</p>
               <p>{homeOfCare.paragraphs[1]}</p>
-              {homeOfCare.paragraphs[2] && <p>{firstSentence(homeOfCare.paragraphs[2])}</p>}
 
               <p className="main-read-more-wrap">
                 <Link to="/article/home-of-care" className="main-read-more-btn">
@@ -277,7 +268,6 @@ export default function MainContent() {
 
               <p className="lede">{groupHomes.paragraphs[0]}</p>
               <p>{groupHomes.paragraphs[1]}</p>
-              {groupHomes.paragraphs[2] && <p>{firstSentence(groupHomes.paragraphs[2])}</p>}
 
               <p className="main-read-more-wrap">
                 <Link to="/article/group-homes" className="main-read-more-btn">

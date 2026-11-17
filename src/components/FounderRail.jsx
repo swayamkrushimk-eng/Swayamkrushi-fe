@@ -72,18 +72,20 @@ export default function FounderRail() {
         <img className="founder-img" src={manjulaPortrait} alt="Manjulaa Kalyaan" />
       </div>
 
-      {musingArticles.map((article) => (
+      {musingArticles.map((article, index) => (
         <ArticleCard
           key={article.id}
           {...article}
+          fillBalance={index === musingArticles.length - 1}
         />
       ))}
 
       <div className="rail-head rail-head-featured" id="activities-galore" style={{ marginTop: '24px' }}>Activities galore</div>
-      {activitiesArticles.map((article) => (
+      {activitiesArticles.map((article, index) => (
         <ArticleCard
           key={article.id}
           {...article}
+          fillBalance={index === activitiesArticles.length - 1}
         />
       ))}
     </aside>

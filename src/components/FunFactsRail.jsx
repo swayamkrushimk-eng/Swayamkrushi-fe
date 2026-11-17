@@ -66,20 +66,22 @@ export default function FunFactsRail() {
   return (
     <aside className="shoulder left" id="stories">
       <div className="rail-head rail-head-featured">Fun facts</div>
-      {funFactsArticles.map((article) => (
+      {funFactsArticles.map((article, index) => (
         <ArticleCard
           key={article.id}
           {...article}
+          fillBalance={index === funFactsArticles.length - 1}
         />
       ))}
 
       <div className="rail-head rail-head-featured" id="success-stories" style={{ marginTop: '24px' }}>
         Winning hearts
       </div>
-      {winningHeartsArticles.map((article) => (
+      {winningHeartsArticles.map((article, index) => (
         <ArticleCard
           key={article.id}
           {...article}
+          fillBalance={index === winningHeartsArticles.length - 1}
         />
       ))}
     </aside>
