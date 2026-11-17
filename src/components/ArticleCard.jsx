@@ -3,41 +3,11 @@ import { Link } from 'react-router-dom'
 import { articleImagesMap } from '../data/allArticles'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 
-/** Longer preview for bottom rail cards only — fills height next to centre without padding gaps. */
-function buildFillPreview(excerpt, paragraphs, minChars = 720) {
-  const paras = (Array.isArray(paragraphs) ? paragraphs : [])
-    .map((p) => String(p || '').trim())
-    .filter(Boolean)
-  const ex = String(excerpt || '').trim()
-
-  let text = ex
-  if (!text && paras[0]) text = paras[0]
-
-  for (const p of paras) {
-    if (text.length >= minChars) break
-    const head = p.slice(0, Math.min(48, p.length))
-    if (!head) continue
-    if (text.includes(head) || p.startsWith(text.replace(/[.…]+$/, '').trim())) {
-      if (p.length > text.length) text = p
-      continue
-    }
-    text = `${text} ${p}`.replace(/\s+/g, ' ').trim()
-  }
-
-  if (text.length < minChars && paras.length) {
-    text = paras.slice(0, 3).join(' ').replace(/\s+/g, ' ').trim()
-  }
-
-  return text
-}
-
 export default function ArticleCard(props) {
   const {
     id,
     title,
     excerpt,
-    paragraphs,
-    fillBalance,
     attribution,
     image,
     imageUrl,
@@ -94,9 +64,7 @@ export default function ArticleCard(props) {
   const shouldRenderThumbnail =
     isThumbnailSettingEnabled && !mediaInfo.isText && (Boolean(currentPoster) || mediaInfo.isVideo)
 
-  const cleanExcerpt = fillBalance
-    ? buildFillPreview(excerpt, paragraphs)
-    : (typeof excerpt === 'string' ? excerpt.trim() : '')
+  const cleanExcerpt = typeof excerpt === 'string' ? excerpt.trim() : ''
   const formattedExcerpt = cleanExcerpt
     ? (cleanExcerpt.endsWith('...') || cleanExcerpt.endsWith('…')
         ? cleanExcerpt
@@ -106,7 +74,7 @@ export default function ArticleCard(props) {
   return (
     <Link
       to={`/article/${id}`}
-      className={`rail-item ${mediaInfo.isVideo ? 'rail-item-video-card' : ''}${fillBalance ? ' rail-item--fill' : ''}`}
+      className={`rail-item ${mediaInfo.isVideo ? 'rail-item-video-card' : ''}`}
       id={id}
       data-is-video={mediaInfo.isVideo ? 'true' : undefined}
       data-media-type={mediaInfo.isVideo ? 'video' : 'image'}

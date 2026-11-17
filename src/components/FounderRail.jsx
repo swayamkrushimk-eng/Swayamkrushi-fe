@@ -1,12 +1,53 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import manjulaPortrait from '../assets/images/manjula-portrait.jpeg'
 import { rightSideArticles } from '../data/articlesData'
 import { allArticles } from '../data/allArticles'
-import { fetchArticles, isIdDeleted } from '../services/api'
+import { fetchArticles, fetchEventImages, isIdDeleted } from '../services/api'
+import { isVideoUrl, getVideoThumbnailUrl } from '../utils/mediaUtils'
 import ArticleCard from './ArticleCard'
+
+function mediaSrc(item) {
+  return item?.url || item?.imageUrl || item?.image || item?.src || item?.videoUrl || ''
+}
+
+function collectPixeriaImages(albums, limit = 9) {
+  if (!Array.isArray(albums)) return []
+  const out = []
+
+  for (const album of albums) {
+    const title = album?.title || 'Event'
+    const files =
+      Array.isArray(album?.media) && album.media.length
+        ? album.media
+        : mediaSrc(album)
+          ? [album]
+          : []
+
+    for (const file of files) {
+      const src = mediaSrc(file)
+      if (!src) continue
+      const video = file?.mediaType === 'video' || isVideoUrl(src)
+      const thumb = video
+        ? (file?.videoThumbnailUrl || getVideoThumbnailUrl(src) || '')
+        : src
+      if (!thumb) continue
+      out.push({
+        key: `${album?._id || album?.id || title}-${src}`,
+        src: thumb,
+        title,
+        isVideo: video
+      })
+      if (out.length >= limit) return out
+    }
+  }
+
+  return out
+}
 
 export default function FounderRail() {
   const [apiArticles, setApiArticles] = useState([])
+  const [pixeriaImages, setPixeriaImages] = useState([])
 
   useEffect(() => {
     fetchArticles().then((data) => {
@@ -22,6 +63,20 @@ export default function FounderRail() {
     }
     window.addEventListener('swayamkrushi_articles_updated', onUpdate)
     return () => window.removeEventListener('swayamkrushi_articles_updated', onUpdate)
+  }, [])
+
+  useEffect(() => {
+    let cancelled = false
+    fetchEventImages()
+      .then((data) => {
+        if (!cancelled) setPixeriaImages(collectPixeriaImages(data, 9))
+      })
+      .catch(() => {
+        if (!cancelled) setPixeriaImages([])
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const findArticle = (id, fallbackIds = []) => {
@@ -72,22 +127,44 @@ export default function FounderRail() {
         <img className="founder-img" src={manjulaPortrait} alt="Manjulaa Kalyaan" />
       </div>
 
-      {musingArticles.map((article, index) => (
+      {musingArticles.map((article) => (
         <ArticleCard
           key={article.id}
           {...article}
-          fillBalance={index === musingArticles.length - 1}
         />
       ))}
 
       <div className="rail-head rail-head-featured" id="activities-galore" style={{ marginTop: '24px' }}>Activities galore</div>
-      {activitiesArticles.map((article, index) => (
+      {activitiesArticles.map((article) => (
         <ArticleCard
           key={article.id}
           {...article}
-          fillBalance={index === activitiesArticles.length - 1}
         />
       ))}
+
+      {pixeriaImages.length > 0 && (
+        <div className="rail-wing-section" id="pixeria">
+          <Link to="/events" className="rail-head rail-head-featured rail-head-link">
+            Pixeria
+          </Link>
+          <div className="rail-pixeria-grid">
+            {pixeriaImages.map((img) => (
+              <Link
+                key={img.key}
+                to="/events"
+                className="rail-pixeria-cell"
+                title={img.title}
+              >
+                <img src={img.src} alt={img.title} loading="lazy" />
+                {img.isVideo ? <span className="rail-pixeria-play" aria-hidden="true">▶</span> : null}
+              </Link>
+            ))}
+          </div>
+          <Link to="/events" className="rail-view-all">
+            View all →
+          </Link>
+        </div>
+      )}
     </aside>
   )
 }

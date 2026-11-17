@@ -70,6 +70,10 @@ export default function ImagePreviewModal() {
         img.closest('.rail-video-play-center-btn') ||
         img.closest('.rail-thumb-video-wrapper') ||
         img.closest('.rail-video-placeholder-thumb') ||
+        img.closest('.rail-news-card.is-video') ||
+        img.closest('.rail-news-thumb') ||
+        img.closest('.rail-news-play-btn') ||
+        img.closest('.rail-pixeria-cell') ||
         img.closest('.pro-player-container') ||
         img.closest('.pro-player-stage') ||
         img.closest('.article-video-player-container') ||
