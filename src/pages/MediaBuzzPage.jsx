@@ -9,6 +9,11 @@ import aadabPurpleDayClipping from '../assets/images/aadab-hyderabad-purple-day-
 import nijamPurpleDayClipping from '../assets/images/nijam-cheputham-purple-day-2026-03-27.jpg'
 import iviewPurpleDayClipping from '../assets/images/iview-news-purple-day-2026-03-27.jpg'
 import andhraPrabhaPurpleDayClipping from '../assets/images/andhra-prabha-purple-day-2026-03-27.jpg'
+import eenaduClipping20261117a from '../assets/images/telugu-clipping-2026-11-17-1.jpeg'
+import eenaduClipping20261117b from '../assets/images/telugu-clipping-2026-11-17-2.jpeg'
+import eenaduClipping20261117c from '../assets/images/telugu-clipping-2026-11-17-3.jpeg'
+import sakshiClipping20261117 from '../assets/images/telugu-clipping-2026-11-17-4.jpeg'
+import netramClipping20261117 from '../assets/images/telugu-clipping-2026-11-17-5.jpeg'
 import './MediaBuzzPage.css'
 
 const CLIPPING_IMAGE_BY_ID = {
@@ -19,11 +24,74 @@ const CLIPPING_IMAGE_BY_ID = {
   'aadab-hyderabad-purple-day-2026-03-27': aadabPurpleDayClipping,
   'nijam-cheputham-purple-day-2026-03-27': nijamPurpleDayClipping,
   'iview-news-purple-day-2026-03-27': iviewPurpleDayClipping,
-  'andhra-prabha-purple-day-2026-03-27': andhraPrabhaPurpleDayClipping
+  'andhra-prabha-purple-day-2026-03-27': andhraPrabhaPurpleDayClipping,
+  'eenadu-clipping-abhinandaneeyam-2026-11-17': eenaduClipping20261117a,
+  'eenadu-clipping-equal-opportunities-2026-11-17': eenaduClipping20261117b,
+  'eenadu-clipping-rare-gift-2026-11-17': eenaduClipping20261117c,
+  'sakshi-clipping-seethakka-2026-11-17': sakshiClipping20261117,
+  'netram-clipping-venkaiah-2026-11-17': netramClipping20261117
 }
 
 const VIDEO_BY_ID = {
-  'purple-day-epilepsy-awareness-video': '/media-buzz/purple-day-epilepsy-awareness-2026.mp4'
+  'purple-day-epilepsy-awareness-video': '/media-buzz/purple-day-epilepsy-awareness-2026.mp4',
+  'tv9-coral-jubilee-celebrations': '/media-buzz/tv9-coral-jubilee-celebrations.mp4',
+  'brk-news-reporter-ramu': '/media-buzz/brk-news-reporter-ramu.mp4',
+  'youtube-swatantra-tv-seethakka': 'https://www.youtube.com/watch?v=q7eGQKm59jc',
+  'youtube-100-tv-seethakka': 'https://www.youtube.com/watch?v=0C-wA51-WJI',
+  'youtube-abn-seethakka': 'https://www.youtube.com/watch?v=PWe1PCnOCdM',
+  'youtube-etv-seethakka': 'https://www.youtube.com/watch?v=fqH8vlNlX9c'
+}
+
+/** Compact top-row media videos (YouTube + featured local clips). */
+function isTopVideoCard(card) {
+  if (card?._cardType !== 'video') return false
+  if (isYouTubeVideo(card.video)) return true
+  return (card.order || 0) >= 100
+}
+
+/** Extract YouTube video ID from watch / youtu.be / embed / shorts URLs. */
+function getYouTubeVideoId(url) {
+  if (!url || typeof url !== 'string') return null
+  const trimmed = url.trim()
+  if (!trimmed) return null
+  const patterns = [
+    /(?:youtube\.com\/watch\?[^#]*v=|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtu\.be\/)([A-Za-z0-9_-]{11})/i,
+    /^([A-Za-z0-9_-]{11})$/
+  ]
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern)
+    if (match?.[1]) return match[1]
+  }
+  return null
+}
+
+function getYouTubeEmbedUrl(url) {
+  const id = getYouTubeVideoId(url)
+  return id ? `https://www.youtube.com/embed/${id}` : null
+}
+
+function getYouTubeWatchUrl(url) {
+  const id = getYouTubeVideoId(url)
+  return id ? `https://www.youtube.com/watch?v=${id}` : (url || '')
+}
+
+function getYouTubeThumbnailUrl(url) {
+  const id = getYouTubeVideoId(url)
+  return id ? `https://i.ytimg.com/vi/${id}/hqdefault.jpg` : null
+}
+
+function isYouTubeVideo(url) {
+  return Boolean(getYouTubeVideoId(url))
+}
+
+/** Publishers that block iframe embeds (show clickable thumbnail instead). */
+const YOUTUBE_NO_EMBED_IDS = new Set([
+  'fqH8vlNlX9c' // ETV Telangana — embed blocked by rights holder
+])
+
+function isYouTubeEmbedBlocked(url) {
+  const id = getYouTubeVideoId(url)
+  return Boolean(id && YOUTUBE_NO_EMBED_IDS.has(id))
 }
 
 function withClippingDefaults(article) {
@@ -58,7 +126,8 @@ const TELUGU_OUTLETS = [
   'andhra jyothy',
   'aadab',
   'nijam',
-  'iview'
+  'iview',
+  'netram'
 ]
 
 function isTeluguArticle(article) {
@@ -82,19 +151,19 @@ function isTeluguArticle(article) {
 
 /**
  * Display order:
+ * 0) Top video row (YouTube + featured local clips)
  * 1) English paper/link cards
  * 2) English newspaper clipping images (e.g. The Hindu)
- * 3) Telugu paper/link cards
- * 4) Other newspaper clipping images
- * 5) Video last
+ * 3) Telugu papers (links + clippings interleaved by order)
+ * 4) Other local videos last
  */
 function sortDisplayCards(cards) {
   const rank = (card) => {
-    if (card._cardType === 'video') return 4
-    if (card._cardType === 'image') {
-      return isTeluguArticle(card) ? 3 : 1
+    if (card._cardType === 'video') {
+      return isTopVideoCard(card) ? -1 : 5
     }
     if (isTeluguArticle(card)) return 2
+    if (card._cardType === 'image') return 1
     return 0
   }
 
@@ -129,13 +198,19 @@ function toDisplayCards(articles) {
       cards.push({
         ...article,
         _cardKey: `${article.id || article._id}-video`,
-        _cardType: 'video'
+        _cardType: 'video',
+        _isYouTube: isYouTubeVideo(article.video)
       })
     }
 
     // Normal link / text card — never carry the newspaper scan thumbnail
-    // Skip pure video entries (video already has its own card).
-    if (hasVideo && !hasClippingImage && !(article.articleUrl && article.articleUrl.trim())) {
+    // Skip pure video / YouTube entries (video already has its own card).
+    const videoIsYouTube = isYouTubeVideo(article.video)
+    const linkIsSameYouTube =
+      videoIsYouTube &&
+      article.articleUrl &&
+      (isYouTubeVideo(article.articleUrl) || getYouTubeVideoId(article.articleUrl) === getYouTubeVideoId(article.video))
+    if (hasVideo && !hasClippingImage && (!(article.articleUrl && article.articleUrl.trim()) || linkIsSameYouTube)) {
       return
     }
 
@@ -161,7 +236,92 @@ function toDisplayCards(articles) {
 }
 
 export const MEDIA_ARTICLES = [
-  // ── English papers ──────────────────────────────────────────────────────
+  // ── English papers (newest first) ───────────────────────────────────────
+  {
+    id: 'deccan-chronicle-epaper-2026-11-17',
+    title: 'Deccan Chronicle E-Paper: Swayamkrushi in Focus',
+    outlet: 'Deccan Chronicle',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'DECCAN CHRONICLE E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'Deccan Chronicle e-paper edition featuring coverage of Swayamkrushi’s work and celebrations.',
+    readTime: 'E-Paper Edition',
+    tags: ['Deccan Chronicle', 'E-Paper', 'Hyderabad', 'Swayamkrushi'],
+    articleUrl: 'https://share.google/6xjNHQ8PHIW1ejbVX',
+    featured: true,
+    order: -4
+  },
+  {
+    id: 'hindu-former-vp-youth-social-initiatives-2026-11-16',
+    title: 'Former VP Urges Youth to Take Part in Meaningful Social Initiatives',
+    outlet: 'The Hindu',
+    outletType: 'Digital & Magazines',
+    date: '16/11/2026',
+    category: 'Digital Press',
+    badge: 'THE HINDU',
+    image: null,
+    isClipping: false,
+    excerpt: 'Former Vice-President M. Venkaiah Naidu urges youth to join meaningful social initiatives at Swayamkrushi’s Coral Jubilee, as Minister Seethakka visits the campus.',
+    readTime: '3 min read',
+    tags: ['The Hindu', 'Venkaiah Naidu', 'Seethakka', 'Coral Jubilee'],
+    articleUrl: 'https://www.thehindu.com/news/cities/Hyderabad/former-vp-urges-youth-to-take-part-in-meaningful-social-initiatives/article71708164.ece',
+    featured: true,
+    order: -3
+  },
+  {
+    id: 'telangana-today-epaper-2026-11-17',
+    title: 'Telangana Today E-Paper: Hyderabad Edition Coverage',
+    outlet: 'Telangana Today',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'TELANGANA TODAY E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'Telangana Today Hyderabad e-paper edition covering Swayamkrushi and related community initiatives.',
+    readTime: 'E-Paper Edition',
+    tags: ['Telangana Today', 'E-Paper', 'Hyderabad', 'Swayamkrushi'],
+    articleUrl: 'https://epaper.telanganatoday.com/article/Hyderabad?OrgId=1711b08436b1&imageview=1&standalone=1&device=mobile',
+    featured: true,
+    order: -2
+  },
+  {
+    id: 'fpj-international-epaper-2026-11-17',
+    title: 'FPJ International E-Paper: Swayamkrushi Coverage',
+    outlet: 'Free Press Journal International',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'FPJ INTERNATIONAL',
+    image: null,
+    isClipping: false,
+    excerpt: 'Free Press Journal International e-paper edition featuring Swayamkrushi’s work and celebrations.',
+    readTime: 'E-Paper PDF',
+    tags: ['FPJ', 'Free Press Journal', 'E-Paper', 'International'],
+    articleUrl: '/media-buzz/fpj-international-epaper-2026-11-17.pdf',
+    featured: true,
+    order: -1
+  },
+  {
+    id: 'metro-india-epaper-2026-11-17',
+    title: 'Metro India E-Paper: Main Edition Coverage',
+    outlet: 'Metro India',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'METRO INDIA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'Metro India main edition e-paper coverage of Swayamkrushi and related Hyderabad news.',
+    readTime: 'E-Paper Edition',
+    tags: ['Metro India', 'E-Paper', 'Hyderabad', 'Swayamkrushi'],
+    articleUrl: 'https://epaper.metroindia.net/MainEdition?eid=1&edate=17/11/2026&pgid=9424&device=mobile&view=0&sedId=0&uemail=',
+    featured: true,
+    order: 0
+  },
   {
     id: 'deccan-chronicle-35-years',
     title: 'Swayamkrushi Marks 35 Years Of Empowering Persons With Disabilities',
@@ -264,7 +424,126 @@ export const MEDIA_ARTICLES = [
     featured: true,
     order: 6
   },
-  // ── Telugu papers ───────────────────────────────────────────────────────
+  // ── Telugu papers (newest first) ────────────────────────────────────────
+  {
+    id: 'eenadu-clipping-abhinandaneeyam-2026-11-17',
+    title: "'స్వయంకృషి' అభినందనీయం",
+    outlet: 'Eenadu',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Telugu Clipping',
+    badge: 'EENADU',
+    image: eenaduClipping20261117a,
+    isClipping: true,
+    excerpt: 'ఈనాడు కథనం: జవహర్‌నగర్‌లో స్వయంకృషి 35వ వార్షికోత్సవం — విద్యార్థుల సాంస్కృతిక ప్రదర్శనలు, ఉపాధ్యాయులకు పురస్కారాలు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Eenadu', 'Coral Jubilee', 'Telugu Clipping', 'Hyderabad'],
+    articleUrl: '',
+    featured: true,
+    order: -20
+  },
+  {
+    id: 'eenadu-clipping-equal-opportunities-2026-11-17',
+    title: 'మానసిక దివ్యాంగులకు సమాన అవకాశాలు కల్పించాలి',
+    outlet: 'Eenadu',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Telugu Clipping',
+    badge: 'EENADU',
+    image: eenaduClipping20261117b,
+    isClipping: true,
+    excerpt: 'ఈనాడు కథనం: మాజీ ఉపరాష్ట్రపతి వెంకయ్య నాయుడు వర్చువల్‌గా మాట్లాడుతూ, మంత్రి సీతక్క హాజరై స్వయంకృషి 35వ వార్షికోత్సవాన్ని ఘనంగా నిర్వహించారు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Eenadu', 'Venkaiah Naidu', 'Seethakka', 'Telugu Clipping'],
+    articleUrl: '',
+    featured: true,
+    order: -19
+  },
+  {
+    id: 'eenadu-clipping-rare-gift-2026-11-17',
+    title: 'అనితర సేవకు.. అరుదైన బహుమతి',
+    outlet: 'Eenadu',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Telugu Clipping',
+    badge: 'EENADU',
+    image: eenaduClipping20261117c,
+    isClipping: true,
+    excerpt: 'ఈనాడు కథనం: కల్నల్ కుమార్ స్వయంకృషి వ్యవస్థాపకురాలు మంజులా కల్యాణ్‌కు అరుదైన జాతీయ పతాకాన్ని బహుమతిగా అందజేశారు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Eenadu', 'Manjulaa Kalyaan', 'Telugu Clipping', 'Hyderabad'],
+    articleUrl: '',
+    featured: true,
+    order: -18
+  },
+  {
+    id: 'eenadu-online-equal-opportunities-2026-11-17',
+    title: 'మానసిక దివ్యాంగులకు సమాన అవకాశాలు కల్పించాలి',
+    outlet: 'Eenadu',
+    outletType: 'Digital & Magazines',
+    date: '17/11/2026',
+    category: 'Regional Press',
+    badge: 'EENADU ONLINE',
+    image: null,
+    isClipping: false,
+    excerpt: 'ఈనాడు ఆన్‌లైన్ కథనం: మాజీ ఉపరాష్ట్రపతి వెంకయ్య నాయుడు స్వయంకృషి 35వ వార్షికోత్సవంలో మానసిక దివ్యాంగులకు సమాన అవకాశాలు కల్పించాలని పిలుపునిచ్చారు.',
+    readTime: 'Telugu Online',
+    tags: ['Eenadu', 'Online', 'Venkaiah Naidu', 'Hyderabad'],
+    articleUrl: 'https://www.eenadu.net/telugu-news/districts/hyderabad-news/529/126208783',
+    featured: true,
+    order: -17
+  },
+  {
+    id: 'sakshi-clipping-seethakka-2026-11-17',
+    title: "'స్వయం కృషి' సేవలు ఆదర్శనీయం : మంత్రి సీతక్క",
+    outlet: 'Sakshi',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Telugu Clipping',
+    badge: 'SAKSHI',
+    image: sakshiClipping20261117,
+    isClipping: true,
+    excerpt: 'సాక్షి కథనం: మంత్రి సీతక్క స్వయంకృషి సేవలను ఆదర్శనీయమని అభినందించారు — 35వ కోరల్ జూబ్లీ వేడుకలు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Sakshi', 'Seethakka', 'Telugu Clipping', 'Coral Jubilee'],
+    articleUrl: '',
+    featured: true,
+    order: -16
+  },
+  {
+    id: 'mana-telangana-epaper-2026-11-17',
+    title: 'Mana Telangana E-Paper: Hyderabad Edition',
+    outlet: 'Mana Telangana',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Regional Press',
+    badge: 'MANA TELANGANA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'మన తెలంగాణ హైదరాబాద్ ఎడిషన్ ఈ-పేపర్ కథనం: స్వయంకృషి 35వ వార్షికోత్సవం సంబంధిత కవరేజ్.',
+    readTime: 'Telugu E-Paper',
+    tags: ['Mana Telangana', 'E-Paper', 'Hyderabad', 'Telugu'],
+    articleUrl: 'https://epaper.manatelangana.news/reader/4221753/HYDERABAD/17-11-2026/page/3/2/rw',
+    featured: true,
+    order: -15
+  },
+  {
+    id: 'netram-clipping-venkaiah-2026-11-17',
+    title: 'యువత సామాజిక సేవా కార్యక్రమాల్లో పాల్గొనాలి — వెంకయ్య నాయుడు పిలుపు',
+    outlet: 'Netram',
+    outletType: 'Print & Newspapers',
+    date: '17/11/2026',
+    category: 'Telugu Clipping',
+    badge: 'NETRAM',
+    image: netramClipping20261117,
+    isClipping: true,
+    excerpt: 'నేత్రం కథనం: మాజీ ఉపరాష్ట్రపతి వెంకయ్య నాయుడు యువతను సామాజిక సేవలో పాల్గొనాలని పిలుపునిచ్చారు — స్వయంకృషి 35 ఏళ్ల వేడుకలు.',
+    readTime: 'Telugu Clipping',
+    tags: ['Netram', 'Venkaiah Naidu', 'Telugu Clipping', 'Coral Jubilee'],
+    articleUrl: '',
+    featured: true,
+    order: -14
+  },
   {
     id: 'mana-telangana-35-years',
     title: 'Mana Telangana: 35 ఏళ్ల స్వయంకృషి సేవా ప్రస్థానం',
@@ -452,6 +731,114 @@ export const MEDIA_ARTICLES = [
     articleUrl: '',
     featured: false,
     order: 99
+  },
+  {
+    id: 'tv9-coral-jubilee-celebrations',
+    title: 'Swayamkrushi - Coral Jubilee Celebrations',
+    outlet: 'TV9',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'VIDEO',
+    image: null,
+    video: '/media-buzz/tv9-coral-jubilee-celebrations.mp4',
+    isClipping: false,
+    excerpt: 'TV9 coverage of Swayamkrushi Coral Jubilee celebrations.',
+    readTime: 'Video',
+    tags: ['TV9', 'Coral Jubilee', 'Video', 'Swayamkrushi'],
+    articleUrl: '',
+    featured: true,
+    order: 100
+  },
+  {
+    id: 'youtube-abn-seethakka',
+    title: 'Minister Seethakka Visited Swayamkrushi Organization in Jawaharnagar | Hyderabad',
+    outlet: 'ABN Telugu',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'YOUTUBE',
+    image: null,
+    video: 'https://www.youtube.com/watch?v=PWe1PCnOCdM',
+    isClipping: false,
+    excerpt: 'ABN Telugu reports on Minister Seethakka’s visit to the Swayamkrushi organisation in Jawaharnagar, Hyderabad.',
+    readTime: 'YouTube',
+    tags: ['YouTube', 'ABN Telugu', 'Seethakka', 'Hyderabad'],
+    articleUrl: 'https://youtu.be/PWe1PCnOCdM',
+    featured: true,
+    order: 101
+  },
+  {
+    id: 'youtube-etv-seethakka',
+    title: 'స్వయంకృషి సంస్థను సందర్శించిన మంత్రి సీతక్క',
+    outlet: 'ETV Telangana',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'YOUTUBE',
+    image: null,
+    video: 'https://www.youtube.com/watch?v=fqH8vlNlX9c',
+    isClipping: false,
+    excerpt: 'ETV Telangana coverage of Minister Seethakka’s visit to Swayamkrushi and her interaction with the organisation.',
+    readTime: 'YouTube',
+    tags: ['YouTube', 'ETV Telangana', 'Seethakka', 'Telugu'],
+    articleUrl: 'https://youtu.be/fqH8vlNlX9c',
+    featured: true,
+    order: 102
+  },
+  {
+    id: 'youtube-swatantra-tv-seethakka',
+    title: 'Seethakka Appreciates Swayamkrushi Organization | Special Visit to Disabled Students',
+    outlet: 'Swatantra TV',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'YOUTUBE',
+    image: null,
+    video: 'https://www.youtube.com/watch?v=q7eGQKm59jc',
+    isClipping: false,
+    excerpt: 'Swatantra TV covers Minister Seethakka’s special visit to Swayamkrushi and her appreciation of the organisation’s work with students with disabilities.',
+    readTime: 'YouTube',
+    tags: ['YouTube', 'Swatantra TV', 'Seethakka', 'Swayamkrushi'],
+    articleUrl: 'https://youtu.be/q7eGQKm59jc',
+    featured: true,
+    order: 103
+  },
+  {
+    id: 'youtube-100-tv-seethakka',
+    title: "జవహర్‌నగర్ 'స్వయంకృషి' సేవా సంస్థను సందర్శించిన మంత్రి సీతక్క",
+    outlet: '100 TV News',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'YOUTUBE',
+    image: null,
+    video: 'https://www.youtube.com/watch?v=0C-wA51-WJI',
+    isClipping: false,
+    excerpt: '100 TV News coverage of Minister Seethakka’s visit to Swayamkrushi in Jawaharnagar and her focus on the welfare of persons with disabilities.',
+    readTime: 'YouTube',
+    tags: ['YouTube', '100 TV', 'Seethakka', 'Telugu'],
+    articleUrl: 'https://youtu.be/0C-wA51-WJI',
+    featured: true,
+    order: 104
+  },
+  {
+    id: 'brk-news-reporter-ramu',
+    title: 'BRK News: Swayamkrushi Coverage — Reporter Ramu',
+    outlet: 'BRK NEWS Reporter Ramu',
+    outletType: 'Digital & Magazines',
+    date: '2026',
+    category: 'Video Coverage',
+    badge: 'VIDEO',
+    image: null,
+    video: '/media-buzz/brk-news-reporter-ramu.mp4',
+    isClipping: false,
+    excerpt: 'BRK News coverage of Swayamkrushi, reported by Ramu.',
+    readTime: 'Video',
+    tags: ['BRK News', 'Reporter Ramu', 'Video', 'Swayamkrushi'],
+    articleUrl: '',
+    featured: true,
+    order: 105
   }
 ]
 
@@ -472,8 +859,33 @@ export default function MediaBuzzPage() {
           const titleFixes = {
             'telangana-today-epaper-35-years': 'Artist who paints with elbow stumps'
           }
+          const orderFixes = {
+            'deccan-chronicle-epaper-2026-11-17': -4,
+            'hindu-former-vp-youth-social-initiatives-2026-11-16': -3,
+            'telangana-today-epaper-2026-11-17': -2,
+            'fpj-international-epaper-2026-11-17': -1,
+            'metro-india-epaper-2026-11-17': 0,
+            'eenadu-clipping-abhinandaneeyam-2026-11-17': -20,
+            'eenadu-clipping-equal-opportunities-2026-11-17': -19,
+            'eenadu-clipping-rare-gift-2026-11-17': -18,
+            'eenadu-online-equal-opportunities-2026-11-17': -17,
+            'sakshi-clipping-seethakka-2026-11-17': -16,
+            'mana-telangana-epaper-2026-11-17': -15,
+            'netram-clipping-venkaiah-2026-11-17': -14,
+            'tv9-coral-jubilee-celebrations': 100,
+            'youtube-abn-seethakka': 101,
+            'youtube-etv-seethakka': 102,
+            'youtube-swatantra-tv-seethakka': 103,
+            'youtube-100-tv-seethakka': 104,
+            'brk-news-reporter-ramu': 105
+          }
           const combined = [...validData, ...missingDefaults]
-            .map((item) => (titleFixes[item.id] ? { ...item, title: titleFixes[item.id] } : item))
+            .map((item) => {
+              let next = item
+              if (titleFixes[item.id]) next = { ...next, title: titleFixes[item.id] }
+              if (orderFixes[item.id] != null) next = { ...next, order: orderFixes[item.id] }
+              return next
+            })
             .map(withClippingDefaults)
             .sort((a, b) => (a.order || 0) - (b.order || 0))
           setArticlesList(toDisplayCards(combined))
@@ -561,26 +973,87 @@ export default function MediaBuzzPage() {
             }
 
             if (article._cardType === 'video') {
+              const youtubeId = getYouTubeVideoId(article.video)
+              const youtubeWatchUrl = youtubeId
+                ? (article.articleUrl || getYouTubeWatchUrl(article.video))
+                : null
+              const youtubeEmbed = youtubeId && !isYouTubeEmbedBlocked(article.video)
+                ? getYouTubeEmbedUrl(article.video)
+                : null
+              const youtubeThumb = youtubeId ? getYouTubeThumbnailUrl(article.video) : null
+              const isYouTubeCard = Boolean(youtubeId)
+              const isCompactVideo = isTopVideoCard(article)
+
               return (
-                <article key={article._cardKey} className="buzz-article-card buzz-video-card">
-                  <div className="buzz-card-media buzz-video-media">
-                    <video
-                      className="buzz-card-video"
-                      src={article.video}
-                      controls
-                      playsInline
-                      preload="metadata"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                <article
+                  key={article._cardKey}
+                  className={`buzz-article-card buzz-video-card ${isCompactVideo ? 'buzz-youtube-card' : 'buzz-video-wide'}`}
+                >
+                  <div className={`buzz-card-media buzz-video-media ${isCompactVideo ? 'is-youtube' : ''}`}>
+                    {youtubeEmbed ? (
+                      <iframe
+                        className="buzz-card-video buzz-youtube-embed"
+                        src={youtubeEmbed}
+                        title={article.title || 'YouTube video'}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        allowFullScreen
+                        loading="lazy"
+                      />
+                    ) : youtubeThumb ? (
+                      <a
+                        href={youtubeWatchUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="buzz-youtube-thumb-link"
+                        aria-label={`Watch on YouTube: ${article.title || article.outlet}`}
+                      >
+                        <img
+                          src={youtubeThumb}
+                          alt={article.title || article.outlet}
+                          className="buzz-youtube-thumb"
+                        />
+                        <span className="buzz-youtube-play" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="currentColor">
+                            <polygon points="6 3 20 12 6 21 6 3" />
+                          </svg>
+                        </span>
+                      </a>
+                    ) : (
+                      <video
+                        className={`buzz-card-video ${isCompactVideo ? 'buzz-local-compact-video' : ''}`}
+                        src={article.video}
+                        controls
+                        playsInline
+                        preload="metadata"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
                     <span className="buzz-outlet-badge">{article.outlet}</span>
                   </div>
                   <div className="buzz-card-body">
-                    <div className="buzz-card-meta">
-                      <span className="buzz-card-date">{article.date} · {article.readTime}</span>
-                    </div>
+                    {!isCompactVideo && (
+                      <div className="buzz-card-meta">
+                        <span className="buzz-card-date">{article.date} · {article.readTime}</span>
+                      </div>
+                    )}
                     <h3 className="buzz-card-title">{article.title}</h3>
-                    {article.excerpt && <p className="buzz-card-excerpt">{article.excerpt}</p>}
+                    {!isCompactVideo && article.excerpt && (
+                      <p className="buzz-card-excerpt">{article.excerpt}</p>
+                    )}
+                    {isYouTubeCard && (
+                      <div className="buzz-card-footer">
+                        <a
+                          href={youtubeWatchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="buzz-card-link-btn"
+                        >
+                          Watch on YouTube &rarr;
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </article>
               )

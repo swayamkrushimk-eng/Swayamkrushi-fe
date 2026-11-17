@@ -4,6 +4,7 @@ import birthdayImg from '../assets/images/birthday-courtyard.jpg'
 import grouphomeResidentsImg from '../assets/images/grouphome-residents.jpg'
 import nationalTrustImg from '../assets/images/national-trust-event.jpg'
 import {
+  gloriousYearsArticle,
   homeOfCareArticle,
   groupHomesArticle,
   bedHotspotArticle,
@@ -46,11 +47,15 @@ export default function MainContent() {
     return () => window.removeEventListener('swayamkrushi_articles_updated', onUpdate)
   }, [])
 
+  const gloriousYears = isIdDeleted('article', '35-glorious-years')
+    ? null
+    : (mainArts['35-glorious-years'] || (gloriousYearsArticle?.id ? gloriousYearsArticle : null))
   const homeOfCare = isIdDeleted('article', 'home-of-care') ? null : (mainArts['home-of-care'] || null)
   const groupHomes = isIdDeleted('article', 'group-homes') ? null : (mainArts['group-homes'] || null)
   const bedHotspot = isIdDeleted('article', 'bed-hotspot') ? null : (mainArts['bed-hotspot'] || null)
   const buildingBlocks = isIdDeleted('article', 'building-blocks') ? null : (mainArts['building-blocks'] || null)
 
+  const gloriousYearsMedia = gloriousYears ? resolveArticleMedia(gloriousYears, null) : {}
   const homeOfCareMedia = homeOfCare ? resolveArticleMedia(homeOfCare, birthdayImg) : {}
   const groupHomesMedia = groupHomes ? resolveArticleMedia(groupHomes, grouphomeResidentsImg) : {}
   const bedHotspotMedia = bedHotspot ? resolveArticleMedia(bedHotspot, null) : {}
@@ -58,7 +63,41 @@ export default function MainContent() {
 
   return (
     <main className="body-col" style={Object.keys(mainArts).length === 0 ? { minHeight: '500px' } : undefined}>
-      {/* 1. Top Feature: A Game of Building Blocks */}
+      {/* 0. Coral Jubilee Feature: 35 years of glory! */}
+      {gloriousYears && (
+        <section id="35-glorious-years">
+          <div className="story-title-with-mic">
+            <h2>{gloriousYears.title}</h2>
+            <ArticleAudioPlayer article={gloriousYears} compact />
+          </div>
+          <p className="lede">
+            {(gloriousYears.paragraphs && gloriousYears.paragraphs[0]) || gloriousYears.excerpt}
+          </p>
+          {!gloriousYearsMedia.isText && gloriousYearsMedia.posterUrl && (
+            <figure>
+              <img
+                src={gloriousYearsMedia.posterUrl}
+                alt={gloriousYears.imageAlt || gloriousYears.title || ''}
+              />
+              {gloriousYears.imageAlt ? (
+                <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
+                  {gloriousYears.imageAlt}
+                </figcaption>
+              ) : null}
+            </figure>
+          )}
+          {gloriousYears.paragraphs?.[1] && <p>{gloriousYears.paragraphs[1]}</p>}
+          {gloriousYears.paragraphs?.[2] && <p>{firstSentence(gloriousYears.paragraphs[2])}</p>}
+
+          <p className="main-read-more-wrap">
+            <Link to="/article/35-glorious-years" className="main-read-more-btn">
+              Read full story &rarr;
+            </Link>
+          </p>
+        </section>
+      )}
+
+      {/* 1. Top Feature: Blood, Sweat and Tears / Building Blocks */}
       {buildingBlocks && (
         <section id="building-blocks">
         <div className="story-title-with-mic">

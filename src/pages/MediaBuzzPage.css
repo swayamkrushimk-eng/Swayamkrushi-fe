@@ -342,8 +342,12 @@
   cursor: pointer;
 }
 
-.buzz-article-card.buzz-video-card {
+.buzz-article-card.buzz-video-wide {
   grid-column: 1 / -1;
+}
+
+.buzz-article-card.buzz-youtube-card {
+  grid-column: auto;
 }
 
 .buzz-card-media.buzz-video-media {
@@ -352,12 +356,101 @@
   background: #0f0b0d;
 }
 
+.buzz-card-media.buzz-video-media.is-youtube {
+  position: relative;
+  height: 180px;
+  min-height: 180px;
+  aspect-ratio: auto;
+  overflow: hidden;
+}
+
 .buzz-card-video {
   width: 100%;
   max-height: min(70vh, 560px);
   display: block;
   background: #000;
   object-fit: contain;
+}
+
+.buzz-card-video.buzz-youtube-embed,
+.buzz-card-video.buzz-local-compact-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  min-height: 0;
+  border: 0;
+  aspect-ratio: auto;
+  object-fit: cover;
+}
+
+.buzz-card-video.buzz-youtube-embed {
+  object-fit: unset;
+}
+
+.buzz-youtube-thumb-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: #0f0b0d;
+  text-decoration: none;
+  color: inherit;
+}
+
+.buzz-youtube-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.buzz-youtube-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(110, 30, 56, 0.92);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.buzz-youtube-play svg {
+  width: 22px;
+  height: 22px;
+  margin-left: 2px;
+}
+
+.buzz-youtube-thumb-link:hover .buzz-youtube-play,
+.buzz-youtube-thumb-link:focus-visible .buzz-youtube-play {
+  transform: translate(-50%, -50%) scale(1.06);
+  background: rgba(110, 30, 56, 1);
+}
+
+.buzz-youtube-card .buzz-card-body {
+  padding: 12px 14px 14px;
+}
+
+.buzz-youtube-card .buzz-card-title {
+  font-size: 15px;
+  line-height: 1.35;
+  margin: 0 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.buzz-youtube-card .buzz-card-footer {
+  margin-top: 0;
 }
 
 .buzz-article-card.buzz-video-card:hover .buzz-card-video {

@@ -4,6 +4,7 @@ import rawArticles from './articles_complete.json'
 export const leftSideArticles = rawArticles.filter(a => a.section === 'left')
 export const rightSideArticles = rawArticles.filter(a => a.section === 'right')
 
+export const gloriousYearsArticle = rawArticles.find(a => a.id === '35-glorious-years') || {}
 export const homeOfCareArticle = rawArticles.find(a => a.id === 'home-of-care') || {}
 export const groupHomesArticle = rawArticles.find(a => a.id === 'group-homes') || {}
 export const bedHotspotArticle = rawArticles.find(a => a.id === 'bed-hotspot') || {}

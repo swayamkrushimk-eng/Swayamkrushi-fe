@@ -203,6 +203,11 @@ export default function Navbar() {
             </a>
             <ul className="submenu">
               <li>
+                <Link to="/article/35-glorious-years" onClick={closeAllMenus}>
+                  35 years of glory!
+                </Link>
+              </li>
+              <li>
                 <Link to="/article/building-blocks" onClick={closeAllMenus}>
                   Blood, Sweat and Tears
                 </Link>

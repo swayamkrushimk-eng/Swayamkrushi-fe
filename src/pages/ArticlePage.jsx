@@ -25,6 +25,7 @@ const EDITORIAL_SECTIONS = [
   {
     title: 'Building Blocks',
     articles: [
+      { id: '35-glorious-years', title: '35 years of glory!' },
       { id: 'building-blocks', alias: 'blood-sweat-and-tears', title: 'Blood, Sweat and Tears' },
       { id: 'home-of-care', title: 'A Home of Care, Growth and Hope' },
       { id: 'group-homes', title: 'Group Home — A Pioneering Initiative Ahead of Time' },
