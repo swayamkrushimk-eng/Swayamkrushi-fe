@@ -106,12 +106,9 @@ export default function ArticleCard(props) {
       )}
 
       {/* Article Highlight Quote / Kicker Box */}
-      {(quote || id === 'story-champions') && (
+      {quote && (
         <div className="article-card-quote-box">
-          <p>
-            {quote ||
-              'Every life at Swayamkrushi is a story of courage, growth, and achievement. Here are just a few of the journeys that inspire us every day.'}
-          </p>
+          <p>{quote}</p>
         </div>
       )}
 

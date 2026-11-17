@@ -172,10 +172,16 @@ export default function FunFactsRail() {
       <div className="rail-head rail-head-featured" id="success-stories" style={{ marginTop: '24px' }}>
         Winning hearts
       </div>
+      <div className="article-card-quote-box">
+        <p>
+          Every life at Swayamkrushi is a story of courage, growth, and achievement. Here are just a few of the journeys that inspire us every day.
+        </p>
+      </div>
       {winningHeartsArticles.map((article) => (
         <ArticleCard
           key={article.id}
           {...article}
+          quote={article.id === 'story-champions' ? '' : article.quote}
         />
       ))}
 

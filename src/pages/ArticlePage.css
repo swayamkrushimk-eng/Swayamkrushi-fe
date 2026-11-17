@@ -217,10 +217,10 @@
 
 .article-hero-caption {
   font-family: var(--head, "Lora", Georgia, serif);
-  font-style: normal;
+  font-style: italic;
   font-size: 15.5px;
   font-weight: 400;
-  color: var(--muted, #6f6a6c);
+  color: var(--ink, #1b1418);
   margin-top: 10px;
   line-height: 1.68;
 }
@@ -398,11 +398,11 @@
   float: none !important;
   clear: both !important;
   font-family: var(--head, "Lora", Georgia, serif) !important;
-  font-style: normal !important;
+  font-style: italic !important;
   font-size: 15.5px;
   line-height: 1.68;
   font-weight: 400;
-  color: var(--muted, #6f6a6c) !important;
+  color: var(--ink, #1b1418) !important;
   margin-top: 4px !important;
   margin-bottom: 0 !important;
   padding: 0 !important;
@@ -826,8 +826,8 @@
   font-size: 15.5px;
   line-height: 1.68;
   font-weight: 400;
-  font-style: normal;
-  color: var(--muted, #6f6a6c);
+  font-style: italic;
+  color: var(--ink, #1b1418);
   margin-top: 4px;
   margin-bottom: 0;
   padding: 0;
@@ -840,8 +840,8 @@
 }
 
 .article-embedded-video-caption span {
-  font-style: normal;
-  color: var(--muted, #6f6a6c);
+  font-style: italic;
+  color: var(--ink, #1b1418);
 }
 
 .article-inline-figure.article-inline-video-figure .article-video-player-container video {

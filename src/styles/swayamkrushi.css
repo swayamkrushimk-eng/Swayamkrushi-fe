@@ -465,7 +465,7 @@ img {
   font-family: var(--head);
   font-style: italic;
   font-size: 13.5px;
-  color: var(--muted);
+  color: var(--ink);
   margin-top: 9px;
   line-height: 1.5;
 }
@@ -607,6 +607,10 @@ img {
   font-style: italic;
   color: var(--burgundy);
   margin-top: 4px;
+}
+
+.rail-head + .article-card-quote-box {
+  margin-top: 12px;
 }
 
 .article-card-quote-box {
@@ -794,10 +798,10 @@ img {
   padding: 0;
   font-family: var(--head, "Lora", Georgia, serif);
   font-size: 14.5px;
-  font-style: normal;
+  font-style: italic;
   font-weight: 400;
   line-height: 1.45;
-  color: #1b1418;
+  color: var(--ink, #1b1418);
   background: transparent;
 }
 
@@ -1629,7 +1633,8 @@ img {
     color: var(--ink) !important;
   }
 
-  .rail-head + .rail-item {
+  .rail-head + .rail-item,
+  .rail-head + .article-card-quote-box + .rail-item {
     border-top: none !important;
     padding-top: 1px !important;
   }
@@ -1806,7 +1811,8 @@ img {
 
   .body-col figcaption {
     font-size: clamp(5.5px, 1.3vw, 6.8px) !important;
-    color: #4a403b !important;
+    color: var(--ink, #1b1418) !important;
+    font-style: italic !important;
     line-height: 1.15 !important;
     margin-top: 1px !important;
   }
@@ -1938,7 +1944,7 @@ img {
 
   .body-col figcaption {
     font-size: clamp(12px, 3vw, 13.5px) !important;
-    color: #2b2226 !important;
+    color: var(--ink, #1b1418) !important;
     font-style: italic !important;
     line-height: 1.4 !important;
     margin-top: 6px !important;
@@ -2033,7 +2039,8 @@ img {
     color: var(--ink) !important;
   }
 
-  .shoulder .rail-head + .rail-item {
+  .shoulder .rail-head + .rail-item,
+  .shoulder .rail-head + .article-card-quote-box + .rail-item {
     border-top: none !important;
     padding-top: 2px !important;
   }

@@ -853,7 +853,8 @@
 
 .buzz-lightbox-caption p {
   font-size: 12px;
-  color: var(--muted, #6f6a6c);
+  color: var(--ink, #1b1418);
+  font-style: italic;
   margin: 0;
 }
 

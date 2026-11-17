@@ -79,7 +79,7 @@
 
 .events-album-caption {
   font-size: 15px;
-  color: #5a5a5a;
+  color: var(--ink, #1b1418);
   margin: 0 0 16px;
   font-style: italic;
   line-height: 1.5;
