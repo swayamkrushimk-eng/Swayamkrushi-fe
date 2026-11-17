@@ -259,7 +259,7 @@ img {
   position: absolute;
   left: 4px; /* true left corner of the screen */
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(calc(-50% - 18px));
   width: clamp(260px, 28vw, 370px);
   z-index: 3;
   pointer-events: none;
@@ -863,6 +863,25 @@ img {
 
 .main-read-more-wrap {
   margin: 18px 0 32px;
+}
+
+.main-read-more-wrap:has(+ .main-also-see) {
+  margin-bottom: 14px;
+}
+
+.main-also-see {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin-top: 0;
+}
+
+.main-also-see-label,
+.main-also-see-amp {
+  font-family: var(--body);
+  font-size: 15px;
+  color: var(--ink, #1b1418);
 }
 
 .main-read-more-btn {

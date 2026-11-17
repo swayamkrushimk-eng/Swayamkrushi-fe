@@ -158,6 +158,16 @@ export default function MainContent() {
               Read full story &rarr;
             </Link>
           </p>
+          <p className="main-read-more-wrap main-also-see">
+            <span className="main-also-see-label">Also see</span>
+            <Link to="/media-buzz" className="main-read-more-btn">
+              Media buzz &rarr;
+            </Link>
+            <span className="main-also-see-amp">&amp;</span>
+            <Link to="/events" className="main-read-more-btn">
+              Events gallery &rarr;
+            </Link>
+          </p>
         </section>
       )}
 
