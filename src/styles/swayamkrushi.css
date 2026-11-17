@@ -272,6 +272,10 @@ img {
   background: transparent;
 }
 
+.watch-marquee {
+  display: none;
+}
+
 .impact-band-main {
   grid-column: 2;
   width: 100%;
@@ -308,11 +312,36 @@ img {
   }
 
   .watch-this-space {
-    position: static;
-    transform: none;
-    width: min(280px, 70vw);
-    margin: 0 auto 14px;
-    pointer-events: auto;
+    display: none;
+  }
+
+  .watch-marquee {
+    display: block;
+    overflow: hidden;
+    background: #9E0403;
+    color: #fff;
+    margin: 0 0 8px;
+  }
+
+  .watch-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: watch-marquee 16s linear infinite;
+  }
+
+  .watch-marquee-track span {
+    padding: 8px 2.4rem;
+    white-space: nowrap;
+    font-family: var(--body);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #fff;
+  }
+
+  @keyframes watch-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
   }
 
   .impact-band-main {

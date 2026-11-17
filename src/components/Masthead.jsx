@@ -106,6 +106,12 @@ export default function Masthead() {
           </p>
 
           <div className="numbers-wrap">
+            <div className="watch-marquee">
+              <div className="watch-marquee-track">
+                <span>Watch this space for announcements, developments, new additions in coming days</span>
+                <span aria-hidden="true">Watch this space for announcements, developments, new additions in coming days</span>
+              </div>
+            </div>
             <div className="numbers">
               <div>
                 <b>35+</b>
