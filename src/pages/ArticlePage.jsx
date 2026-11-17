@@ -138,6 +138,15 @@ export default function ArticlePage({ defaultId }) {
   // Dare to Dream / Home of Care always keep their story video as the top hero.
   const articleForMedia = (() => {
     const next = { ...article }
+    // This story's video belongs under its heading. A caption save must not
+    // promote that clip to the hero when the clip is still in the body.
+    const gloryPinned = next.id === '35-glorious-years' || id === '35-glorious-years'
+    if (gloryPinned && /<video\b/i.test(next.contentHtml || '')) {
+      next.mediaType = 'image'
+      next.featuredMediaType = 'image'
+      next.imageUrl = ''
+      next.videoUrl = ''
+    }
     const isForcedTopVideo =
       next.id === 'dare-to-dream' ||
       id === 'dare-to-dream' ||
@@ -285,11 +294,17 @@ export default function ArticlePage({ defaultId }) {
           typeof img === 'object' && img.caption !== undefined
             ? img.caption
             : (typeof img === 'object' && img.alt ? img.alt : '')
-        // Default zigzag L/R so stories don't stack every figure on the left.
-        // Explicit admin placement still wins when set.
+        // Zigzag only when an image has no authored position. A figure already
+        // marked big or centered in the HTML keeps that position.
         const zigzagPlacement = allStoryImages.length % 2 === 0 ? 'left' : 'right'
         const adminPlacement =
           typeof img === 'object' && img.placement ? String(img.placement).toLowerCase() : ''
+        const hasAdminPlacement = adminPlacement === 'left' || adminPlacement === 'right' || adminPlacement === 'center'
+        const adminSize = typeof img === 'object' && (img.size === 'big' || img.size === 'small') ? img.size : ''
+        const fileKey = String(url).split('?')[0].split('/').pop().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const pinnedInHtml = fileKey
+          ? new RegExp(`<figure[^>]*(?:size-big|float-center)[^>]*>[\\s\\S]*?${fileKey}`, 'i').test(article.contentHtml || '')
+          : false
 
         allStoryImages.push({
           url,
@@ -297,10 +312,8 @@ export default function ArticlePage({ defaultId }) {
           alt: (typeof img === 'object' && (img.alt || img.caption)) || '',
           placement: isBedHotspot
             ? (allStoryImages.length % 2 === 0 ? 'right' : 'left')
-            : (adminPlacement === 'left' || adminPlacement === 'right' || adminPlacement === 'center'
-                ? adminPlacement
-                : zigzagPlacement),
-          size: isBedHotspot ? 'small' : ((typeof img === 'object' && img.size) || 'small'),
+            : (hasAdminPlacement ? adminPlacement : (pinnedInHtml ? 'center' : zigzagPlacement)),
+          size: isBedHotspot ? 'small' : (adminSize || (pinnedInHtml ? 'big' : 'small')),
           type: typeof img === 'object' && img.type ? img.type : (isVideoUrl(url) ? 'video' : 'image'),
           afterHeading: typeof img === 'object' ? (img.afterHeading || '') : ''
         })

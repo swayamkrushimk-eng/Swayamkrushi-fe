@@ -257,10 +257,27 @@ export default function ArticleContentRenderer({
             if (figcaption) figcaption.remove()
           }
 
-          const align = matched.placement === 'right' ? 'float-right' : matched.placement === 'center' ? 'float-center' : 'float-left'
-          const sz = matched.size === 'big' ? 'size-big' : 'size-small'
+          const align = matched.placement === 'right'
+            ? 'float-right'
+            : matched.placement === 'center'
+              ? 'float-center'
+              : matched.placement === 'left'
+                ? 'float-left'
+                : (fig.classList.contains('float-right')
+                    ? 'float-right'
+                    : fig.classList.contains('float-center')
+                      ? 'float-center'
+                      : 'float-left')
+          const sz = matched.size === 'big'
+            ? 'size-big'
+            : matched.size === 'small'
+              ? 'size-small'
+              : (fig.classList.contains('size-big') ? 'size-big' : 'size-small')
           const isVid = mediaEl.tagName.toLowerCase() === 'video' || isVideoUrl(src)
-          fig.className = `article-inline-figure ${align} ${sz} ${isVid ? 'article-inline-video-figure' : ''}`
+          // A caption-only record with no placement must not shrink a full-width figure.
+          if (matched.placement || matched.size || !fig.classList.contains('size-big')) {
+            fig.className = `article-inline-figure ${align} ${sz} ${isVid ? 'article-inline-video-figure' : ''}`
+          }
         })
       }
 
