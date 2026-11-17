@@ -794,10 +794,17 @@ img {
   padding: 0;
   font-family: var(--head, "Lora", Georgia, serif);
   font-size: 14.5px;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 400;
   line-height: 1.45;
   color: #1b1418;
   background: transparent;
+}
+
+.main-story-video-caption strong {
+  font-family: inherit;
+  font-weight: inherit;
+  font-style: inherit;
 }
 
 .main-story-video-elem {

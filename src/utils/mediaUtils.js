@@ -295,6 +295,57 @@ export function isSameImage(url1, url2) {
   return false
 }
 
+function normCaption(value = '') {
+  return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+/** Split "KICKER: rest of caption" for bold kicker + italic remainder. */
+export function splitCaption(caption = '') {
+  const text = String(caption || '').replace(/\s+/g, ' ').trim()
+  if (!text) return null
+  const idx = text.search(/\s*:\s*/)
+  if (idx <= 0) return { kicker: '', rest: text }
+  const kicker = text.slice(0, idx).trim()
+  const rest = text.slice(idx).replace(/^\s*:\s*/, '').trim()
+  if (!kicker || !rest) return { kicker: '', rest: text }
+  return { kicker, rest }
+}
+
+/**
+ * True when a body still is the same featured photo already shown as the article hero.
+ * Matches by URL, by shared caption, or when the hero alt is just the article title
+ * (a re-uploaded featured file sitting again in images[] / contentHtml).
+ */
+export function isDuplicateOfHeroStill(media, mediaInfo, article = {}, options = {}) {
+  const url = typeof media === 'string' ? media : media?.url || media?.src || ''
+  if (!url || !mediaInfo?.isImage || mediaInfo.isText || mediaInfo.isVideo) return false
+  if (isVideoUrl(url) || (typeof media === 'object' && media.type === 'video')) return false
+
+  const heroUrls = [mediaInfo.posterUrl, mediaInfo.imageUrl, article.imageUrl].filter(Boolean)
+  if (heroUrls.some((hero) => isSameImage(url, hero))) return true
+
+  const caption = typeof media === 'object' ? (media.caption || media.alt || '') : ''
+  const heroCap = normCaption(article.imageAlt)
+  const cap = normCaption(caption)
+  if (heroCap.length > 8 && cap && cap === heroCap) return true
+
+  if (options.isPrimaryStill) {
+    const title = normCaption(article.title)
+    const hasPinnedSlot = typeof media === 'object' && Boolean(media.afterHeading)
+    // Placeholder hero alts are often just the article title (re-uploaded featured file).
+    if (
+      !hasPinnedSlot &&
+      heroCap &&
+      title &&
+      (heroCap === title || title.startsWith(heroCap) || heroCap.startsWith(title))
+    ) {
+      return true
+    }
+  }
+
+  return false
+}
+
 /**
  * Checks whether a URL or data string points to a video resource
  * @param {string} url - URL or data URI

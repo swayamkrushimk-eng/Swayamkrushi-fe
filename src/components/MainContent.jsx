@@ -12,6 +12,7 @@ import {
 } from '../data/articlesData'
 import { fetchArticles, isIdDeleted } from '../services/api'
 import VideoPlayer from './VideoPlayer'
+import CaptionText from './CaptionText'
 import ArticleAudioPlayer from './ArticleAudioPlayer'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import buildingBlocksSvg from '../assets/images/mocks/building-blocks.svg'
@@ -71,11 +72,39 @@ export default function MainContent() {
       : null
     return (
       (fromImages && (fromImages.caption || fromImages.alt)) ||
-      'Inspiring : Former Vice President M Venkaiah Naidu, despite being indisposed, spoke passionately about the cause in virtual mode'
+      'INSPIRING : Former Vice President M Venkaiah Naidu, despite being indisposed, spoke passionately about the cause in virtual mode'
     )
   })()
   const homeOfCareMedia = homeOfCare ? resolveArticleMedia(homeOfCare, birthdayImg) : {}
-  const groupHomesMedia = groupHomes ? resolveArticleMedia(groupHomes, grouphomeResidentsImg) : {}
+  // Homepage teaser for Group Homes: always the in-article still, never the featured video.
+  const groupHomesHomeStill = (() => {
+    const INDEPENDENT_LIVING_CAPTION =
+      'INDEPENDENT LIVING : Group Home residents pose for a picture at a function in the Swayamkrushi campus'
+    if (!groupHomes) return { url: grouphomeResidentsImg, caption: INDEPENDENT_LIVING_CAPTION }
+    const stills = Array.isArray(groupHomes.images)
+      ? groupHomes.images.filter((img) => {
+          const url = typeof img === 'string' ? img : img?.url
+          const type = typeof img === 'object' ? img.type : ''
+          return url && type !== 'video' && !/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)
+        })
+      : []
+    const preferred =
+      stills.find((img) => {
+        const url = typeof img === 'string' ? img : img?.url
+        const cap = typeof img === 'object' ? (img.caption || img.alt || '') : ''
+        return /grouphome-residents/i.test(url || '') || /INDEPENDENT LIVING/i.test(cap)
+      }) || stills[0]
+    const url =
+      (typeof preferred === 'object' ? preferred?.url : preferred) ||
+      (groupHomes.imageUrl && !/\.(mp4|webm|mov|m4v)(\?|$)/i.test(groupHomes.imageUrl)
+        ? groupHomes.imageUrl
+        : null) ||
+      grouphomeResidentsImg
+    const caption =
+      (typeof preferred === 'object' && (preferred.caption || preferred.alt)) ||
+      INDEPENDENT_LIVING_CAPTION
+    return { url, caption }
+  })()
   const bedHotspotMedia = bedHotspot ? resolveArticleMedia(bedHotspot, null) : {}
   const buildingBlocksMedia = buildingBlocks ? resolveArticleMedia(buildingBlocks, buildingBlocksSvg) : {}
 
@@ -117,7 +146,7 @@ export default function MainContent() {
               ) : null}
               {(gloriousYearsMedia.isVideo ? gloriousYearsVideoCaption : gloriousYears.imageAlt) ? (
                 <figcaption className="main-story-video-caption">
-                  {gloriousYearsMedia.isVideo ? gloriousYearsVideoCaption : gloriousYears.imageAlt}
+                  <CaptionText caption={gloriousYearsMedia.isVideo ? gloriousYearsVideoCaption : gloriousYears.imageAlt} />
                 </figcaption>
               ) : null}
             </figure>
@@ -169,8 +198,8 @@ export default function MainContent() {
               />
             ) : null}
             {buildingBlocks.imageAlt ? (
-              <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                {buildingBlocks.imageAlt}
+              <figcaption className="main-story-video-caption">
+                <CaptionText caption={buildingBlocks.imageAlt} />
               </figcaption>
             ) : null}
           </figure>
@@ -228,8 +257,8 @@ export default function MainContent() {
                       ? (homeOfCare.imageAlt === 'A Home of Care, Growth and Hope' || homeOfCare.imageAlt === 'A home of care, growth and hope' ? 'FUN AND FROLIC : A video collage of activities In Swayamkrushi' : homeOfCare.imageAlt)
                       : 'FUN AND FROLIC : A video collage of activities In Swayamkrushi'
                     return cap ? (
-                      <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                        {cap}
+                      <figcaption className="main-story-video-caption">
+                        <CaptionText caption={cap} />
                       </figcaption>
                     ) : null
                   })()}
@@ -254,39 +283,18 @@ export default function MainContent() {
                 <h2 className="story-head">{groupHomes.title}</h2>
                 <ArticleAudioPlayer article={groupHomes} compact />
               </div>
-              {!groupHomesMedia.isText && (
-                <figure
-                  className={groupHomesMedia.isVideo ? 'main-story-video-container' : ''}
-                  data-is-video={groupHomesMedia.isVideo ? 'true' : undefined}
-                >
-                  {groupHomesMedia.isVideo && groupHomesMedia.videoUrl ? (
-                    <div className="article-video-player-container" style={{ margin: '0 0 12px 0' }}>
-                      <VideoPlayer
-                        src={groupHomesMedia.deliveryVideoUrl || groupHomesMedia.videoUrl}
-                        poster={groupHomesMedia.posterUrl || grouphomeResidentsImg}
-                        title={groupHomes.title}
-                        category={groupHomes.category || 'Group Homes'}
-                        aspectRatio="16/9"
-                        autoPlay={false}
-                      />
-                    </div>
-                  ) : groupHomesMedia.posterUrl ? (
-                    <img
-                      src={groupHomesMedia.posterUrl}
-                      alt="Residents outside one of the group homes"
-                      onError={(e) => { e.target.src = grouphomeResidentsImg }}
-                    />
+              {groupHomesHomeStill.url && (
+                <figure>
+                  <img
+                    src={groupHomesHomeStill.url}
+                    alt={groupHomesHomeStill.caption || 'Residents outside one of the group homes'}
+                    onError={(e) => { e.target.src = grouphomeResidentsImg }}
+                  />
+                  {groupHomesHomeStill.caption ? (
+                    <figcaption className="main-story-video-caption">
+                      <CaptionText caption={groupHomesHomeStill.caption} />
+                    </figcaption>
                   ) : null}
-                  {(() => {
-                    const cap = groupHomes.imageAlt !== undefined
-                      ? groupHomes.imageAlt
-                      : 'Residents outside their home — the group homes have run since 1991.'
-                    return cap ? (
-                      <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                        {cap}
-                      </figcaption>
-                    ) : null
-                  })()}
                 </figure>
               )}
 
@@ -309,12 +317,9 @@ export default function MainContent() {
                 <ArticleAudioPlayer article={bedHotspot} compact />
               </div>
               {!bedHotspotMedia.isText && (
-                <figure
-                  className={bedHotspotMedia.isVideo ? 'main-story-video-container' : ''}
-                  data-is-video={bedHotspotMedia.isVideo ? 'true' : undefined}
-                >
+                <figure data-is-video={bedHotspotMedia.isVideo ? 'true' : undefined}>
                   {bedHotspotMedia.isVideo && bedHotspotMedia.videoUrl ? (
-                    <div className="article-video-player-container" style={{ margin: '0 0 12px 0' }}>
+                    <div className="article-video-player-container" style={{ margin: 0 }}>
                       <VideoPlayer
                         src={bedHotspotMedia.deliveryVideoUrl || bedHotspotMedia.videoUrl}
                         poster={bedHotspotMedia.posterUrl || nationalTrustImg}
@@ -334,10 +339,10 @@ export default function MainContent() {
                   {(() => {
                     const cap = bedHotspot.imageAlt !== undefined
                       ? bedHotspot.imageAlt
-                      : 'Staff, students and residents together at a National Trust event.'
+                      : 'GETTING READY : A B.Ed (Spl Education in ID) in progress at the Swayamkrushi College'
                     return cap ? (
-                      <figcaption style={{ fontStyle: 'italic', color: '#000000' }}>
-                        {cap}
+                      <figcaption className="main-story-video-caption">
+                        <CaptionText caption={cap} />
                       </figcaption>
                     ) : null
                   })()}

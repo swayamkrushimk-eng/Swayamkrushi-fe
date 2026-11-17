@@ -4,7 +4,8 @@ import { articleImagesMap } from '../data/allArticles'
 import { fetchArticleById, isIdDeleted } from '../services/api'
 import ArticleContentRenderer from '../components/ArticleContentRenderer'
 import VideoPlayer from '../components/VideoPlayer'
-import { resolveArticleMedia, isSameImage, isVideoUrl } from '../utils/mediaUtils'
+import { resolveArticleMedia, isSameImage, isVideoUrl, isDuplicateOfHeroStill } from '../utils/mediaUtils'
+import CaptionText from '../components/CaptionText'
 import SEO from '../components/SEO'
 import ArticleAudioPlayer from '../components/ArticleAudioPlayer'
 import manjulaaVisionaryImg from '../assets/images/manjulaa-visionary-home-of-care.png'
@@ -141,7 +142,9 @@ export default function ArticlePage({ defaultId }) {
       next.id === 'dare-to-dream' ||
       id === 'dare-to-dream' ||
       next.id === 'home-of-care' ||
-      id === 'home-of-care'
+      id === 'home-of-care' ||
+      next.id === 'group-homes' ||
+      id === 'group-homes'
     const featuredType = String(next.featuredMediaType || next.mediaType || '').toLowerCase()
     const adminSaysImage =
       !isForcedTopVideo &&
@@ -215,17 +218,54 @@ export default function ArticlePage({ defaultId }) {
   const mediaInfo = resolveArticleMedia(articleForMedia, localFallback)
   const hasInlineImage = !mediaInfo.isText && !mediaInfo.isVideo && !!mediaInfo.posterUrl
 
+  const heroCaptionText = String(articleForMedia.imageAlt || article.imageAlt || '').trim()
+  const titleText = String(article.title || '').trim()
+  const heroCaptionIsWeak =
+    !heroCaptionText ||
+    heroCaptionText.toLowerCase() === titleText.toLowerCase()
+
+  const stillImages = (Array.isArray(articleForMedia.images) ? articleForMedia.images : [])
+    .map((img) => (typeof img === 'string' ? { url: img } : img))
+    .filter((img) => img?.url && img.type !== 'video' && !isVideoUrl(img.url))
+  const firstCaptionedStill = stillImages.find((img) => String(img.caption || img.alt || '').trim())
+  // 35 years of glory: the sofa photo is the featured image and has no caption of its own.
+  // A later photo's caption must not hide it or be copied onto it.
+  const keepFeaturedHero = article.id === '35-glorious-years' || id === '35-glorious-years'
+  // Uncaptioned/title-only hero that is the same photo as a captioned body still (often a re-upload)
+  const hideHeroImage =
+    !keepFeaturedHero &&
+    Boolean(mediaInfo.isImage && mediaInfo.posterUrl && heroCaptionIsWeak && firstCaptionedStill)
+
+  let displayHeroAlt = heroCaptionText
+  if (!keepFeaturedHero && !hideHeroImage && mediaInfo.isImage && heroCaptionIsWeak && firstCaptionedStill) {
+    displayHeroAlt = String(firstCaptionedStill.caption || firstCaptionedStill.alt || '').trim()
+  }
+
   // Gather all available story images for fallback paragraph mode & rich renderer
   const allStoryImages = []
+  const suppressedStillUrls = []
   if (Array.isArray(articleForMedia.images) && articleForMedia.images.length > 0) {
     articleForMedia.images.forEach((img) => {
       const url = typeof img === 'string' ? img : img?.url
       if (url && !allStoryImages.some((x) => isSameImage(x.url, url))) {
+        const isVid = (typeof img === 'object' && img.type === 'video') || isVideoUrl(url)
+        const isPrimaryStill =
+          !isVid &&
+          !allStoryImages.some((x) => x.type !== 'video' && !isVideoUrl(x.url))
         // Never re-inject the featured hero image into the body as a floated clip
         if (
+          !hideHeroImage &&
+          isDuplicateOfHeroStill(img, mediaInfo, articleForMedia, { isPrimaryStill })
+        ) {
+          suppressedStillUrls.push(url)
+          return
+        }
+        if (
+          !hideHeroImage &&
           mediaInfo.isImage &&
           (isSameImage(url, mediaInfo.posterUrl) || isSameImage(url, mediaInfo.imageUrl) || isSameImage(url, article.imageUrl))
         ) {
+          suppressedStillUrls.push(url)
           return
         }
         // Never re-inject the hero video (or its poster) as a floated body clip
@@ -281,8 +321,13 @@ export default function ArticlePage({ defaultId }) {
     )
   }
 
-  // Dare to Dream: never leave the hero video as a floated body clip at the bottom
-  if (article.id === 'dare-to-dream' || id === 'dare-to-dream') {
+  // Dare to Dream / Group Homes: never leave the hero video as a floated body clip
+  if (
+    article.id === 'dare-to-dream' ||
+    id === 'dare-to-dream' ||
+    article.id === 'group-homes' ||
+    id === 'group-homes'
+  ) {
     for (let i = allStoryImages.length - 1; i >= 0; i -= 1) {
       if (isHeroVideoClip(allStoryImages[i])) allStoryImages.splice(i, 1)
     }
@@ -473,16 +518,16 @@ export default function ArticlePage({ defaultId }) {
       <ArticleAudioPlayer article={article} />
 
       {/* Featured Hero Image (when admin sets featured media to image) */}
-      {!mediaInfo.isText && mediaInfo.isImage && mediaInfo.posterUrl && (
+      {!hideHeroImage && !mediaInfo.isText && mediaInfo.isImage && mediaInfo.posterUrl && (
         <figure className="article-hero-figure article-hero-image-figure size-big float-center">
           <img
             src={mediaInfo.posterUrl}
-            alt={articleForMedia.imageAlt || article.imageAlt || article.title || ''}
+            alt={displayHeroAlt || article.title || ''}
             className="article-hero-image"
           />
-          {(articleForMedia.imageAlt || article.imageAlt) ? (
+          {displayHeroAlt ? (
             <figcaption className="article-hero-caption">
-              {articleForMedia.imageAlt || article.imageAlt}
+              <CaptionText caption={displayHeroAlt} />
             </figcaption>
           ) : null}
         </figure>
@@ -494,7 +539,9 @@ export default function ArticlePage({ defaultId }) {
           article.id === 'home-of-care' ||
           id === 'home-of-care' ||
           article.id === 'dare-to-dream' ||
-          id === 'dare-to-dream'
+          id === 'dare-to-dream' ||
+          article.id === 'group-homes' ||
+          id === 'group-homes'
         const isDairy = article.id === 'story-dairy' || id === 'story-dairy'
         const isPortrait = !isTopBigVideo && (isDairy || article.videoAspect === 'portrait' || article.videoAspect === '9/16')
         // Dare to Dream + Home of Care: always full-width hero at the top
@@ -530,7 +577,7 @@ export default function ArticlePage({ defaultId }) {
             </div>
             {(heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`) ? (
               <figcaption className="article-hero-caption">
-                {heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`}
+                <CaptionText caption={heroCaption !== undefined ? heroCaption : `Video spotlight: ${article.title}`} />
               </figcaption>
             ) : null}
           </figure>
@@ -546,9 +593,11 @@ export default function ArticlePage({ defaultId }) {
             articleId={article.id || id}
             inlineMedia={mediaInfo}
             localFallback={localFallback}
-            imageAlt={article.imageAlt}
+            imageAlt={displayHeroAlt || article.imageAlt}
             hasVideo={hasEmbeddedVideo}
             storyImages={allStoryImages}
+            heroDisplayed={!hideHeroImage && mediaInfo.isImage}
+            suppressedStillUrls={suppressedStillUrls}
           />
         ) : (
           allParagraphs.map((para, idx) => {
@@ -566,18 +615,13 @@ export default function ArticlePage({ defaultId }) {
                 ? (subIdx % 2 === 0 ? 'float-right' : 'float-left')
                 : imgObj.alignClass
               const sizeClass = isBedHotspot ? 'size-small' : (imgObj.sizeClass || 'size-small')
-              const isSideFloat =
-                sizeClass !== 'size-big' &&
-                alignClass !== 'float-center' &&
-                (alignClass === 'float-left' || alignClass === 'float-right')
-
               return {
-                isSideFloat,
+                isSideFloat: false,
                 alignClass,
                 node: (
                   <figure
                     key={`para-img-${idx}-${subIdx}`}
-                    className={`article-inline-figure ${alignClass} ${sizeClass} ${isVid ? 'article-inline-video-figure' : ''}${isSideFloat ? ' in-float-pair' : ''}`}
+                    className={`article-inline-figure ${alignClass} ${sizeClass} ${isVid ? 'article-inline-video-figure' : ''}`}
                   >
                     {isVid ? (
                       <div className="article-video-player-container">
@@ -607,13 +651,7 @@ export default function ArticlePage({ defaultId }) {
                     )}
                     {imgObj.caption ? (
                       <figcaption className="article-inline-caption">
-                        {imgObj.title && imgObj.subtitle ? (
-                          <>
-                            <strong>{imgObj.title}</strong> &mdash; <span>{imgObj.subtitle}</span>
-                          </>
-                        ) : (
-                          imgObj.caption
-                        )}
+                        <CaptionText caption={imgObj.caption} title={imgObj.title} subtitle={imgObj.subtitle} />
                       </figcaption>
                     ) : null}
                   </figure>

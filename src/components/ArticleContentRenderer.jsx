@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import VideoPlayer from './VideoPlayer'
-import { isSameImage, isVideoUrl } from '../utils/mediaUtils'
+import { isSameImage, isVideoUrl, isDuplicateOfHeroStill } from '../utils/mediaUtils'
+import CaptionText from './CaptionText'
 
 /**
  * Deterministic hash function to generate consistent, pseudo-random layout variations
@@ -14,51 +15,6 @@ function getArticleHash(str = '') {
   return Math.abs(h)
 }
 
-function getElementClassName(el) {
-  if (!React.isValidElement(el)) return ''
-  const cls = el.props?.className
-  return typeof cls === 'string' ? cls : ''
-}
-
-function isSideFloatFigure(el) {
-  const cls = getElementClassName(el)
-  if (!cls.includes('article-inline-figure') && !cls.includes('article-embedded-video-card')) return false
-  if (cls.includes('float-center') || cls.includes('size-big')) return false
-  return cls.includes('float-left') || cls.includes('float-right')
-}
-
-function isBodyParagraphElement(el) {
-  if (!React.isValidElement(el)) return false
-  if (el.type === 'p') return true
-  const cls = getElementClassName(el)
-  return cls.includes('article-editorial-paragraph') || cls.includes('article-rich-p')
-}
-
-/** Keep body copy in a side column with floated media — never wrap orphaned last lines under videos/images. */
-function pairSideFloatsWithText(elements = []) {
-  const out = []
-  for (let i = 0; i < elements.length; i += 1) {
-    const el = elements[i]
-    const next = elements[i + 1]
-    if (isSideFloatFigure(el) && isBodyParagraphElement(next)) {
-      const cls = getElementClassName(el)
-      const side = cls.includes('float-right') ? 'is-right' : 'is-left'
-      out.push(
-        <div key={`float-pair-${i}`} className={`article-float-pair ${side}`}>
-          {React.cloneElement(el, {
-            className: `${cls} in-float-pair`.trim()
-          })}
-          <div className="article-float-pair-text">{next}</div>
-        </div>
-      )
-      i += 1
-    } else {
-      out.push(el)
-    }
-  }
-  return out
-}
-
 export default function ArticleContentRenderer({
   htmlContent,
   articleTitle = '',
@@ -67,7 +23,9 @@ export default function ArticleContentRenderer({
   localFallback = null,
   imageAlt = '',
   hasVideo = false,
-  storyImages = []
+  storyImages = [],
+  heroDisplayed = false,
+  suppressedStillUrls = []
 }) {
   const renderedElements = useMemo(() => {
     if (!htmlContent) return null
@@ -78,13 +36,19 @@ export default function ArticleContentRenderer({
 
       const hasEmbeddedVideo = hasVideo || Boolean(inlineMedia?.isVideo) || Boolean(doc.body.querySelector('video, iframe'))
 
-      // Track every video URL we actually render so the same clip never appears twice
-      // (hero video + storyImages + contentHtml <video> was causing duplicates on upload).
+      // Track every video/image URL we actually render so the same asset never appears twice
+      // (hero media + storyImages + contentHtml embeds were causing duplicates).
       const renderedVideoUrls = []
+      const renderedStillUrls = []
       const isAlreadyRenderedVideo = (url) =>
         Boolean(url) && renderedVideoUrls.some((u) => isSameImage(u, url))
       const markVideoRendered = (url) => {
         if (url && !isAlreadyRenderedVideo(url)) renderedVideoUrls.push(url)
+      }
+      const isAlreadyRenderedStill = (url) =>
+        Boolean(url) && renderedStillUrls.some((u) => isSameImage(u, url))
+      const markStillRendered = (url) => {
+        if (url && !isAlreadyRenderedStill(url)) renderedStillUrls.push(url)
       }
 
       const isHeroVideoUrl = (url) => {
@@ -95,6 +59,22 @@ export default function ArticleContentRenderer({
           isSameImage(url, inlineMedia.playableVideoUrl)
         )
       }
+
+      const isHeroImageUrl = (url, extra = {}) => {
+        if (!url || !heroDisplayed || !inlineMedia || inlineMedia.isVideo || inlineMedia.isText) return false
+        return isDuplicateOfHeroStill(
+          { url, caption: extra.caption || extra.alt || '', alt: extra.alt || extra.caption || '' },
+          inlineMedia,
+          { title: articleTitle, imageAlt },
+          { isPrimaryStill: Boolean(extra.isPrimaryStill) }
+        )
+      }
+
+      const isSuppressedStill = (url, extra = {}) =>
+        Boolean(url) && (
+          isHeroImageUrl(url, extra) ||
+          (Array.isArray(suppressedStillUrls) && suppressedStillUrls.some((u) => isSameImage(u, url)))
+        )
 
       // Story-media videos are rendered as the preferred small floated players.
       // Strip matching body <video> embeds (and hero duplicates) so the same clip
@@ -226,6 +206,25 @@ export default function ArticleContentRenderer({
         })
       }
 
+      // Drop body stills that already appear as the featured hero (same file or same caption)
+      Array.from(doc.body.querySelectorAll('figure')).forEach((fig) => {
+        const mediaEl = fig.querySelector('img')
+        if (!mediaEl) return
+        const src = (mediaEl.getAttribute('src') || '').trim()
+        const caption = (fig.querySelector('figcaption')?.textContent || mediaEl.getAttribute('alt') || '').trim()
+        if (isSuppressedStill(src, { caption, alt: caption })) fig.remove()
+      })
+      Array.from(doc.body.querySelectorAll('img')).forEach((img) => {
+        const src = (img.getAttribute('src') || '').trim()
+        const alt = (img.getAttribute('alt') || '').trim()
+        if (!isSuppressedStill(src, { caption: alt, alt })) return
+        const parent = img.closest('p') || img.parentNode
+        img.remove()
+        if (parent && parent.tagName?.toLowerCase() === 'p' && !(parent.textContent || '').trim() && !parent.querySelector('img, video')) {
+          parent.remove()
+        }
+      })
+
       const cleanFigureElements = Array.from(doc.body.querySelectorAll('figure'))
       const hasExplicitFigures = cleanFigureElements.length > 0
 
@@ -304,8 +303,8 @@ export default function ArticleContentRenderer({
 
         const src = img.getAttribute('src')?.trim()
 
-        if (src && isVideoPosterOrThumb(src)) {
-          // Remove duplicate video thumbnail from body
+        if (src && (isVideoPosterOrThumb(src) || isSuppressedStill(src, { caption: img.getAttribute('alt') || '', alt: img.getAttribute('alt') || '' }))) {
+          // Remove duplicate video thumbnail / featured hero image from body
           const parent = img.parentNode
           img.remove()
           if (parent && parent.tagName && parent.tagName.toLowerCase() === 'p') {
@@ -387,7 +386,7 @@ export default function ArticleContentRenderer({
       if (Array.isArray(storyImages) && storyImages.length > 0) {
         storyImages.forEach((si) => {
           const siUrl = typeof si === 'string' ? si : si.url
-          if (!siUrl || isVideoPosterOrThumb(siUrl) || isHeroVideoUrl(siUrl)) return
+          if (!siUrl || isVideoPosterOrThumb(siUrl) || isHeroVideoUrl(siUrl) || isSuppressedStill(siUrl, si)) return
 
           const siType = typeof si === 'object' && si.type ? si.type : (isVideoUrl(siUrl) ? 'video' : 'image')
           const existing = allImages.find((img) => isSameImage(img.src, siUrl))
@@ -406,8 +405,10 @@ export default function ArticleContentRenderer({
           } else if (
             // Matching body videos were stripped above so story videos always use the
             // small floated player. Still skip if a non-video figure already owns the URL.
+            // afterHeading media is stripped from HTML above and must always be re-injected.
             siType === 'video' ||
-            !hasExplicitFigures
+            !hasExplicitFigures ||
+            (typeof si === 'object' && Boolean(si.afterHeading))
           ) {
             allImages.push({
               src: siUrl,
@@ -623,12 +624,15 @@ export default function ArticleContentRenderer({
               </div>
               {imgObj.caption ? (
                 <figcaption className="article-inline-caption">
-                  {imgObj.caption}
+                  <CaptionText caption={imgObj.caption} />
                 </figcaption>
               ) : null}
             </figure>
           )
         }
+
+        if (isSuppressedStill(imgObj.src, imgObj) || isAlreadyRenderedStill(imgObj.src)) return null
+        markStillRendered(imgObj.src)
 
         return (
           <figure key={key} className={`article-inline-figure ${alignClass} ${sizeClass}`}>
@@ -647,7 +651,7 @@ export default function ArticleContentRenderer({
             />
             {imgObj.caption ? (
               <figcaption className="article-inline-caption">
-                {imgObj.caption}
+                <CaptionText caption={imgObj.caption} />
               </figcaption>
             ) : null}
           </figure>
@@ -713,7 +717,7 @@ export default function ArticleContentRenderer({
                 </div>
                 {explicitCaption ? (
                   <figcaption className="article-inline-caption">
-                    {explicitCaption}
+                    <CaptionText caption={explicitCaption} />
                   </figcaption>
                 ) : null}
               </figure>
@@ -776,7 +780,7 @@ export default function ArticleContentRenderer({
                     </div>
                     {explicitCaption ? (
                       <figcaption className="article-inline-caption">
-                        {explicitCaption}
+                        <CaptionText caption={explicitCaption} />
                       </figcaption>
                     ) : null}
                   </figure>
@@ -868,7 +872,7 @@ export default function ArticleContentRenderer({
                 </div>
                 {explicitCaption ? (
                   <figcaption className="article-inline-caption">
-                    {explicitCaption}
+                    <CaptionText caption={explicitCaption} />
                   </figcaption>
                 ) : null}
               </figure>
@@ -877,6 +881,7 @@ export default function ArticleContentRenderer({
 
           const src = img?.getAttribute('src')?.trim()
           if (!src) return null
+          if (isSuppressedStill(src, { caption: figcaption?.textContent || img?.getAttribute('alt') || '', alt: img?.getAttribute('alt') || '' }) || isAlreadyRenderedStill(src)) return null
 
           let caption =
             figcaption?.textContent?.trim() ||
@@ -970,12 +975,12 @@ export default function ArticleContentRenderer({
         }
       })
 
-      return pairSideFloatsWithText(results)
+      return results
     } catch (err) {
       console.warn('Error rendering rich article content:', err)
       return <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
     }
-  }, [htmlContent, articleTitle, articleId, inlineMedia, localFallback, imageAlt, hasVideo, storyImages])
+  }, [htmlContent, articleTitle, articleId, inlineMedia, localFallback, imageAlt, hasVideo, storyImages, heroDisplayed, suppressedStillUrls])
 
   return <div className="article-rich-content">{renderedElements}</div>
 }
