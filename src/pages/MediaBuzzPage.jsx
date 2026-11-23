@@ -51,6 +51,8 @@ const CORAL_JUBILEE_IDS = new Set([
   'youtube-100-tv-seethakka',
   'youtube-dd-news-seethakka',
   'brk-news-reporter-ramu',
+  'metro-india-epaper-2026-11-22',
+  'fpj-mumbai-epaper-2026-11-22',
   'deccan-chronicle-epaper-2026-11-17',
   'hindu-former-vp-youth-social-initiatives-2026-11-16',
   'telangana-today-epaper-2026-11-17',
@@ -277,6 +279,40 @@ function toDisplayCards(articles) {
 
 export const MEDIA_ARTICLES = [
   // ── English papers (newest first) ───────────────────────────────────────
+  {
+    id: 'metro-india-epaper-2026-11-22',
+    title: 'Metro India E-Paper: Main Edition Coverage',
+    outlet: 'Metro India',
+    outletType: 'Print & Newspapers',
+    date: '22/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'METRO INDIA E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'Metro India main edition e-paper coverage of Swayamkrushi and related Hyderabad news.',
+    readTime: 'E-Paper Edition',
+    tags: ['Metro India', 'E-Paper', 'Hyderabad', 'Swayamkrushi'],
+    articleUrl: 'https://share.google/EE5rEX5R5rQBfYrKp',
+    featured: true,
+    order: -6
+  },
+  {
+    id: 'fpj-mumbai-epaper-2026-11-22',
+    title: 'FPJ Mumbai E-Paper: Swayamkrushi Coverage',
+    outlet: 'Free Press Journal Mumbai',
+    outletType: 'Print & Newspapers',
+    date: '22/11/2026',
+    category: 'E-Paper & Print',
+    badge: 'FPJ MUMBAI E-PAPER',
+    image: null,
+    isClipping: false,
+    excerpt: 'Free Press Journal Mumbai e-paper edition featuring Swayamkrushi’s work and celebrations.',
+    readTime: 'E-Paper Edition',
+    tags: ['FPJ', 'Free Press Journal', 'Mumbai', 'E-Paper'],
+    articleUrl: 'https://share.google/qRCg13Pq9tKZtvjBj',
+    featured: true,
+    order: -5
+  },
   {
     id: 'deccan-chronicle-epaper-2026-11-17',
     title: 'Deccan Chronicle E-Paper: Swayamkrushi in Focus',
@@ -925,6 +961,8 @@ export default function MediaBuzzPage() {
             'telangana-today-epaper-35-years': 'Artist who paints with elbow stumps'
           }
           const orderFixes = {
+            'metro-india-epaper-2026-11-22': -6,
+            'fpj-mumbai-epaper-2026-11-22': -5,
             'deccan-chronicle-epaper-2026-11-17': -4,
             'hindu-former-vp-youth-social-initiatives-2026-11-16': -3,
             'telangana-today-epaper-2026-11-17': -2,
