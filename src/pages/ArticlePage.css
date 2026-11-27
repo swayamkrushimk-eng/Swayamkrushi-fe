@@ -29,18 +29,64 @@
   margin: 0 0 14px;
 }
 
-/* Metadata Bar - tight dateline/byline */
+/* Spacer with Share + Listen icons side by side (no divider lines) */
 .article-meta-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding: 8px 0;
-  border-top: 1px solid var(--hair, #6e1e38);
-  border-bottom: 1px solid var(--hair, #6e1e38);
+  gap: 8px 14px;
+  padding: 4px 0 8px;
+  margin-top: 2px;
+  border: none;
   font-size: 12px;
   color: var(--muted, #6f6a6c);
+}
+
+.article-actions-group {
+  display: contents;
+}
+
+.article-meta-row > .bbc-action-btn,
+.article-meta-row .audio-standalone-speaker-btn {
+  flex: 0 0 auto;
+}
+
+.article-meta-row .article-audio-wrapper {
+  margin: 0;
+  width: auto;
+  flex: 0 0 auto;
+}
+
+.article-meta-row .audio-speaker-only-wrap {
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.article-meta-row .audio-standalone-speaker-btn {
+  width: 34px;
+  height: 34px;
+}
+
+.article-meta-row .audio-standalone-speaker-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Expanded listen player drops below the icon row */
+.article-meta-row .article-audio-wrapper:has(.audio-player-expanded) {
+  flex: 1 1 100%;
+  width: 100%;
+  order: 10;
+  margin-top: 6px;
+}
+
+.article-meta-spacer {
+  flex: 1 1 auto;
+  min-width: 24px;
+  height: 1px;
+  background: transparent;
 }
 
 .article-byline-group {
@@ -62,11 +108,7 @@
   color: var(--muted, #6f6a6c);
 }
 
-.article-actions-group {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+/* .article-actions-group uses display:contents above so icons sit on the meta row */
 
 .bbc-action-btn {
   display: inline-flex;
@@ -84,12 +126,17 @@
   line-height: 1;
 }
 
+.bbc-action-btn--icon {
+  padding: 6px;
+}
+
 .bbc-action-btn:hover {
   color: var(--burgundy, #6e1e38);
 }
 
 .bbc-action-btn.is-saved,
-.bbc-action-btn.is-audio-active {
+.bbc-action-btn.is-audio-active,
+.bbc-action-btn.is-copied {
   color: var(--burgundy, #6e1e38);
 }
 
@@ -918,15 +965,10 @@
     line-height: 1.2;
   }
   .article-meta-row {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: 8px;
-    padding: 10px 0;
-  }
-  .article-actions-group {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 14px;
+    padding: 6px 0 10px;
   }
   .article-inline-figure,
   .article-inline-figure.float-right,

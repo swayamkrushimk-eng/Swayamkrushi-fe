@@ -14,8 +14,13 @@ import { fetchArticles, isIdDeleted } from '../services/api'
 import VideoPlayer from './VideoPlayer'
 import CaptionText from './CaptionText'
 import ArticleAudioPlayer from './ArticleAudioPlayer'
+import ArticleShareButton from './ArticleShareButton'
 import { resolveArticleMedia } from '../utils/mediaUtils'
 import buildingBlocksSvg from '../assets/images/mocks/building-blocks.svg'
+
+/** Home teaser lede for 35 years only — do not read paragraphs[0] (API may return a section heading). */
+const GLORIOUS_YEARS_HOME_LEDE =
+  "Swayamkrushi celebrated its Coral Jubilee (35th anniversary) at a grand function on Monday, November 16, on its Jawahar Nagar campus. The function was well attended and several VVIPs graced the occasion, reflecting not only the organization's popularity but also the magnetic charisma of its founder-director Manjulaa Kalyaan."
 
 export default function MainContent() {
   const [mainArts, setMainArts] = useState({})
@@ -115,10 +120,13 @@ export default function MainContent() {
         <section id="35-glorious-years">
           <div className="story-title-with-mic">
             <h2>{gloriousYears.title}</h2>
-            <ArticleAudioPlayer article={gloriousYears} compact />
+            <div className="story-title-actions">
+              <ArticleShareButton article={gloriousYears} />
+              <ArticleAudioPlayer article={gloriousYears} compact />
+            </div>
           </div>
           <p className="lede">
-            {(gloriousYears.paragraphs && gloriousYears.paragraphs[0]) || gloriousYears.excerpt}
+            {GLORIOUS_YEARS_HOME_LEDE}
           </p>
           {!gloriousYearsMedia.isText && (
             <figure data-is-video={gloriousYearsMedia.isVideo ? 'true' : undefined}>
@@ -176,7 +184,10 @@ export default function MainContent() {
         <section id="building-blocks">
         <div className="story-title-with-mic">
           <h2>{buildingBlocks.title}</h2>
-          <ArticleAudioPlayer article={buildingBlocks} compact />
+          <div className="story-title-actions">
+            <ArticleShareButton article={buildingBlocks} />
+            <ArticleAudioPlayer article={buildingBlocks} compact />
+          </div>
         </div>
         <p className="lede">
           {buildingBlocks.paragraphs[0]}
@@ -231,7 +242,10 @@ export default function MainContent() {
             <div className="center-story">
               <div className="story-title-with-mic">
                 <h2>{homeOfCare.title}</h2>
-                <ArticleAudioPlayer article={homeOfCare} compact />
+                <div className="story-title-actions">
+                  <ArticleShareButton article={homeOfCare} />
+                  <ArticleAudioPlayer article={homeOfCare} compact />
+                </div>
               </div>
               <p className="lede">
                 {homeOfCare.excerpt}
@@ -291,7 +305,10 @@ export default function MainContent() {
             <div className="center-story">
               <div className="story-title-with-mic">
                 <h2 className="story-head">{groupHomes.title}</h2>
-                <ArticleAudioPlayer article={groupHomes} compact />
+                <div className="story-title-actions">
+                  <ArticleShareButton article={groupHomes} />
+                  <ArticleAudioPlayer article={groupHomes} compact />
+                </div>
               </div>
               {groupHomesHomeStill.url && (
                 <figure>
@@ -324,7 +341,10 @@ export default function MainContent() {
             <div className="center-story center-last-story">
               <div className="story-title-with-mic">
                 <h2 className="story-head">{bedHotspot.title}</h2>
-                <ArticleAudioPlayer article={bedHotspot} compact />
+                <div className="story-title-actions">
+                  <ArticleShareButton article={bedHotspot} />
+                  <ArticleAudioPlayer article={bedHotspot} compact />
+                </div>
               </div>
               {!bedHotspotMedia.isText && (
                 <figure data-is-video={bedHotspotMedia.isVideo ? 'true' : undefined}>

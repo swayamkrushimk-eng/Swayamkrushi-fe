@@ -83,10 +83,12 @@ export default function ArticlePage({ defaultId }) {
   const id = paramId || defaultId || 'story-encounter'
   const [article, setArticle] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isCopied, setIsCopied] = useState(false)
 
   useEffect(() => {
     window.scrollTo(0, 0)
     setLoading(true)
+    setIsCopied(false)
     if (isIdDeleted('article', id)) {
       setArticle(null)
       setLoading(false)
@@ -126,6 +128,34 @@ export default function ArticlePage({ defaultId }) {
         </div>
       </main>
     )
+  }
+
+  const handleShare = async () => {
+    const shareUrl = typeof window !== 'undefined'
+      ? window.location.href
+      : `https://swayamkrushi.org/#/article/${article.id}`
+    const shareData = {
+      title: article.title,
+      text: article.excerpt || article.title,
+      url: shareUrl,
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share(shareData)
+        return
+      }
+    } catch {
+      // User cancelled or share failed — fall through to clipboard
+    }
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl)
+        setIsCopied(true)
+        setTimeout(() => setIsCopied(false), 2200)
+      }
+    } catch {
+      // Clipboard unavailable
+    }
   }
 
   // Clean all paragraphs
@@ -525,10 +555,41 @@ export default function ArticlePage({ defaultId }) {
           </div>
         )}
         <h1 className="article-headline">{article.title}</h1>
-      </header>
 
-      {/* Cartesia AI Voice Narration Listen Bar */}
-      <ArticleAudioPlayer article={article} />
+        {/* Spacer with Share + Listen icons side by side */}
+        <div className="article-meta-row">
+          <div className="article-meta-spacer" aria-hidden="true" />
+          <div className="article-actions-group">
+            <button
+              type="button"
+              className={`bbc-action-btn bbc-action-btn--icon ${isCopied ? 'is-copied' : ''}`}
+              onClick={handleShare}
+              title={isCopied ? 'Link copied' : 'Share article'}
+              aria-label={isCopied ? 'Link copied' : 'Share article'}
+            >
+              <svg
+                className="bbc-icon"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+            </button>
+            <ArticleAudioPlayer article={article} />
+          </div>
+        </div>
+      </header>
 
       {/* Featured Hero Image (when admin sets featured media to image) */}
       {!hideHeroImage && !mediaInfo.isText && mediaInfo.isImage && mediaInfo.posterUrl && (

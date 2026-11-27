@@ -16,6 +16,27 @@ const DEFAULT_BANK = {
   upiId: 'SWAYAMKRUSHI@SBI'
 }
 
+const BANK_TRANSFER_PANELS = [
+  {
+    id: 'inr',
+    title: 'For INR donations',
+    rows: [
+      { label: 'Bank', value: 'State Bank of India' },
+      { label: 'Account Number', value: '37972364775' },
+      { label: 'IFS Code', value: 'SBIN0061794' },
+    ],
+  },
+  {
+    id: 'fcra',
+    title: 'For donations in foreign currency under FCRA',
+    rows: [
+      { label: 'Bank', value: 'State Bank of India' },
+      { label: 'FCRA Account Number', value: '40108966496' },
+      { label: 'IFS Code', value: 'SBIN0000691' },
+    ],
+  },
+]
+
 function buildUpiUri({ upiId, payeeName }) {
   const params = new URLSearchParams({
     pa: upiId,
@@ -112,6 +133,25 @@ export default function DonationPage() {
           </div>
 
         </div>
+
+        <section className="donation-bank-panel" aria-label="Bank transfer details">
+          <h2 className="donation-bank-panel-title">Bank transfer details</h2>
+          <div className="donation-bank-grid">
+            {BANK_TRANSFER_PANELS.map((panel) => (
+              <article key={panel.id} className="donation-bank-col">
+                <h3 className="donation-bank-col-title">{panel.title}</h3>
+                <dl className="donation-bank-list">
+                  {panel.rows.map((row) => (
+                    <div key={row.label} className="donation-bank-row">
+                      <dt>{row.label}</dt>
+                      <dd>{row.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </main>
   )

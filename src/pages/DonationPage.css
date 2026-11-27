@@ -216,6 +216,84 @@
   color: #182834;
 }
 
+/* ─── Bank transfer panel (INR | FCRA) ─── */
+.donation-bank-panel {
+  margin-top: 48px;
+  padding: 28px 30px 30px;
+  background: #ffffff;
+  border: 1px solid #e4eaee;
+  border-radius: 18px;
+  box-shadow: 0 10px 36px rgba(25, 45, 65, 0.06);
+}
+
+.donation-bank-panel-title {
+  font-family: var(--head, "Lora", Georgia, serif);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 700;
+  color: #1c2730;
+  margin: 0 0 22px;
+  letter-spacing: -0.015em;
+}
+
+.donation-bank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 36px;
+}
+
+.donation-bank-col + .donation-bank-col {
+  border-left: 1px solid #e1e7ec;
+  padding-left: 36px;
+}
+
+.donation-bank-col-title {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #631932;
+  margin: 0 0 16px;
+  line-height: 1.4;
+  font-family: var(--body, "Lato", -apple-system, BlinkMacSystemFont, sans-serif);
+}
+
+.donation-bank-list {
+  margin: 0;
+}
+
+.donation-bank-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 40%) 1fr;
+  gap: 10px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #eef2f5;
+}
+
+.donation-bank-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.donation-bank-row:first-child {
+  padding-top: 0;
+}
+
+.donation-bank-row dt {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6a7580;
+}
+
+.donation-bank-row dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #182834;
+  letter-spacing: 0.02em;
+  word-break: break-word;
+}
+
 /* ─── Responsive Adjustments ─── */
 @media (max-width: 960px) {
   .donation-content-grid {
@@ -227,6 +305,16 @@
   }
   .donation-content-wrap {
     margin: 36px auto 60px;
+  }
+  .donation-bank-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .donation-bank-col + .donation-bank-col {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid #e1e7ec;
+    padding-top: 24px;
   }
 }
 
@@ -248,5 +336,13 @@
   .donation-card-upi-qr {
     width: 240px;
     height: 240px;
+  }
+  .donation-bank-panel {
+    margin-top: 36px;
+    padding: 22px 16px 24px;
+  }
+  .donation-bank-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
   }
 }
